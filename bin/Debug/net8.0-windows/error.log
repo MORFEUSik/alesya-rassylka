@@ -1,0 +1,10 @@
+25.02.2025 19:07:18: [Ошибка при загрузке JSON] System.IO.FileNotFoundException - Файл customers.json не найден!
+StackTrace:    at alesya_rassylka.MainWindow.LoadCustomers() in D:\app\fork\alesya-rassylka\MainWindow.xaml.cs:line 37
+25.02.2025 19:19:02: [SMTP ошибка] System.Net.Mail.SmtpException - Mailbox unavailable. The server response was: 5.7.0 Mail relay denied [109.126.138.213]. Invalid credentials for relay for
+StackTrace:    at System.Net.Mail.MailCommand.CheckResponse(SmtpStatusCode statusCode, String response)
+   at System.Net.Mail.SmtpTransport.SendMail(MailAddress sender, MailAddressCollection recipients, String deliveryNotify, Boolean allowUnicode, SmtpFailedRecipientException& exception)
+   at System.Net.Mail.SmtpClient.Send(MailMessage message)
+   at alesya_rassylka.MainWindow.SendEmail(String recipientEmail, String message) in D:\app\fork\alesya-rassylka\MainWindow.xaml.cs:line 92
+25.02.2025 19:19:02: [Ошибка при отправке письма] System.Exception - SMTP ошибка (MailboxUnavailable): Mailbox unavailable. The server response was: 5.7.0 Mail relay denied [109.126.138.213]. Invalid credentials for relay for
+StackTrace:    at alesya_rassylka.MainWindow.SendEmail(String recipientEmail, String message) in D:\app\fork\alesya-rassylka\MainWindow.xaml.cs:line 102
+   at alesya_rassylka.MainWindow.SendButton_Click(Object sender, RoutedEventArgs e) in D:\app\fork\alesya-rassylka\MainWindow.xaml.cs:line 53

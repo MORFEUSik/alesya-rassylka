@@ -86,7 +86,7 @@ namespace alesya_rassylka
                     smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
                     smtp.UseDefaultCredentials = false;
                     smtp.Timeout = 30000; // Увеличенный таймаут
-                    smtp.Host = "smtp-relay.gmail.com"; // Альтернативный SMTP Google
+                    smtp.Host = "smtp.gmail.com"; // Альтернативный SMTP Google
 
 
                     smtp.Send(mail);
