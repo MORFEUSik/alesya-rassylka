@@ -1,14 +1,22 @@
 [
   {
-    "Name": "Никита Винкоуров",
-    "Email": "nikita.vinokurov.05@mail.ru"
+    "Name": "\u041D\u0438\u043A\u0438\u0442\u0430 \u0412\u0438\u043D2",
+    "Email": "nikita.vinokurov.05@mail.ru",
+    "ProductCategory": "\u0425\u043E\u043B\u043E\u0434\u0438\u043B\u044C\u043D\u0438\u043A"
   },
   {
-    "Name": "Иван Петров",
-    "Email": "ivan.petrov@example.com"
+    "Name": "\u0418\u0432\u0430\u043D \u041F\u0435\u0442\u0440\u043E\u0432",
+    "Email": "ivan.petrov@example.com",
+    "ProductCategory": "\u041F\u044B\u043B\u0435\u0441\u043E\u0441"
   },
   {
-    "Name": "Алеся Синявская",
-    "Email": "alesyaaasin@gmail.com"
+    "Name": "\u0410\u043B\u0435\u0441\u0438\u044F \u0421\u0438\u043D\u044F\u0432\u0441\u043A\u0430\u044F",
+    "Email": "alesyaaasin@gmail.com",
+    "ProductCategory": "\u0421\u0442\u0438\u0440\u0430\u043B\u044C\u043D\u0430\u044F \u043C\u0430\u0448\u0438\u043D\u0430"
+  },
+  {
+    "Name": "\u0418\u043C\u044F",
+    "Email": "Email",
+    "ProductCategory": "\u0425\u043E\u043B\u043E\u0434\u0438\u043B\u044C\u043D\u0438\u043A"
   }
 ]

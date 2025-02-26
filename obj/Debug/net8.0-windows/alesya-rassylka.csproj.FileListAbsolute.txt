@@ -6,7 +6,6 @@ D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\alesya-rassylka.pdb
 D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\MainWindow.g.cs
 D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\App.g.cs
 D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\alesya-rassylka_MarkupCompile.cache
-D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\alesya-rassylka_MarkupCompile.lref
 D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\MainWindow.baml
 D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\alesya-rassylka.g.resources
 D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\alesya-rassylka.GeneratedMSBuildEditorConfig.editorconfig
