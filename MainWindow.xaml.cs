@@ -212,6 +212,18 @@ namespace alesya_rassylka
                 throw;
             }
         }
+        private void EmojiButton_Click(object sender, RoutedEventArgs e)
+{
+    Button button = sender as Button;
+    button.ContextMenu.IsOpen = true;
+}
+
+private void Emoji_Click(object sender, RoutedEventArgs e)
+{
+    MenuItem item = sender as MenuItem;
+    MessageTextBox.Text += item.Header.ToString(); // Добавляем эмодзи в поле сообщения
+}
+
 
         private void LogError(string context, Exception ex)
         {
