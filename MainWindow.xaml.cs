@@ -21,6 +21,16 @@ namespace alesya_rassylka
             InitializeComponent();
             LoadCustomers();
         }
+
+        private void Minimize_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Minimized;
+        }
+
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
         {
             // В этом месте можно обрабатывать клик по ссылке
@@ -125,6 +135,32 @@ namespace alesya_rassylka
         {
             MessageBox.Show($"{ex.Message}\n{ex.StackTrace}", title, MessageBoxButton.OK, MessageBoxImage.Error);
         }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void Settings_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Открываем настройки");
+        }
+
+        private void Help_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Открываем справку");
+        }
+
+        private void About_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("О программе");
+        }
+
     }
 
     public class Customer
