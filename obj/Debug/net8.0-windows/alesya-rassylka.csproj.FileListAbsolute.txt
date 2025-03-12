@@ -39,3 +39,9 @@ D:\alesya-rassylka\alesya-rassylka\obj\Debug\net8.0-windows\refint\alesya-rassyl
 D:\alesya-rassylka\alesya-rassylka\obj\Debug\net8.0-windows\alesya-rassylka.pdb
 D:\alesya-rassylka\alesya-rassylka\obj\Debug\net8.0-windows\alesya-rassylka.genruntimeconfig.cache
 D:\alesya-rassylka\alesya-rassylka\obj\Debug\net8.0-windows\ref\alesya-rassylka.dll
+D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\alesya-rassylka.csproj.AssemblyReference.cache
+D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\ControlzEx.dll
+D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\MahApps.Metro.dll
+D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\Microsoft.Xaml.Behaviors.dll
+D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\de\MahApps.Metro.resources.dll
+D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\alesya-r.2429485E.Up2Date

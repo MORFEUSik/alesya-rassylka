@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Text.Json;
 using System.Windows;
-using System.Windows.Controls;
+using System.Windows.Navigation;
+using MahApps.Metro.Controls; // Подключение для MetroWindow
 
 namespace alesya_rassylka
 {
-    public partial class MainWindow : Window
+    public partial class MainWindow : MetroWindow  // Убедитесь, что наследование только от MetroWindow
     {
         private List<Customer> customers;
         private const string JsonFilePath = "customers.json";
@@ -21,7 +21,13 @@ namespace alesya_rassylka
             InitializeComponent();
             LoadCustomers();
         }
-
+        private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            // В этом месте можно обрабатывать клик по ссылке
+            // Например, можно открыть браузер или показать сообщение
+            MessageBox.Show($"Вы кликнули по ссылке: {e.Uri.AbsoluteUri}");
+            e.Handled = true; // Указывает, что событие обработано
+        }
         private void LoadCustomers()
         {
             try
@@ -30,8 +36,6 @@ namespace alesya_rassylka
                 {
                     string json = File.ReadAllText(JsonFilePath);
                     customers = JsonSerializer.Deserialize<List<Customer>>(json) ?? new List<Customer>();
-                    UpdateRecipientsListBox();
-                    InitializeCategoryComboBox(); // Инициализация ComboBox после загрузки данных
                 }
                 else
                 {
@@ -52,7 +56,6 @@ namespace alesya_rassylka
             {
                 string json = JsonSerializer.Serialize(customers, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(JsonFilePath, json);
-                UpdateRecipientsListBox();
             }
             catch (Exception ex)
             {
@@ -61,128 +64,27 @@ namespace alesya_rassylka
             }
         }
 
-        private void InitializeCategoryComboBox()
-        {
-            // Получаем уникальные категории из списка customers
-            var uniqueCategories = customers
-                .Select(c => c.ProductCategory)
-                .Distinct()
-                .ToList();
-
-            // Добавляем "Все" в начало списка
-            uniqueCategories.Insert(0, "Все");
-
-            // Устанавливаем источник данных для ComboBox
-            CategoryComboBox.ItemsSource = uniqueCategories;
-            CategoryComboBox.SelectedIndex = 0;
-        }
-
-        private void UpdateRecipientsListBox()
-        {
-            RecipientsListBox.ItemsSource = null;
-            RecipientsListBox.ItemsSource = customers;
-        }
-
-        private void CategoryComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            string selectedCategory = CategoryComboBox.SelectedItem as string;
-            if (selectedCategory == "Все")
-            {
-                UpdateRecipientsListBox();
-            }
-            else
-            {
-                var filteredCustomers = customers.Where(c => c.ProductCategory == selectedCategory).ToList();
-                RecipientsListBox.ItemsSource = null;
-                RecipientsListBox.ItemsSource = filteredCustomers;
-            }
-        }
-
-        private void AddUserButton_Click(object sender, RoutedEventArgs e)
-        {
-            string name = NewNameTextBox.Text.Trim();
-            string email = NewEmailTextBox.Text.Trim();
-            string productCategory = (NewProductCategoryComboBox.SelectedItem as ComboBoxItem)?.Content.ToString();
-
-            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(productCategory))
-            {
-                MessageBox.Show("Введите имя, email и выберите категорию!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            if (customers.Any(c => c.Email == email))
-            {
-                MessageBox.Show("Этот email уже существует!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            customers.Add(new Customer { Name = name, Email = email, ProductCategory = productCategory });
-            SaveCustomers();
-            NewNameTextBox.Clear();
-            NewEmailTextBox.Clear();
-        }
-
-        private void EditUserButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (RecipientsListBox.SelectedItem is Customer selectedCustomer)
-            {
-                string newName = NewNameTextBox.Text.Trim();
-                string newEmail = NewEmailTextBox.Text.Trim();
-                string newProductCategory = (NewProductCategoryComboBox.SelectedItem as ComboBoxItem)?.Content.ToString();
-
-                if (string.IsNullOrWhiteSpace(newName) || string.IsNullOrWhiteSpace(newEmail) || string.IsNullOrWhiteSpace(newProductCategory))
-                {
-                    MessageBox.Show("Введите имя, email и выберите категорию!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                selectedCustomer.Name = newName;
-                selectedCustomer.Email = newEmail;
-                selectedCustomer.ProductCategory = newProductCategory;
-                SaveCustomers();
-            }
-            else
-            {
-                MessageBox.Show("Выберите пользователя для редактирования!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
-        }
-
-        private void DeleteUserButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (RecipientsListBox.SelectedItem is Customer selectedCustomer)
-            {
-                customers.Remove(selectedCustomer);
-                SaveCustomers();
-            }
-            else
-            {
-                MessageBox.Show("Выберите пользователя для удаления!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
-        }
-
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
-            var selectedCustomers = RecipientsListBox.SelectedItems.Cast<Customer>().ToList();
+            string recipient = RecipientTextBox.Text.Trim();
+            string message = MessageTextBox.Text.Trim();
 
-            if (!selectedCustomers.Any() || string.IsNullOrWhiteSpace(MessageTextBox.Text))
+            if (string.IsNullOrWhiteSpace(recipient) || string.IsNullOrWhiteSpace(message))
             {
-                MessageBox.Show("Выберите получателей и введите сообщение!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Введите получателя и сообщение!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            foreach (var customer in selectedCustomers)
+            try
             {
-                try
-                {
-                    SendEmail(customer.Email, MessageTextBox.Text);
-                }
-                catch (Exception ex)
-                {
-                    LogError($"Ошибка отправки письма {customer.Email}", ex);
-                }
+                SendEmail(recipient, message);
+                MessageBox.Show("Сообщение успешно отправлено!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-
-            MessageBox.Show("Сообщения успешно отправлены!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+            catch (Exception ex)
+            {
+                LogError("Ошибка отправки письма", ex);
+                ShowDetailedError("Ошибка отправки письма", ex);
+            }
         }
 
         private void SendEmail(string recipientEmail, string message)
@@ -212,18 +114,6 @@ namespace alesya_rassylka
                 throw;
             }
         }
-        private void EmojiButton_Click(object sender, RoutedEventArgs e)
-{
-    Button button = sender as Button;
-    button.ContextMenu.IsOpen = true;
-}
-
-private void Emoji_Click(object sender, RoutedEventArgs e)
-{
-    MenuItem item = sender as MenuItem;
-    MessageTextBox.Text += item.Header.ToString(); // Добавляем эмодзи в поле сообщения
-}
-
 
         private void LogError(string context, Exception ex)
         {
@@ -241,6 +131,5 @@ private void Emoji_Click(object sender, RoutedEventArgs e)
     {
         public string Name { get; set; }
         public string Email { get; set; }
-        public string ProductCategory { get; set; } // Группа техники
     }
 }
