@@ -4,7 +4,8 @@
         xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
         Title="ATLANT" Height="700" Width="1000" WindowStartupLocation="CenterScreen"
         Background="#DFE3EB"
-        ResizeMode="CanMinimize"
+        TextElement.FontFamily="Arial Black"
+        
         WindowStyle="SingleBorderWindow">
 
 
@@ -84,27 +85,26 @@
         <Style x:Key="MenuButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Padding" Value="10"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Padding" Value="5"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
-            <Setter Property="MaxWidth" Value="224"/>
-            <!-- Ограничение по ширине -->
             <Setter Property="TextBlock.TextAlignment" Value="Center"/>
-            <!-- Выравнивание текста -->
 
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                        <Border Background="{TemplateBinding Background}" 
+                        Padding="{TemplateBinding Padding}" 
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch">
                             <TextBlock Text="{TemplateBinding Content}" 
                                Foreground="{TemplateBinding Foreground}"
                                FontSize="{TemplateBinding FontSize}"
                                TextAlignment="Left" 
-                               TextWrapping="Wrap"
-                               MaxWidth="{TemplateBinding MaxWidth}"/>
+                               TextWrapping="Wrap"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <!-- Анимация при наведении -->
@@ -130,65 +130,54 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="49*"/>
-            <ColumnDefinition Width="35*"/>
-            <ColumnDefinition Width="54*"/>
-            <ColumnDefinition Width="342*"/>
-            <ColumnDefinition Width="52*"/>
-            <ColumnDefinition Width="18*"/>
-            <ColumnDefinition Width="350*"/>
+            <!-- Левая панель фиксированной ширины -->
+            <ColumnDefinition Width="270"/>
+            <!-- Отступ между панелями -->
+            <ColumnDefinition Width="20"/>
+            <!-- Адаптивная правая панель -->
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
+
         <!-- Левая панель -->
-        <!-- Левая панель -->
-        <Border Background="#172A74" Width="250" HorizontalAlignment="Left" 
-        BorderBrush="Transparent" BorderThickness="0,0,1,1" 
-        CornerRadius="0,15,15,0" Grid.ColumnSpan="4">
+        <Border Background="#172A74" Grid.Column="0"
+        BorderBrush="Transparent" BorderThickness="0,0,1,1"
+        CornerRadius="0,15,15,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <!-- Логотип -->
+                    <RowDefinition Height="*"/>
+                    <!-- Равномерное распределение кнопок -->
+                </Grid.RowDefinitions>
 
-            <DockPanel Width="250" HorizontalAlignment="Left">
-                <StackPanel>
-                    <!-- Белый прямоугольник с названием -->
-                    <Border Background="White" CornerRadius="15" Margin="10" Padding="10" Height="53">
-                        <TextBlock Text="ATLANT" FontSize="28" FontWeight="Bold" Foreground="#172A74" 
-                           VerticalAlignment="Center" HorizontalAlignment="Center" Width="118"/>
-                    </Border>
+                <!-- Логотип -->
+                <Border Background="White" CornerRadius="15" Margin="10" Padding="10" Height="53" Grid.Row="0">
+                    <TextBlock Text="ATLANT" FontSize="28" FontWeight="Bold" Foreground="#172A74"
+                       VerticalAlignment="Center" HorizontalAlignment="Center" Width="118"/>
+                </Border>
 
-                    <!-- Прокручиваемый список кнопок -->
-                    <ScrollViewer VerticalScrollBarVisibility="Hidden" Height="500">
-                        <StackPanel Margin="10,0,10,10">
-                            <Button Content="Предложение о сотрудничестве" Style="{StaticResource MenuButton}" Click="Button_Click"/>
-                            <Button Content="Специальные условия для оптовиков" Style="{StaticResource MenuButton}" Click="Button_Click_1"/>
-                            <Button Content="Анонс новой продукции для оптовиков" Style="{StaticResource MenuButton}"/>
-                            <Button Content="Специальные акции для оптовиков" Style="{StaticResource MenuButton}"/>
-                            <Button Content="Информация о логистике и доставке" Style="{StaticResource MenuButton}"/>
-                            <Button Content="Приглашение на встречу или выставку" Style="{StaticResource MenuButton}"/>
-                            <Button Content="Образовательный контент для закупщиков" Style="{StaticResource MenuButton}"/>
-                            <Button Content="Благодарность за сотрудничество" Style="{StaticResource MenuButton}"/>
-                            <Button Content="Благодарность за сотрудничество" Style="{StaticResource MenuButton}"/>
-                            <Button Content="Благодарность за сотрудничество" Style="{StaticResource MenuButton}"/>
-                            <Button Content="Благодарность за сотрудничество" Style="{StaticResource MenuButton}"/>
-                            <Button Content="Благодарность за сотрудничество" Style="{StaticResource MenuButton}"/>
-                            <Button Content="Благодарность за сотрудничество" Style="{StaticResource MenuButton}"/>
-                            <!-- Можно добавить еще кнопки -->
-                        </StackPanel>
-                    </ScrollViewer>
-                </StackPanel>
-            </DockPanel>
-
+                <!-- Равномерное распределение кнопок -->
+                <UniformGrid Grid.Row="1" Rows="8" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                    <Button Content="Предложение о сотрудничестве" Style="{StaticResource MenuButton}" Click="Button_Click"/>
+                    <Button Content="Специальные условия для оптовиков" Style="{StaticResource MenuButton}" Click="Button_Click_1"/>
+                    <Button Content="Анонс новой продукции для оптовиков" Style="{StaticResource MenuButton}"/>
+                    <Button Content="Специальные акции для оптовиков" Style="{StaticResource MenuButton}"/>
+                    <Button Content="Информация о логистике и доставке" Style="{StaticResource MenuButton}"/>
+                    <Button Content="Приглашение на встречу или выставку" Style="{StaticResource MenuButton}"/>
+                    <Button Content="Образовательный контент для закупщиков" Style="{StaticResource MenuButton}"/>
+                    <Button Content="Благодарность за сотрудничество" Style="{StaticResource MenuButton}"/>
+                </UniformGrid>
+            </Grid>
         </Border>
 
 
-
-
-
-
         <!-- Основное содержимое -->
-        <StackPanel Margin="122,10,25,10" Grid.ColumnSpan="4" Grid.Column="3" RenderTransformOrigin="0.5,0.5">
+        <StackPanel Margin="0,10,25,10" Grid.Column="2">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,10" Height="38">
                 <Button Content="Настройки" Style="{StaticResource NavButton}" Margin="0,0,20,0" Click="Settings_Click"/>
                 <Button Content="Справка" Style="{StaticResource NavButton}" Margin="0,0,20,0" Click="Help_Click"/>
                 <Button Content="О программе" Style="{StaticResource NavButton}" Click="About_Click"/>
             </StackPanel>
-
 
             <TextBox x:Name="MessageTextBox" Height="288" Background="White" BorderBrush="#172A74" BorderThickness="1">
                 <TextBox.Template>
@@ -199,7 +188,6 @@
                     </ControlTemplate>
                 </TextBox.Template>
             </TextBox>
-
 
             <Grid Margin="0,20,0,0">
                 <Grid.RowDefinitions>
@@ -218,17 +206,17 @@
                 <!-- Получатель -->
                 <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Stretch" Margin="0,25,0,0">
                     <Button Content="Получатель" FontWeight="Bold" Margin="0,0,45,0" FontSize="18" 
-                Style="{StaticResource NavButton}" Click="SelectRecipients_Click"
-                HorizontalContentAlignment="Left"/>
+                            Style="{StaticResource NavButton}" Click="SelectRecipients_Click"
+                            HorizontalContentAlignment="Left"/>
 
                     <Border Background="White" BorderBrush="#172A74" BorderThickness="1" CornerRadius="5"
-                Width="548" MinHeight="50" MaxHeight="130" Padding="5">
+                            Width="548" MinHeight="50" MaxHeight="130" Padding="5">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
-                          Height="Auto" MaxHeight="170">
+                                      Height="Auto" MaxHeight="170">
                             <ItemsControl x:Name="RecipientList">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding}" Padding="5"/>
+                                        <TextBlock FontFamily="Sergeo UI" Text="{Binding}" Padding="5"/>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
@@ -236,9 +224,6 @@
                     </Border>
                 </StackPanel>
             </Grid>
-
-
-
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,50,0,0">
                 <Button Content="Отправить письмо" Style="{StaticResource ActionButton}"/>

@@ -4,6 +4,6 @@
              xmlns:local="clr-namespace:alesya_rassylka"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        
     </Application.Resources>
 </Application>
