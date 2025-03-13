@@ -19,6 +19,19 @@ namespace alesya_rassylka
         public MainWindow()
         {
             InitializeComponent();
+
+            List<string> testRecipients = new List<string>
+    {
+        "Иван Иванов - ivan@example.com",
+        "Мария Петрова - maria@example.com",
+        "Александр Сидоров - alex@example.com",
+        "Александр Сидоров - alex@example.com",
+        "Александр Сидоров - alex@example.com",
+        "Александр Сидоров - alex@example.com"
+    };
+
+            RecipientList.ItemsSource = testRecipients;
+
             LoadCustomers();
         }
 
@@ -76,25 +89,25 @@ namespace alesya_rassylka
 
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
-            string recipient = RecipientTextBox.Text.Trim();
-            string message = MessageTextBox.Text.Trim();
+            //string recipient = RecipientTextBox.Text.Trim();
+            //string message = MessageTextBox.Text.Trim();
 
-            if (string.IsNullOrWhiteSpace(recipient) || string.IsNullOrWhiteSpace(message))
-            {
-                MessageBox.Show("Введите получателя и сообщение!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+            //if (string.IsNullOrWhiteSpace(recipient) || string.IsNullOrWhiteSpace(message))
+            //{
+            //    MessageBox.Show("Введите получателя и сообщение!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+            //    return;
+            //}
 
-            try
-            {
-                SendEmail(recipient, message);
-                MessageBox.Show("Сообщение успешно отправлено!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            catch (Exception ex)
-            {
-                LogError("Ошибка отправки письма", ex);
-                ShowDetailedError("Ошибка отправки письма", ex);
-            }
+            //try
+            //{
+            //    SendEmail(recipient, message);
+            //    MessageBox.Show("Сообщение успешно отправлено!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+            //}
+            //catch (Exception ex)
+            //{
+            //    LogError("Ошибка отправки письма", ex);
+            //    ShowDetailedError("Ошибка отправки письма", ex);
+            //}
         }
 
         private void SendEmail(string recipientEmail, string message)
@@ -161,6 +174,15 @@ namespace alesya_rassylka
             MessageBox.Show("О программе");
         }
 
+        private void RecipientTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+
+        }
+
+        private void SelectRecipients_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 
     public class Customer
