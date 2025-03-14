@@ -3,16 +3,20 @@
   "WorkspaceRootPath": "D:\\fork\\alesya-rassylka\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{00CF0652-C362-4A8C-9E40-64D8389046C2}|alesya-rassylka.csproj|d:\\fork\\alesya-rassylka\\mainwindow.xaml||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{00CF0652-C362-4A8C-9E40-64D8389046C2}|alesya-rassylka.csproj|solutionrelative:mainwindow.xaml||{8B382828-6202-11D1-8870-0000F87579D2}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{00CF0652-C362-4A8C-9E40-64D8389046C2}|alesya-rassylka.csproj|d:\\fork\\alesya-rassylka\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{00CF0652-C362-4A8C-9E40-64D8389046C2}|alesya-rassylka.csproj|solutionrelative:mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{00CF0652-C362-4A8C-9E40-64D8389046C2}|alesya-rassylka.csproj|d:\\fork\\alesya-rassylka\\mainwindow.xaml||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{00CF0652-C362-4A8C-9E40-64D8389046C2}|alesya-rassylka.csproj|solutionrelative:mainwindow.xaml||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{00CF0652-C362-4A8C-9E40-64D8389046C2}|alesya-rassylka.csproj|d:\\fork\\alesya-rassylka\\selectrecipientwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{00CF0652-C362-4A8C-9E40-64D8389046C2}|alesya-rassylka.csproj|solutionrelative:selectrecipientwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{00CF0652-C362-4A8C-9E40-64D8389046C2}|alesya-rassylka.csproj|d:\\fork\\alesya-rassylka\\selectrecipientwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{00CF0652-C362-4A8C-9E40-64D8389046C2}|alesya-rassylka.csproj|solutionrelative:selectrecipientwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{00CF0652-C362-4A8C-9E40-64D8389046C2}|alesya-rassylka.csproj|d:\\fork\\alesya-rassylka\\selectrecipientwindow.xaml||{8B382828-6202-11D1-8870-0000F87579D2}",
@@ -21,10 +25,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{00CF0652-C362-4A8C-9E40-64D8389046C2}|alesya-rassylka.csproj|d:\\fork\\alesya-rassylka\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
       "RelativeMoniker": "D:0:0:{00CF0652-C362-4A8C-9E40-64D8389046C2}|alesya-rassylka.csproj|solutionrelative:mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{00CF0652-C362-4A8C-9E40-64D8389046C2}|alesya-rassylka.csproj|d:\\fork\\alesya-rassylka\\selectrecipientwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
-      "RelativeMoniker": "D:0:0:{00CF0652-C362-4A8C-9E40-64D8389046C2}|alesya-rassylka.csproj|solutionrelative:selectrecipientwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{00CF0652-C362-4A8C-9E40-64D8389046C2}|alesya-rassylka.csproj|d:\\fork\\alesya-rassylka\\app.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
@@ -46,26 +46,26 @@
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "MainWindow.xaml",
               "DocumentMoniker": "D:\\fork\\alesya-rassylka\\MainWindow.xaml",
               "RelativeDocumentMoniker": "MainWindow.xaml",
               "ToolTip": "D:\\fork\\alesya-rassylka\\MainWindow.xaml",
               "RelativeToolTip": "MainWindow.xaml",
-              "ViewState": "AgIAAN0AAAAAAAAAAAAAwOQAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAANoAAAAAAAAAAAAQwPUAAAAjAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
               "WhenOpened": "2025-03-12T17:02:50.533Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "SelectRecipientWindow.xaml",
               "DocumentMoniker": "D:\\fork\\alesya-rassylka\\SelectRecipientWindow.xaml",
               "RelativeDocumentMoniker": "SelectRecipientWindow.xaml",
-              "ToolTip": "D:\\fork\\alesya-rassylka\\SelectRecipientWindow.xaml*",
-              "RelativeToolTip": "SelectRecipientWindow.xaml*",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAAAAAAAAAAAA==",
+              "ToolTip": "D:\\fork\\alesya-rassylka\\SelectRecipientWindow.xaml",
+              "RelativeToolTip": "SelectRecipientWindow.xaml",
+              "ViewState": "AgIAACEAAAAAAAAAAAAAwC8AAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
               "WhenOpened": "2025-03-14T07:20:29.363Z",
               "EditorCaption": ""
@@ -74,17 +74,29 @@
         },
         {
           "DockedWidth": 183,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
+              "Title": "SelectRecipientWindow.xaml",
+              "DocumentMoniker": "D:\\fork\\alesya-rassylka\\SelectRecipientWindow.xaml",
+              "RelativeDocumentMoniker": "SelectRecipientWindow.xaml",
+              "ToolTip": "D:\\fork\\alesya-rassylka\\SelectRecipientWindow.xaml",
+              "RelativeToolTip": "SelectRecipientWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-03-14T07:19:29.084Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
               "Title": "MainWindow.xaml.cs",
               "DocumentMoniker": "D:\\fork\\alesya-rassylka\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "MainWindow.xaml.cs",
               "ToolTip": "D:\\fork\\alesya-rassylka\\MainWindow.xaml.cs*",
               "RelativeToolTip": "MainWindow.xaml.cs*",
-              "ViewState": "AgIAALsAAAAAAAAAAAAQwNIAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAL0AAAAAAAAAAAAiwM0AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-02-25T06:29:36.425Z",
               "EditorCaption": ""
@@ -95,36 +107,23 @@
               "Title": "SelectRecipientWindow.xaml.cs",
               "DocumentMoniker": "D:\\fork\\alesya-rassylka\\SelectRecipientWindow.xaml.cs",
               "RelativeDocumentMoniker": "SelectRecipientWindow.xaml.cs",
-              "ToolTip": "D:\\fork\\alesya-rassylka\\SelectRecipientWindow.xaml.cs*",
-              "RelativeToolTip": "SelectRecipientWindow.xaml.cs*",
-              "ViewState": "AgIAAAwAAAAAAAAAAAAQwCgAAAAFAAAAAAAAAA==",
+              "ToolTip": "D:\\fork\\alesya-rassylka\\SelectRecipientWindow.xaml.cs",
+              "RelativeToolTip": "SelectRecipientWindow.xaml.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAABoAAAAcAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-03-14T07:21:05.834Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "MainWindow.xaml",
               "DocumentMoniker": "D:\\fork\\alesya-rassylka\\MainWindow.xaml",
               "RelativeDocumentMoniker": "MainWindow.xaml",
               "ToolTip": "D:\\fork\\alesya-rassylka\\MainWindow.xaml",
               "RelativeToolTip": "MainWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2025-02-25T06:29:39.865Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "SelectRecipientWindow.xaml",
-              "DocumentMoniker": "D:\\fork\\alesya-rassylka\\SelectRecipientWindow.xaml",
-              "RelativeDocumentMoniker": "SelectRecipientWindow.xaml",
-              "ToolTip": "D:\\fork\\alesya-rassylka\\SelectRecipientWindow.xaml*",
-              "RelativeToolTip": "SelectRecipientWindow.xaml*",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2025-03-14T07:19:29.084Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-02-25T06:29:39.865Z"
             },
             {
               "$type": "Document",

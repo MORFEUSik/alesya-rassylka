@@ -1,25 +1,124 @@
 ﻿<Window x:Class="alesya_rassylka.SelectRecipientWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Выбор получателей" Height="400" Width="500"
-        WindowStartupLocation="CenterOwner"
-        ResizeMode="NoResize">
+        Title="Выбор получателей" Height="500" Width="600" 
+        Background="#DFE3EB" WindowStartupLocation="CenterOwner">
+
+    <Window.Resources>
+        <!-- Стили для текстового блока -->
+        <Style x:Key="LabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#172A74"/>
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+
+        <!-- Стили для кнопок -->
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#172A74"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#172A74"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="5" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#E0E6F8"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#C0D0F0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
 
     <Grid Margin="10">
-        <ListBox x:Name="RecipientListBox" SelectionMode="Multiple">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Выбор категории -->
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBlock Text="Категория:" Style="{StaticResource LabelStyle}" VerticalAlignment="Center"/>
+            <ComboBox x:Name="CategoryComboBox" Width="300" Margin="10,0,0,0"
+                      SelectionChanged="CategoryComboBox_SelectionChanged">
+                <ComboBox.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Добавить" Click="AddCategory_Click"/>
+                        <MenuItem Header="Удалить" Click="DeleteCategory_Click"/>
+                        <MenuItem Header="Редактировать" Click="EditCategory_Click"/>
+                    </ContextMenu>
+                </ComboBox.ContextMenu>
+            </ComboBox>
+        </StackPanel>
+
+        <!-- Поле поиска -->
+        <TextBox x:Name="SearchTextBox" Height="30" Margin="0,0,0,10" 
+         VerticalContentAlignment="Center"
+         TextChanged="SearchTextBox_TextChanged">
+            <TextBox.Style>
+                <Style TargetType="TextBox">
+                    <Setter Property="Foreground" Value="#172A74"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TextBox">
+                                <Grid>
+                                    <TextBlock x:Name="Placeholder" Text="Поиск..." 
+                                       Foreground="#9E9E9E"
+                                       VerticalAlignment="Center"
+                                       Margin="5,0,0,0"
+                                       IsHitTestVisible="False"
+                                       Visibility="Collapsed"/>
+                                    <ScrollViewer Margin="0" x:Name="PART_ContentHost"/>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <!-- Показываем текст-заполнитель, если текст пустой -->
+                                    <Trigger Property="Text" Value="">
+                                        <Setter TargetName="Placeholder" Property="Visibility" Value="Visible"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TextBox.Style>
+        </TextBox>
+
+
+        <!-- Список получателей -->
+        <ListBox x:Name="RecipientsListBox" SelectionMode="Multiple"
+                 BorderBrush="#172A74" BorderThickness="1" Background="White">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
-                        <CheckBox IsChecked="{Binding IsSelected}" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                        <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center"/>
+                    <StackPanel Orientation="Vertical" Margin="5">
+                        <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding Email}" FontSize="12" Foreground="Gray"/>
+                        <TextBlock Text="{Binding ProductCategory}" FontSize="12" Foreground="#3050A5"/>
                     </StackPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0" VerticalAlignment="Bottom">
-            <Button Content="ОК" Width="80" Margin="0,0,10,0" Click="OkButton_Click"/>
-            <Button Content="Отмена" Width="80" Click="CancelButton_Click"/>
+        <!-- Кнопки -->
+        <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="0,10,0,0">
+            <Button Content="Выбрать" Style="{StaticResource ActionButton}" Click="ConfirmSelection_Click" Width="100" Margin="0,0,10,0"/>
+            <Button Content="Отмена" Style="{StaticResource ActionButton}" Click="Cancel_Click" Width="100"/>
         </StackPanel>
     </Grid>
 </Window>
