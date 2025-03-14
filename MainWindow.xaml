@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
-        Title="ATLANT" Height="700" Width="1000" WindowStartupLocation="CenterScreen"
+        Title="ATLANT" Height="750" Width="1000" WindowStartupLocation="CenterScreen"
         Background="#DFE3EB"
        
         
@@ -82,7 +82,10 @@
             </Setter>
         </Style>
 
-
+        <Style x:Key="SmallNavButton" TargetType="Button" BasedOn="{StaticResource NavButton}">
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="Padding" Value="3"/>
+        </Style>
 
         <Style x:Key="MenuButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
@@ -190,40 +193,58 @@
             </TextBox>
 
             <Grid Margin="0,25,0,0">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- Для текстового блока или кнопки -->
+                    <ColumnDefinition Width="*" />
+                    <!-- Для растяжения на всю ширину -->
+                </Grid.ColumnDefinitions>
 
                 <!-- Отправитель -->
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,5,0,0">
-                    <TextBlock Text="Отправитель" FontWeight="Bold" Foreground="#172A74" VerticalAlignment="Center" 
-               Width="200" FontSize="24" FontFamily="Arial Black"/>
-                    <Border Background="White" BorderBrush="#172A74" BorderThickness="1" CornerRadius="5" Width="548" Padding="2">
-                        <TextBox x:Name="SenderTextBox" Background="Transparent" BorderThickness="0" Padding="5" 
-                 VerticalContentAlignment="Center"/>
-                    </Border>
-                </StackPanel>
+                <TextBlock Text="Отправитель" FontWeight="Bold" Foreground="#172A74"
+               VerticalAlignment="Center" MinWidth="200" FontSize="24" FontFamily="Arial Black"
+               Grid.Column="0" Margin="0,0,22,0"/>
 
-                <!-- Получатель -->
-                <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,25,0,0">
-                    <TextBlock Text="Получатель" FontWeight="Bold" Foreground="#172A74" VerticalAlignment="Center"
-               Width="200" FontSize="24" FontFamily="Arial Black"/>
-                    <Border Background="White" BorderBrush="#172A74" BorderThickness="1" CornerRadius="5"
-            Width="548" MinHeight="50" MaxHeight="130" Padding="5">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                <Border Background="White" BorderBrush="#172A74" BorderThickness="1" 
+            CornerRadius="5" Padding="2" HorizontalAlignment="Stretch"
+            Grid.Column="1" Margin="0,0,0,0">
+                    <!-- Правый отступ для внешнего вида -->
+                    <TextBox x:Name="SenderTextBox" Background="Transparent" BorderThickness="0" Padding="5"
+                 VerticalContentAlignment="Center" HorizontalAlignment="Stretch"/>
+                </Border>
+            </Grid>
+
+            <!-- Получатель -->
+            <Grid Margin="0,25,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- Для кнопки -->
+                    <ColumnDefinition Width="*" />
+                    <!-- Для растяжения списка -->
+                </Grid.ColumnDefinitions>
+
+                <!-- Кнопка для выбора получателя -->
+                <Button Content="Получатель(ли)" Style="{StaticResource SmallNavButton}"
+            Grid.Column="0" Margin="0,0,10,0"
+            HorizontalAlignment="Left" Click="SelectRecipient_Click"/>
+
+                <!-- Список получателей -->
+                <Border Background="White" BorderBrush="#172A74" BorderThickness="1" 
+            CornerRadius="5" Padding="5"
+            HorizontalAlignment="Stretch" Grid.Column="1" Margin="0,0,0,0">
+                    <!-- Правый отступ -->
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                      HorizontalScrollBarVisibility="Disabled"
                       Height="Auto" MaxHeight="170">
-                            <ItemsControl x:Name="RecipientList">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock FontFamily="Segoe UI" Text="{Binding}" Padding="5"/>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
-                    </Border>
-                </StackPanel>
-
+                        <ItemsControl x:Name="RecipientList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock FontFamily="Segoe UI" Text="{Binding}" Padding="5"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
             </Grid>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,50,0,0">

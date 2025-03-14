@@ -188,6 +188,11 @@ namespace alesya_rassylka
         {
 
         }
+
+        private void SelectRecipient_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 
     public class Customer
