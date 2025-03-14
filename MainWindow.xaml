@@ -225,8 +225,8 @@
 
                 <!-- Кнопка для выбора получателя -->
                 <Button Content="Получатель(ли)" Style="{StaticResource SmallNavButton}"
-            Grid.Column="0" Margin="0,0,10,0"
-            HorizontalAlignment="Left" Click="SelectRecipient_Click"/>
+        HorizontalAlignment="Left" Margin="0,0,10,0" Click="SelectRecipient_Click"/>
+
 
                 <!-- Список получателей -->
                 <Border Background="White" BorderBrush="#172A74" BorderThickness="1" 

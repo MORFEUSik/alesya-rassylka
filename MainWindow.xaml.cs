@@ -189,10 +189,27 @@ namespace alesya_rassylka
 
         }
 
-        private void SelectRecipient_Click(object sender, RoutedEventArgs e)
+        private async void SelectRecipient_Click(object sender, RoutedEventArgs e)
         {
+            if (customers == null || customers.Count == 0)
+            {
+                MessageBox.Show("Нет доступных получателей.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
+            var window = new SelectRecipientWindow(customers)
+            {
+                Owner = this
+            };
+
+            if (window.ShowDialog() == true)
+            {
+                // Отображаем выбранных получателей в основном окне
+                RecipientList.ItemsSource = window.SelectedRecipients;
+            }
         }
+
+
     }
 
     public class Customer
