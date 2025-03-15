@@ -44,7 +44,7 @@
               "RelativeDocumentMoniker": "MainWindow.xaml",
               "ToolTip": "D:\\app\\fork\\alesya-rassylka\\MainWindow.xaml",
               "RelativeToolTip": "MainWindow.xaml",
-              "ViewState": "AgIAANQAAAAAAAAAAAAAAOUAAAAXAAAAAAAAAA==",
+              "ViewState": "AgIAAMAAAAAAAAAAAAAAANEAAAAeAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
               "WhenOpened": "2025-03-12T17:02:50.533Z",
               "EditorCaption": ""
@@ -89,8 +89,7 @@
               "RelativeToolTip": "MainWindow.xaml.cs",
               "ViewState": "AgIAAKsAAAAAAAAAAAAuwLwAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-25T06:29:36.425Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-02-25T06:29:36.425Z"
             },
             {
               "$type": "Document",
