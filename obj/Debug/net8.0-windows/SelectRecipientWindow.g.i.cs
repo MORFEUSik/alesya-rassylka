@@ -76,7 +76,7 @@ namespace alesya_rassylka {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/alesya-rassylka;component/selectrecipientwindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/alesya-rassylka;V1.0.0.0;component/selectrecipientwindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\SelectRecipientWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

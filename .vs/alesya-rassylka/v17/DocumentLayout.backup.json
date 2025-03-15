@@ -52,7 +52,7 @@
               "RelativeDocumentMoniker": "MainWindow.xaml",
               "ToolTip": "D:\\fork\\alesya-rassylka\\MainWindow.xaml",
               "RelativeToolTip": "MainWindow.xaml",
-              "ViewState": "AgIAANoAAAAAAAAAAAAQwPUAAAAjAAAAAAAAAA==",
+              "ViewState": "AgIAANwAAAAAAAAAAAAkwPUAAAAjAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
               "WhenOpened": "2025-03-12T17:02:50.533Z",
               "EditorCaption": ""
@@ -67,8 +67,7 @@
               "RelativeToolTip": "SelectRecipientWindow.xaml",
               "ViewState": "AgIAACEAAAAAAAAAAAAAwC8AAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2025-03-14T07:20:29.363Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-03-14T07:20:29.363Z"
             }
           ]
         },
@@ -85,8 +84,7 @@
               "ToolTip": "D:\\fork\\alesya-rassylka\\SelectRecipientWindow.xaml",
               "RelativeToolTip": "SelectRecipientWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2025-03-14T07:19:29.084Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-03-14T07:19:29.084Z"
             },
             {
               "$type": "Document",
@@ -94,9 +92,9 @@
               "Title": "MainWindow.xaml.cs",
               "DocumentMoniker": "D:\\fork\\alesya-rassylka\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "MainWindow.xaml.cs",
-              "ToolTip": "D:\\fork\\alesya-rassylka\\MainWindow.xaml.cs*",
-              "RelativeToolTip": "MainWindow.xaml.cs*",
-              "ViewState": "AgIAAL0AAAAAAAAAAAAiwM0AAAAAAAAAAAAAAA==",
+              "ToolTip": "D:\\fork\\alesya-rassylka\\MainWindow.xaml.cs",
+              "RelativeToolTip": "MainWindow.xaml.cs",
+              "ViewState": "AgIAAL0AAAAAAAAAAAAiwL4AAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-02-25T06:29:36.425Z",
               "EditorCaption": ""
@@ -111,8 +109,7 @@
               "RelativeToolTip": "SelectRecipientWindow.xaml.cs",
               "ViewState": "AgIAAAkAAAAAAAAAAAAAABoAAAAcAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-14T07:21:05.834Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-03-14T07:21:05.834Z"
             },
             {
               "$type": "Document",
@@ -134,8 +131,7 @@
               "ToolTip": "D:\\fork\\alesya-rassylka\\App.xaml",
               "RelativeToolTip": "App.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2025-03-12T04:56:21.449Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-03-12T04:56:21.449Z"
             },
             {
               "$type": "Document",
