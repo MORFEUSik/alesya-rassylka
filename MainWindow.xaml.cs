@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Net;
 using System.Net.Mail;
@@ -188,11 +189,39 @@ namespace alesya_rassylka
         {
 
         }
+
+        private async void SelectRecipient_Click(object sender, RoutedEventArgs e)
+        {
+            var window = new SelectRecipientWindow(customers, Categories.ToList()) // ✅ Передаем и список категорий
+            {
+                Owner = this
+            };
+
+            if (window.ShowDialog() == true)
+            {
+                RecipientList.ItemsSource = window.SelectedRecipients;
+            }
+        }
+
+
+        private ObservableCollection<string> Categories { get; set; } = new ObservableCollection<string>
+        {
+            "Электроника",
+            "Одежда",
+            "Обувь",
+            "Компьютеры"
+        };
+
+
+
     }
 
     public class Customer
     {
         public string Name { get; set; }
         public string Email { get; set; }
+        public string ProductCategory { get; set; } // ✅ Добавляем это свойство
     }
+
+
 }

@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "D:\\app\\fork\\alesya-rassylka\\alesya-rassylka.csproj": {}
+    "D:\\fork\\alesya-rassylka\\alesya-rassylka.csproj": {}
   },
   "projects": {
-    "D:\\app\\fork\\alesya-rassylka\\alesya-rassylka.csproj": {
+    "D:\\fork\\alesya-rassylka\\alesya-rassylka.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\app\\fork\\alesya-rassylka\\alesya-rassylka.csproj",
+        "projectUniqueName": "D:\\fork\\alesya-rassylka\\alesya-rassylka.csproj",
         "projectName": "alesya-rassylka",
-        "projectPath": "D:\\app\\fork\\alesya-rassylka\\alesya-rassylka.csproj",
-        "packagesPath": "C:\\Users\\alesy\\.nuget\\packages\\",
-        "outputPath": "D:\\app\\fork\\alesya-rassylka\\obj\\",
+        "projectPath": "D:\\fork\\alesya-rassylka\\alesya-rassylka.csproj",
+        "packagesPath": "C:\\Users\\kikbi\\.nuget\\packages\\",
+        "outputPath": "D:\\fork\\alesya-rassylka\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\alesy\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\kikbi\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
