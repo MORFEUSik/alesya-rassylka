@@ -7,6 +7,12 @@ bin/
 # Игнорировать папку obj
 obj/
 
+net8.0-windows/
+
+CopilotIndices/
+
+v17/
+
 # Игнорировать файлы пользовательских настроек
 *.user
 *.suo
