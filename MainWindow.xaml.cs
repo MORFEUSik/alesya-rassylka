@@ -1,57 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Net;
 using System.Net.Mail;
 using System.Text.Json;
 using System.Windows;
-using System.Windows.Navigation;
-using MahApps.Metro.Controls; // Подключение для MetroWindow
+using MahApps.Metro.Controls;
 
 namespace alesya_rassylka
 {
-    public partial class MainWindow : MetroWindow  // Убедитесь, что наследование только от MetroWindow
+    public partial class MainWindow : MetroWindow
     {
-        private List<Customer> customers;
+        private DataStore dataStore;
         private const string JsonFilePath = "customers.json";
         private const string LogFilePath = "error.log";
 
         public MainWindow()
         {
             InitializeComponent();
-
-            List<string> testRecipients = new List<string>
-    {
-        "Иван Иванов - ivan@example.com",
-        "Мария Петрова - maria@example.com",
-        "Александр Сидоров - alex@example.com",
-        "Александр Сидоров - alex@example.com",
-        "Александр Сидоров - alex@example.com",
-        "Александр Сидоров - alex@example.com"
-    };
-
-            RecipientList.ItemsSource = testRecipients;
-
             LoadCustomers();
         }
 
-        private void Minimize_Click(object sender, RoutedEventArgs e)
-        {
-            WindowState = WindowState.Minimized;
-        }
-
-        private void Close_Click(object sender, RoutedEventArgs e)
-        {
-            Close();
-        }
-        private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
-        {
-            // В этом месте можно обрабатывать клик по ссылке
-            // Например, можно открыть браузер или показать сообщение
-            MessageBox.Show($"Вы кликнули по ссылке: {e.Uri.AbsoluteUri}");
-            e.Handled = true; // Указывает, что событие обработано
-        }
         private void LoadCustomers()
         {
             try
@@ -59,11 +28,11 @@ namespace alesya_rassylka
                 if (File.Exists(JsonFilePath))
                 {
                     string json = File.ReadAllText(JsonFilePath);
-                    customers = JsonSerializer.Deserialize<List<Customer>>(json) ?? new List<Customer>();
+                    dataStore = JsonSerializer.Deserialize<DataStore>(json) ?? new DataStore();
                 }
                 else
                 {
-                    customers = new List<Customer>();
+                    dataStore = new DataStore();
                     SaveCustomers();
                 }
             }
@@ -78,7 +47,17 @@ namespace alesya_rassylka
         {
             try
             {
-                string json = JsonSerializer.Serialize(customers, new JsonSerializerOptions { WriteIndented = true });
+                // Убедимся, что все категории из получателей добавлены в список Categories
+                var allCategoriesFromRecipients = dataStore.Recipients
+                    .SelectMany(r => r.Categories)
+                    .Distinct()
+                    .ToList();
+                dataStore.Categories = dataStore.Categories
+                    .Union(allCategoriesFromRecipients)
+                    .Distinct()
+                    .ToList();
+
+                string json = JsonSerializer.Serialize(dataStore, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(JsonFilePath, json);
             }
             catch (Exception ex)
@@ -90,25 +69,51 @@ namespace alesya_rassylka
 
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
-            //string recipient = RecipientTextBox.Text.Trim();
-            //string message = MessageTextBox.Text.Trim();
+            var recipients = RecipientList.ItemsSource as IEnumerable<string>;
+            string message = MessageTextBox.Text?.Trim();
+            string senderName = SenderTextBox.Text?.Trim();
 
-            //if (string.IsNullOrWhiteSpace(recipient) || string.IsNullOrWhiteSpace(message))
-            //{
-            //    MessageBox.Show("Введите получателя и сообщение!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-            //    return;
-            //}
 
-            //try
-            //{
-            //    SendEmail(recipient, message);
-            //    MessageBox.Show("Сообщение успешно отправлено!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
-            //}
-            //catch (Exception ex)
-            //{
-            //    LogError("Ошибка отправки письма", ex);
-            //    ShowDetailedError("Ошибка отправки письма", ex);
-            //}
+            if (recipients == null || !recipients.Any())
+            {
+                MessageBox.Show("Выберите хотя бы одного получателя!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                MessageBox.Show("Введите сообщение!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(senderName))
+            {
+                MessageBox.Show("Введите отправителя!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+
+            try
+            {
+                foreach (var recipient in recipients)
+                {
+                    string recipientEmail = recipient.Split(new[] { " - " }, StringSplitOptions.None).Last().Trim();
+                    SendEmail(recipientEmail, message);
+                }
+                MessageBox.Show("Сообщения успешно отправлены!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                LogError("Ошибка отправки письма", ex);
+                ShowDetailedError("Ошибка отправки письма", ex);
+            }
+        }
+
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            MessageTextBox.Text = string.Empty;
+            SenderTextBox.Text = string.Empty;
+            RecipientList.ItemsSource = null;
         }
 
         private void SendEmail(string recipientEmail, string message)
@@ -150,16 +155,8 @@ namespace alesya_rassylka
             MessageBox.Show($"{ex.Message}\n{ex.StackTrace}", title, MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void Button_Click_1(object sender, RoutedEventArgs e)
-        {
-
-        }
-
+        private void Button_Click(object sender, RoutedEventArgs e) { }
+        private void Button_Click_1(object sender, RoutedEventArgs e) { }
         private void Settings_Click(object sender, RoutedEventArgs e)
         {
             MessageBox.Show("Открываем настройки");
@@ -175,53 +172,42 @@ namespace alesya_rassylka
             MessageBox.Show("О программе");
         }
 
-        private void RecipientTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-        {
-
-        }
-
-        private void SelectRecipients_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void Button_Click_2(object sender, RoutedEventArgs e)
-        {
-
-        }
-
         private async void SelectRecipient_Click(object sender, RoutedEventArgs e)
         {
-            var window = new SelectRecipientWindow(customers, Categories.ToList()) // ✅ Передаем и список категорий
+            var window = new SelectRecipientWindow(dataStore, SaveCustomers)
             {
                 Owner = this
             };
 
             if (window.ShowDialog() == true)
             {
-                RecipientList.ItemsSource = window.SelectedRecipients;
+                RecipientList.ItemsSource = window.SelectedRecipients.Select(r => $"{r.Name} - {r.Email}");
+                SaveCustomers(); // сохраняем изменения получателей
             }
         }
 
 
-        private ObservableCollection<string> Categories { get; set; } = new ObservableCollection<string>
+        private void Minimize_Click(object sender, RoutedEventArgs e)
         {
-            "Электроника",
-            "Одежда",
-            "Обувь",
-            "Компьютеры"
-        };
+            WindowState = WindowState.Minimized;
+        }
 
-
-
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
     }
 
-    public class Customer
+    public class Recipient
     {
         public string Name { get; set; }
         public string Email { get; set; }
-        public string ProductCategory { get; set; } // ✅ Добавляем это свойство
+        public List<string> Categories { get; set; } = new List<string>();
     }
 
-
+    public class DataStore
+    {
+        public List<string> Categories { get; set; } = new List<string>();
+        public List<Recipient> Recipients { get; set; } = new List<Recipient>();
+    }
 }

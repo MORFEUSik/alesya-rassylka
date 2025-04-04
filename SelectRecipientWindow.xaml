@@ -1,6 +1,8 @@
 ﻿<Window x:Class="alesya_rassylka.SelectRecipientWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:alesya_rassylka"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         Title="Выбор получателей" Height="500" Width="600" 
         Background="#DFE3EB" WindowStartupLocation="CenterOwner">
 
@@ -43,7 +45,11 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- Конвертер категорий -->
+        <local:CategoriesConverter x:Key="CategoriesConverter"/>
     </Window.Resources>
+
 
     <Grid Margin="10">
         <Grid.RowDefinitions>
@@ -53,25 +59,33 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Выбор категории -->
+        <!-- Выбор категорий -->
+        <!-- Выбор категорий -->
         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
             <TextBlock Text="Категория:" Style="{StaticResource LabelStyle}" VerticalAlignment="Center"/>
-            <ComboBox x:Name="CategoryComboBox" Width="300" Margin="10,0,0,0"
-                      SelectionChanged="CategoryComboBox_SelectionChanged">
-                <ComboBox.ContextMenu>
+            <xctk:CheckComboBox x:Name="CategoryComboBox"
+                        Width="300" Margin="10,0,0,0" Height="30"
+                        DisplayMemberPath="."
+                        ValueMemberPath="."
+                        ItemsSource="{Binding Categories}"
+                        PreviewMouseRightButtonDown="CategoryComboBox_PreviewMouseRightButtonDown"
+                        MouseRightButtonUp="CategoryComboBox_MouseRightButtonUp">
+                <xctk:CheckComboBox.ContextMenu>
                     <ContextMenu>
-                        <MenuItem Header="Добавить" Click="AddCategory_Click"/>
-                        <MenuItem Header="Удалить" Click="DeleteCategory_Click"/>
-                        <MenuItem Header="Редактировать" Click="EditCategory_Click"/>
+                        <MenuItem Header="Добавить категорию" Click="AddCategory_Click"/>
+                        <MenuItem Header="Удалить категорию" Click="DeleteCategory_Click"/>
+                        <MenuItem Header="Редактировать категорию" Click="EditCategory_Click"/>
                     </ContextMenu>
-                </ComboBox.ContextMenu>
-            </ComboBox>
+                </xctk:CheckComboBox.ContextMenu>
+            </xctk:CheckComboBox>
         </StackPanel>
 
+
+
         <!-- Поле поиска -->
-        <TextBox x:Name="SearchTextBox" Height="30" Margin="0,0,0,10" 
-         VerticalContentAlignment="Center"
-         TextChanged="SearchTextBox_TextChanged">
+        <TextBox x:Name="SearchTextBox" Height="30" Margin="0,0,0,10" Grid.Row="1"
+                 VerticalContentAlignment="Center"
+                 TextChanged="SearchTextBox_TextChanged">
             <TextBox.Style>
                 <Style TargetType="TextBox">
                     <Setter Property="Foreground" Value="#172A74"/>
@@ -88,7 +102,6 @@
                                     <ScrollViewer Margin="0" x:Name="PART_ContentHost"/>
                                 </Grid>
                                 <ControlTemplate.Triggers>
-                                    <!-- Показываем текст-заполнитель, если текст пустой -->
                                     <Trigger Property="Text" Value="">
                                         <Setter TargetName="Placeholder" Property="Visibility" Value="Visible"/>
                                     </Trigger>
@@ -100,25 +113,32 @@
             </TextBox.Style>
         </TextBox>
 
-
         <!-- Список получателей -->
-        <ListBox x:Name="RecipientsListBox" SelectionMode="Multiple"
+        <ListBox x:Name="RecipientsListBox" Grid.Row="2" SelectionMode="Multiple"
                  BorderBrush="#172A74" BorderThickness="1" Background="White">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Vertical" Margin="5">
                         <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="Bold"/>
                         <TextBlock Text="{Binding Email}" FontSize="12" Foreground="Gray"/>
-                        <TextBlock Text="{Binding ProductCategory}" FontSize="12" Foreground="#3050A5"/>
+                        <TextBlock Text="{Binding Categories, Converter={StaticResource CategoriesConverter}}" 
+                                   FontSize="12" Foreground="#3050A5"/>
                     </StackPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>
+            <ListBox.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Добавить" Click="AddRecipient_Click"/>
+                    <MenuItem Header="Удалить" Click="DeleteRecipient_Click"/>
+                    <MenuItem Header="Редактировать" Click="EditRecipient_Click"/>
+                </ContextMenu>
+            </ListBox.ContextMenu>
         </ListBox>
 
         <!-- Кнопки -->
         <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="0,10,0,0">
-            <Button Content="Выбрать" Style="{StaticResource ActionButton}" Click="ConfirmSelection_Click" Width="100" Margin="0,0,10,0"/>
-            <Button Content="Отмена" Style="{StaticResource ActionButton}" Click="Cancel_Click" Width="100"/>
+            <Button Content="Применить" Style="{StaticResource ActionButton}" Click="ConfirmSelection_Click" Width="100" Margin="0,0,10,0"/>
+            <Button Content="Отменить" Style="{StaticResource ActionButton}" Click="Cancel_Click" Width="100"/>
         </StackPanel>
     </Grid>
 </Window>

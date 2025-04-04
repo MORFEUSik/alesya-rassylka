@@ -248,8 +248,8 @@
             </Grid>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,50,0,0">
-                <Button Content="Отправить письмо" Style="{StaticResource ActionButton}"/>
-                <Button Content="Отменить" Style="{StaticResource ActionButton}" Margin="20,0,0,0"/>
+                <Button Content="Отправить письмо" Style="{StaticResource ActionButton}" Click="SendButton_Click"/>
+                <Button Content="Отменить" Style="{StaticResource ActionButton}" Margin="20,0,0,0" Click="CancelButton_Click"/>
             </StackPanel>
         </StackPanel>
     </Grid>

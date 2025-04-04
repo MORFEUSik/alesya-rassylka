@@ -5,41 +5,47 @@ using System.Windows;
 using System.Windows.Controls;
 using System.ComponentModel;
 using System.Windows.Data;
+using Xceed.Wpf.Toolkit;
+using System.Windows.Input;
 
 namespace alesya_rassylka
 {
     public partial class SelectRecipientWindow : Window
     {
-        private List<Customer> allRecipients;
-        private ICollectionView filteredRecipients;
-        public List<Customer> SelectedRecipients { get; private set; } = new();
 
-        public SelectRecipientWindow(List<Customer> recipients, List<string> categories)
+        private List<Recipient> allRecipients;
+        private ICollectionView filteredRecipients;
+        public List<Recipient> SelectedRecipients { get; private set; } = new();
+
+        private readonly Action SaveCallback;
+
+        public List<string> Categories { get; set; }
+
+        public SelectRecipientWindow(DataStore dataStore, Action saveCallback)
         {
             InitializeComponent();
 
-            allRecipients = recipients;
+            SaveCallback = saveCallback;
+            allRecipients = dataStore.Recipients;
+            Categories = dataStore.Categories;
 
-            // Заполняем категории
-            CategoryComboBox.ItemsSource = categories;
+            DataContext = this;
 
-            // Отображаем список получателей
             filteredRecipients = CollectionViewSource.GetDefaultView(allRecipients);
             filteredRecipients.Filter = FilterRecipients;
             RecipientsListBox.ItemsSource = filteredRecipients;
+            CategoryComboBox.ItemSelectionChanged += (s, e) => filteredRecipients.Refresh();
         }
 
         private bool FilterRecipients(object obj)
         {
-            if (obj is Customer customer)
+            if (obj is Recipient recipient)
             {
-                string selectedCategory = CategoryComboBox.SelectedItem as string;
-                string searchText = SearchTextBox.Text?.ToLower();
+                var selectedCategories = CategoryComboBox.SelectedItems.Cast<string>().ToList();
+                var searchText = SearchTextBox.Text?.ToLower() ?? "";
 
-                bool matchesCategory = string.IsNullOrEmpty(selectedCategory) || customer.ProductCategory == selectedCategory;
-                bool matchesSearch = string.IsNullOrEmpty(searchText) ||
-                                     customer.Name.ToLower().Contains(searchText) ||
-                                     customer.Email.ToLower().Contains(searchText);
+                bool matchesCategory = selectedCategories.Count == 0 || recipient.Categories.Any(c => selectedCategories.Contains(c));
+                bool matchesSearch = recipient.Name.ToLower().Contains(searchText) || recipient.Email.ToLower().Contains(searchText);
 
                 return matchesCategory && matchesSearch;
             }
@@ -58,7 +64,7 @@ namespace alesya_rassylka
 
         private void ConfirmSelection_Click(object sender, RoutedEventArgs e)
         {
-            SelectedRecipients = RecipientsListBox.SelectedItems.Cast<Customer>().ToList();
+            SelectedRecipients = RecipientsListBox.SelectedItems.Cast<Recipient>().ToList();
             DialogResult = true;
         }
 
@@ -67,36 +73,81 @@ namespace alesya_rassylka
             DialogResult = false;
         }
 
-        // Добавление категории
+        private void CategoryComboBox_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // Блокируем закрытие выпадающего списка по правому клику
+            e.Handled = true;
+        }
+
+        private void CategoryComboBox_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            var comboBox = sender as FrameworkElement;
+            if (comboBox?.ContextMenu != null)
+            {
+                comboBox.ContextMenu.PlacementTarget = comboBox;
+                comboBox.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+                comboBox.ContextMenu.IsOpen = true;
+            }
+        }
+
         private void AddCategory_Click(object sender, RoutedEventArgs e)
         {
             string newCategory = Microsoft.VisualBasic.Interaction.InputBox("Введите новую категорию:");
-            if (!string.IsNullOrWhiteSpace(newCategory) && !CategoryComboBox.Items.Contains(newCategory))
+            if (!string.IsNullOrWhiteSpace(newCategory) && !Categories.Contains(newCategory))
             {
-                CategoryComboBox.Items.Add(newCategory);
+                Categories.Add(newCategory);
+                CategoryComboBox.Items.Refresh();
+                SaveCallback();
             }
         }
 
-        // Удаление категории
         private void DeleteCategory_Click(object sender, RoutedEventArgs e)
         {
-            if (CategoryComboBox.SelectedItem != null)
+            if (CategoryComboBox.SelectedItem is string selected)
             {
-                CategoryComboBox.Items.Remove(CategoryComboBox.SelectedItem);
+                Categories.Remove(selected);
+                CategoryComboBox.Items.Refresh();
+                SaveCallback();
             }
         }
 
-        // Редактирование категории
         private void EditCategory_Click(object sender, RoutedEventArgs e)
         {
-            if (CategoryComboBox.SelectedItem != null)
+            if (CategoryComboBox.SelectedItem is string selectedCategory)
             {
-                string newCategory = Microsoft.VisualBasic.Interaction.InputBox("Редактировать категорию:", "", CategoryComboBox.SelectedItem.ToString());
+                string newCategory = Microsoft.VisualBasic.Interaction.InputBox("Редактировать категорию:", "", selectedCategory);
                 if (!string.IsNullOrWhiteSpace(newCategory))
                 {
-                    CategoryComboBox.Items[CategoryComboBox.SelectedIndex] = newCategory;
+                    int index = Categories.IndexOf(selectedCategory);
+                    Categories[index] = newCategory;
+
+                    foreach (var r in allRecipients)
+                    {
+                        if (r.Categories.Contains(selectedCategory))
+                        {
+                            r.Categories.Remove(selectedCategory);
+                            r.Categories.Add(newCategory);
+                        }
+                    }
+
+                    CategoryComboBox.Items.Refresh();
+                    filteredRecipients.Refresh();
+                    SaveCallback();
                 }
             }
+        }
+
+        private void AddRecipient_Click(object sender, RoutedEventArgs e)
+        {
+            System.Windows.MessageBox.Show("Добавление получателя пока не реализовано");
+        }
+        private void DeleteRecipient_Click(object sender, RoutedEventArgs e)
+        {
+            System.Windows.MessageBox.Show("Удаление получателя пока не реализовано");
+        }
+        private void EditRecipient_Click(object sender, RoutedEventArgs e)
+        {
+            System.Windows.MessageBox.Show("Редактирование получателя пока не реализовано");
         }
     }
 }
