@@ -9,7 +9,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Collections.ObjectModel;
 using Microsoft.VisualBasic;
-using System.Windows.Controls.Primitives;
 
 namespace alesya_rassylka
 {
@@ -23,6 +22,7 @@ namespace alesya_rassylka
         private ObservableCollection<string> selectedCategories = new ObservableCollection<string>();
 
         public ObservableCollection<string> Categories { get; set; }
+        public ObservableCollection<string> FilteredCategories { get; set; }
 
         public SelectRecipientWindow(DataStore dataStore, Action saveCallback)
         {
@@ -31,6 +31,7 @@ namespace alesya_rassylka
             SaveCallback = saveCallback;
             allRecipients = dataStore.Recipients;
             Categories = dataStore.Categories;
+            FilteredCategories = new ObservableCollection<string>(Categories);
 
             DataContext = this;
 
@@ -57,6 +58,16 @@ namespace alesya_rassylka
             filteredRecipients.Refresh();
         }
 
+        private void CategorySearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            var searchText = CategorySearchTextBox.Text?.ToLower() ?? "";
+            FilteredCategories.Clear();
+            foreach (var category in Categories.Where(c => c.ToLower().Contains(searchText)))
+            {
+                FilteredCategories.Add(category);
+            }
+        }
+
         private void CategoryListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var listBox = sender as ListBox;
@@ -66,17 +77,11 @@ namespace alesya_rassylka
                 selectedCategories.Add(item);
             }
             filteredRecipients.Refresh();
-
-            var textBlock = (TextBlock)CategoryComboBox.Template.FindName("SelectedCategoriesText", CategoryComboBox);
-            if (selectedCategories.Any())
-                textBlock.Text = string.Join(", ", selectedCategories);
-            else
-                textBlock.Text = "Выберите категории...";
         }
 
         private void CategoryListBox_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            e.Handled = true; // Блокируем дальнейшую обработку
+            e.Handled = true;
             var listBox = sender as ListBox;
             var item = ItemsControl.ContainerFromElement(listBox, e.OriginalSource as DependencyObject) as ListBoxItem;
             rightClickedCategory = item?.Content as string;
@@ -92,17 +97,6 @@ namespace alesya_rassylka
             else
             {
                 System.Diagnostics.Debug.WriteLine("ContextMenu not opened: ListBox or category missing.");
-            }
-        }
-
-        private void MenuItem_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            e.Handled = true; // Останавливаем распространение события от MenuItem
-            var popup = (Popup)CategoryComboBox.Template.FindName("Popup", CategoryComboBox);
-            if (popup != null)
-            {
-                popup.IsOpen = true; // Убеждаемся, что Popup остается открытым
-                System.Diagnostics.Debug.WriteLine("Popup forced to stay open.");
             }
         }
 
@@ -123,6 +117,7 @@ namespace alesya_rassylka
             if (!string.IsNullOrWhiteSpace(newCategory) && !Categories.Contains(newCategory))
             {
                 Categories.Add(newCategory);
+                FilteredCategories.Add(newCategory);
                 SaveCallback();
                 System.Diagnostics.Debug.WriteLine($"Added category: {newCategory}");
             }
@@ -134,6 +129,7 @@ namespace alesya_rassylka
             if (!string.IsNullOrWhiteSpace(rightClickedCategory) && Categories.Contains(rightClickedCategory))
             {
                 Categories.Remove(rightClickedCategory);
+                FilteredCategories.Remove(rightClickedCategory);
                 foreach (var r in allRecipients)
                 {
                     r.Categories.Remove(rightClickedCategory);
@@ -160,6 +156,7 @@ namespace alesya_rassylka
                     if (index >= 0)
                     {
                         Categories[index] = newCategory;
+                        FilteredCategories[FilteredCategories.IndexOf(rightClickedCategory)] = newCategory;
                         foreach (var r in allRecipients)
                         {
                             if (r.Categories.Contains(rightClickedCategory))
@@ -184,20 +181,240 @@ namespace alesya_rassylka
             }
         }
 
-
         private void AddRecipient_Click(object sender, RoutedEventArgs e)
         {
-            System.Windows.MessageBox.Show("Добавление получателя пока не реализовано");
+            // Ввод имени
+            string name = Interaction.InputBox("Введите имя получателя:", "Добавление получателя");
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                System.Windows.MessageBox.Show("Имя не может быть пустым.", "Ошибка");
+                return;
+            }
+
+            // Ввод email
+            string email = Interaction.InputBox("Введите email получателя:", "Добавление получателя");
+            if (string.IsNullOrWhiteSpace(email) || !email.Contains("@"))
+            {
+                System.Windows.MessageBox.Show("Некорректный email.", "Ошибка");
+                return;
+            }
+
+            // Проверка на уникальность email
+            if (allRecipients.Any(r => r.Email.Equals(email, StringComparison.OrdinalIgnoreCase)))
+            {
+                System.Windows.MessageBox.Show("Получатель с таким email уже существует.", "Ошибка");
+                return;
+            }
+
+            // Выбор категорий
+            var categorySelectionWindow = new Window
+            {
+                Title = "Выбор категорий",
+                Width = 300,
+                Height = 400,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = this
+            };
+
+            var stackPanel = new StackPanel { Margin = new Thickness(10) };
+            var categoryListBox = new ListBox
+            {
+                SelectionMode = SelectionMode.Multiple,
+                ItemsSource = Categories,
+                Height = 300
+            };
+
+            var confirmButton = new Button
+            {
+                Content = "Подтвердить",
+                Width = 100,
+                Margin = new Thickness(0, 10, 0, 0)
+            };
+
+            List<string> selectedCategoriesForNewRecipient = new List<string>();
+            confirmButton.Click += (s, args) =>
+            {
+                selectedCategoriesForNewRecipient = categoryListBox.SelectedItems.Cast<string>().ToList();
+                categorySelectionWindow.DialogResult = true;
+                categorySelectionWindow.Close();
+            };
+
+            stackPanel.Children.Add(categoryListBox);
+            stackPanel.Children.Add(confirmButton);
+            categorySelectionWindow.Content = stackPanel;
+
+            if (categorySelectionWindow.ShowDialog() != true)
+            {
+                return; // Пользователь отменил выбор категорий
+            }
+
+            // Создаем нового получателя
+            var newRecipient = new Recipient
+            {
+                Name = name,
+                Email = email,
+                Categories = selectedCategoriesForNewRecipient
+            };
+
+            allRecipients.Add(newRecipient);
+            filteredRecipients.Refresh();
+            SaveCallback();
+            System.Diagnostics.Debug.WriteLine($"Added recipient: {name}, {email}");
         }
 
         private void DeleteRecipient_Click(object sender, RoutedEventArgs e)
         {
-            System.Windows.MessageBox.Show("Удаление получателя пока не реализовано");
+            var selectedRecipients = RecipientsListBox.SelectedItems.Cast<Recipient>().ToList();
+            if (!selectedRecipients.Any())
+            {
+                System.Windows.MessageBox.Show("Выберите хотя бы одного получателя для удаления.", "Ошибка");
+                return;
+            }
+
+            var result = System.Windows.MessageBox.Show(
+                $"Вы уверены, что хотите удалить {selectedRecipients.Count} получателя(ей)?",
+                "Подтверждение удаления",
+                MessageBoxButton.YesNo);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                foreach (var recipient in selectedRecipients)
+                {
+                    allRecipients.Remove(recipient);
+                    System.Diagnostics.Debug.WriteLine($"Deleted recipient: {recipient.Name}, {recipient.Email}");
+                }
+                filteredRecipients.Refresh();
+                SaveCallback();
+            }
         }
 
         private void EditRecipient_Click(object sender, RoutedEventArgs e)
         {
-            System.Windows.MessageBox.Show("Редактирование получателя пока не реализовано");
+            if (RecipientsListBox.SelectedItems.Count != 1)
+            {
+                System.Windows.MessageBox.Show("Выберите ровно одного получателя для редактирования.", "Ошибка");
+                return;
+            }
+
+            var recipient = (Recipient)RecipientsListBox.SelectedItem;
+
+            // Ввод нового имени
+            string newName = Interaction.InputBox("Введите новое имя получателя:", "Редактирование получателя", recipient.Name);
+            if (string.IsNullOrWhiteSpace(newName))
+            {
+                System.Windows.MessageBox.Show("Имя не может быть пустым.", "Ошибка");
+                return;
+            }
+
+            // Ввод нового email
+            string newEmail = Interaction.InputBox("Введите новый email получателя:", "Редактирование получателя", recipient.Email);
+            if (string.IsNullOrWhiteSpace(newEmail) || !newEmail.Contains("@"))
+            {
+                System.Windows.MessageBox.Show("Некорректный email.", "Ошибка");
+                return;
+            }
+
+            // Проверка на уникальность email (кроме текущего получателя)
+            if (allRecipients.Any(r => r != recipient && r.Email.Equals(newEmail, StringComparison.OrdinalIgnoreCase)))
+            {
+                System.Windows.MessageBox.Show("Получатель с таким email уже существует.", "Ошибка");
+                return;
+            }
+
+            // Выбор категорий
+            var categorySelectionWindow = new Window
+            {
+                Title = "Выбор категорий",
+                Width = 300,
+                Height = 400,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = this
+            };
+
+            var stackPanel = new StackPanel { Margin = new Thickness(10) };
+            var categoryListBox = new ListBox
+            {
+                SelectionMode = SelectionMode.Multiple,
+                ItemsSource = Categories,
+                Height = 300
+            };
+
+            // Отмечаем текущие категории получателя
+            foreach (var category in Categories)
+            {
+                if (recipient.Categories.Contains(category))
+                {
+                    categoryListBox.SelectedItems.Add(category);
+                }
+            }
+
+            var confirmButton = new Button
+            {
+                Content = "Подтвердить",
+                Width = 100,
+                Margin = new Thickness(0, 10, 0, 0)
+            };
+
+            List<string> newSelectedCategories = new List<string>();
+            confirmButton.Click += (s, args) =>
+            {
+                newSelectedCategories = categoryListBox.SelectedItems.Cast<string>().ToList();
+                categorySelectionWindow.DialogResult = true;
+                categorySelectionWindow.Close();
+            };
+
+            stackPanel.Children.Add(categoryListBox);
+            stackPanel.Children.Add(confirmButton);
+            categorySelectionWindow.Content = stackPanel;
+
+            if (categorySelectionWindow.ShowDialog() != true)
+            {
+                return; // Пользователь отменил редактирование категорий
+            }
+
+            // Обновляем данные получателя
+            recipient.Name = newName;
+            recipient.Email = newEmail;
+            recipient.Categories = newSelectedCategories;
+
+            filteredRecipients.Refresh();
+            SaveCallback();
+            System.Diagnostics.Debug.WriteLine($"Edited recipient: {newName}, {newEmail}");
+        }
+
+        private void ToggleSelection_Click(object sender, RoutedEventArgs e)
+        {
+            // Получаем всех отфильтрованных получателей
+            var recipientsToToggle = filteredRecipients.Cast<Recipient>().ToList();
+
+            if (!recipientsToToggle.Any())
+            {
+                System.Windows.MessageBox.Show("Нет получателей для выделения.", "Ошибка");
+                return;
+            }
+
+            // Проверяем, все ли отфильтрованные получатели уже выделены
+            bool allSelected = recipientsToToggle.All(r => RecipientsListBox.SelectedItems.Contains(r));
+
+            if (allSelected)
+            {
+                // Если все уже выделены, снимаем выделение
+                foreach (var recipient in recipientsToToggle)
+                {
+                    RecipientsListBox.SelectedItems.Remove(recipient);
+                }
+            }
+            else
+            {
+                // Если не все выделены, выделяем всех
+                foreach (var recipient in recipientsToToggle)
+                {
+                    if (!RecipientsListBox.SelectedItems.Contains(recipient))
+                    {
+                        RecipientsListBox.SelectedItems.Add(recipient);
+                    }
+                }
+            }
         }
     }
 }
