@@ -79,6 +79,7 @@ namespace alesya_rassylka
             filteredRecipients.Refresh();
         }
 
+
         private void CategoryListBox_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
@@ -90,7 +91,18 @@ namespace alesya_rassylka
             if (listBox?.ContextMenu != null && !string.IsNullOrEmpty(rightClickedCategory))
             {
                 listBox.ContextMenu.DataContext = rightClickedCategory;
-                listBox.ContextMenu.PlacementTarget = item != null ? item : listBox;
+
+                // Явно указываем PlacementTarget
+                if (item != null)
+                {
+                    listBox.ContextMenu.PlacementTarget = item;
+                    item.IsSelected = true; // Выделяем элемент
+                }
+                else
+                {
+                    listBox.ContextMenu.PlacementTarget = listBox;
+                }
+
                 listBox.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
                 listBox.ContextMenu.IsOpen = true;
             }

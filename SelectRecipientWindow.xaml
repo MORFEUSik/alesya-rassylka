@@ -161,17 +161,17 @@
 
         <!-- Категории -->
         <ListBox x:Name="CategoryListBox" Grid.Row="0"
-                 Height="100" Margin="0,0,0,10"
-                 SelectionMode="Multiple"
-                 ItemsSource="{Binding FilteredCategories}"
-                 Style="{StaticResource ListBoxStyle}"
-                 SelectionChanged="CategoryListBox_SelectionChanged"
-                 PreviewMouseRightButtonDown="CategoryListBox_PreviewMouseRightButtonDown">
+         Height="100" Margin="0,0,0,10"
+         SelectionMode="Multiple"
+         ItemsSource="{Binding FilteredCategories}"
+         Style="{StaticResource ListBoxStyle}"
+         SelectionChanged="CategoryListBox_SelectionChanged"
+         PreviewMouseRightButtonDown="CategoryListBox_PreviewMouseRightButtonDown">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <CheckBox Content="{Binding}" 
-                              IsChecked="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}, Mode=TwoWay}"
-                              Margin="5"/>
+                    <TextBlock Text="{Binding}" 
+                       Margin="5"
+                       VerticalAlignment="Center"/>
                 </DataTemplate>
             </ListBox.ItemTemplate>
             <ListBox.ContextMenu>

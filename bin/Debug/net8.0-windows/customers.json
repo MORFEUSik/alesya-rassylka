@@ -3,7 +3,8 @@
     "\u0425\u043E\u043B\u043E\u0434\u0438\u043B\u044C\u043D\u0438\u043A",
     "\u041F\u044B\u043B\u0435\u0441\u043E\u0441",
     "\u0421\u0442\u0438\u0440\u0430\u043B\u044C\u043D\u0430\u044F \u043C\u0430\u0448\u0438\u043D\u0430",
-    "\u041D\u043E\u0443\u0442\u0431\u0443\u043A"
+    "\u041D\u043E\u0443\u0442\u0431\u0443\u043A",
+    "\u041C\u043E\u0440\u043E\u0437\u0438\u043B\u043A\u0430"
   ],
   "Recipients": [
     {
@@ -17,15 +18,14 @@
       "Name": "\u0418\u0432\u0430\u043D \u041F\u0435\u0442\u0440\u043E\u0432",
       "Email": "ivan.petrov@example.com",
       "Categories": [
-        "\u041F\u044B\u043B\u0435\u0441\u043E\u0441",
         "\u041D\u043E\u0443\u0442\u0431\u0443\u043A"
       ]
     },
     {
-      "Name": "\u0410\u043B\u0435\u0441\u0438\u044F \u0421\u0438\u043D\u044F\u0432\u0441\u043A\u0430\u044F",
+      "Name": "\u0410\u043B\u0435\u0441\u0438\u044F",
       "Email": "alesyaaasin@gmail.com",
       "Categories": [
-        "\u0421\u0442\u0438\u0440\u0430\u043B\u044C\u043D\u0430\u044F \u043C\u0430\u0448\u0438\u043D\u0430"
+        "\u0425\u043E\u043B\u043E\u0434\u0438\u043B\u044C\u043D\u0438\u043A"
       ]
     },
     {
@@ -33,6 +33,34 @@
       "Email": "nelkabrain@gmail.com",
       "Categories": [
         "\u041D\u043E\u0443\u0442\u0431\u0443\u043A"
+      ]
+    },
+    {
+      "Name": "\u0432\u0430\u0438\u043F\u0430\u0442\u043F\u0440\u044C",
+      "Email": "vfgkgfng@gmail.com",
+      "Categories": [
+        "\u041C\u043E\u0440\u043E\u0437\u0438\u043B\u043A\u0430"
+      ]
+    },
+    {
+      "Name": "ftjiul;iouhgryt",
+      "Email": "vfgghkgfng@gmail.com",
+      "Categories": [
+        "\u0421\u0442\u0438\u0440\u0430\u043B\u044C\u043D\u0430\u044F \u043C\u0430\u0448\u0438\u043D\u0430"
+      ]
+    },
+    {
+      "Name": "xccvbcn",
+      "Email": "vfgkgfnbgng@gmail.com",
+      "Categories": [
+        "\u041C\u043E\u0440\u043E\u0437\u0438\u043B\u043A\u0430"
+      ]
+    },
+    {
+      "Name": "dvbgnh,,.kl,m",
+      "Email": "vfsasgkgfng@gmail.com",
+      "Categories": [
+        "\u041F\u044B\u043B\u0435\u0441\u043E\u0441"
       ]
     }
   ]

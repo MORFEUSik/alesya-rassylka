@@ -2,13 +2,9 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
-        Title="ATLANT" Height="750" Width="1000" WindowStartupLocation="CenterScreen"
+        Title="ATLANT" Height="720" Width="1107" WindowStartupLocation="CenterScreen"
         Background="#DFE3EB"
-       
-        
         WindowStyle="SingleBorderWindow">
-
-
 
     <Window.Resources>
 
@@ -136,16 +132,17 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <!-- Левая панель фиксированной ширины -->
             <ColumnDefinition Width="280"/>
-            <!-- Отступ между панелями -->
             <ColumnDefinition Width="20"/>
-            <!-- Адаптивная правая панель -->
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
         <!-- Левая панель -->
-        <Border Background="#172A74" Grid.Column="0"
+        <Border Background="#172A74" Grid.Column="0" Grid.RowSpan="2"
                 BorderBrush="Transparent" BorderThickness="0,0,1,1"
                 CornerRadius="0,15,15,0">
             <DockPanel>
@@ -167,7 +164,6 @@
                             <Button Content="Приглашение на встречу или выставку" Style="{StaticResource MenuButton}"/>
                             <Button Content="Образовательный контент для закупщиков" Style="{StaticResource MenuButton}"/>
                             <Button Content="Благодарность за сотрудничество" Style="{StaticResource MenuButton}"/>
-
                         </StackPanel>
                     </ScrollViewer>
                 </StackPanel>
@@ -175,14 +171,14 @@
         </Border>
 
         <!-- Основное содержимое -->
-        <StackPanel Margin="0,10,25,10" Grid.Column="2">
+        <StackPanel Grid.Column="2" Grid.Row="0" Margin="0,10,25,27">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,10" Height="38">
                 <Button Content="Настройки" Style="{StaticResource NavButton}" Margin="0,0,20,0" Click="Settings_Click"/>
                 <Button Content="Справка" Style="{StaticResource NavButton}" Margin="0,0,20,0" Click="Help_Click"/>
                 <Button Content="О программе" Style="{StaticResource NavButton}" Click="About_Click"/>
             </StackPanel>
 
-            <TextBox x:Name="MessageTextBox" Height="300" Background="White" BorderBrush="#172A74" BorderThickness="1">
+            <TextBox x:Name="MessageTextBox" Height="316" Background="White" BorderBrush="#172A74" BorderThickness="1">
                 <TextBox.Template>
                     <ControlTemplate TargetType="TextBox">
                         <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
@@ -195,47 +191,36 @@
             <Grid Margin="0,25,0,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
-                    <!-- Для текстового блока или кнопки -->
-                    <ColumnDefinition Width="*" />
-                    <!-- Для растяжения на всю ширину -->
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Отправитель -->
                 <TextBlock Text="Отправитель" FontWeight="Bold" Foreground="#172A74"
-               VerticalAlignment="Center" MinWidth="200" FontSize="24" FontFamily="Arial Black"
-               Grid.Column="0" Margin="0,0,22,0"/>
+                           VerticalAlignment="Center" MinWidth="200" FontSize="24" FontFamily="Arial Black"
+                           Grid.Column="0" Margin="0,0,22,0"/>
 
                 <Border Background="White" BorderBrush="#172A74" BorderThickness="1" 
-            CornerRadius="5" Padding="2" HorizontalAlignment="Stretch"
-            Grid.Column="1" Margin="0,0,0,0">
-                    <!-- Правый отступ для внешнего вида -->
+                        CornerRadius="5" Padding="2" HorizontalAlignment="Stretch"
+                        Grid.Column="1">
                     <TextBox x:Name="SenderTextBox" Background="Transparent" BorderThickness="0" Padding="5"
-                 VerticalContentAlignment="Center" HorizontalAlignment="Stretch"/>
+                             VerticalContentAlignment="Center" HorizontalAlignment="Stretch"/>
                 </Border>
             </Grid>
 
-            <!-- Получатель -->
             <Grid Margin="0,25,0,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
-                    <!-- Для кнопки -->
-                    <ColumnDefinition Width="*" />
-                    <!-- Для растяжения списка -->
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Кнопка для выбора получателя -->
                 <Button Content="Получатель(ли)" Style="{StaticResource SmallNavButton}"
-        HorizontalAlignment="Left" Margin="0,0,10,0" Click="SelectRecipient_Click"/>
+                        HorizontalAlignment="Left" Margin="0,0,10,0" Click="SelectRecipient_Click"/>
 
-
-                <!-- Список получателей -->
                 <Border Background="White" BorderBrush="#172A74" BorderThickness="1" 
-            CornerRadius="5" Padding="5"
-            HorizontalAlignment="Stretch" Grid.Column="1" Margin="30,0,0,0">
-                    <!-- Правый отступ -->
+                        CornerRadius="5" Padding="5" 
+                        Grid.Column="1">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" 
-                      HorizontalScrollBarVisibility="Disabled"
-                      Height="Auto" MaxHeight="170">
+                                HorizontalScrollBarVisibility="Disabled"
+                                Height="Auto" MaxHeight="112">
                         <ItemsControl x:Name="RecipientList">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -246,11 +231,21 @@
                     </ScrollViewer>
                 </Border>
             </Grid>
+        </StackPanel>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,50,0,0">
-                <Button Content="Отправить письмо" Style="{StaticResource ActionButton}" Click="SendButton_Click"/>
-                <Button Content="Отменить" Style="{StaticResource ActionButton}" Margin="20,0,0,0" Click="CancelButton_Click"/>
-            </StackPanel>
+        <!-- Кнопки внизу окна -->
+        <StackPanel Grid.Column="2" Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,0,25,30">
+            <Button Content="Отправить письмо" 
+                    Style="{StaticResource ActionButton}" 
+                    Click="SendButton_Click"
+                    MinWidth="200" Width="278" Height="40" Margin="0,0,20,0" 
+                    Controls:ControlsHelper.FocusBorderThickness="0,0,1,0"/>
+
+            <Button Content="Отменить" 
+                    Style="{StaticResource ActionButton}" 
+                    Click="CancelButton_Click"
+                    Margin="17,0,0,0"
+                    MinWidth="200" Width="279"/>
         </StackPanel>
     </Grid>
 </Controls:MetroWindow>
