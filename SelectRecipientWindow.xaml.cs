@@ -7,6 +7,9 @@ using System.ComponentModel;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Collections.ObjectModel;
+using Microsoft.VisualBasic;
+using System.Windows.Controls.Primitives;
 
 namespace alesya_rassylka
 {
@@ -17,9 +20,9 @@ namespace alesya_rassylka
         public List<Recipient> SelectedRecipients { get; private set; } = new();
         private readonly Action SaveCallback;
         private string rightClickedCategory;
-        private List<string> selectedCategories = new();
+        private ObservableCollection<string> selectedCategories = new ObservableCollection<string>();
 
-        public List<string> Categories { get; set; }
+        public ObservableCollection<string> Categories { get; set; }
 
         public SelectRecipientWindow(DataStore dataStore, Action saveCallback)
         {
@@ -57,7 +60,11 @@ namespace alesya_rassylka
         private void CategoryListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var listBox = sender as ListBox;
-            selectedCategories = listBox.SelectedItems.Cast<string>().ToList();
+            selectedCategories.Clear();
+            foreach (var item in listBox.SelectedItems.Cast<string>())
+            {
+                selectedCategories.Add(item);
+            }
             filteredRecipients.Refresh();
 
             var textBlock = (TextBlock)CategoryComboBox.Template.FindName("SelectedCategoriesText", CategoryComboBox);
@@ -69,31 +76,34 @@ namespace alesya_rassylka
 
         private void CategoryListBox_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            e.Handled = true; // Блокируем выбор при правом клике
+            e.Handled = true; // Блокируем дальнейшую обработку
+            var listBox = sender as ListBox;
+            var item = ItemsControl.ContainerFromElement(listBox, e.OriginalSource as DependencyObject) as ListBoxItem;
+            rightClickedCategory = item?.Content as string;
+            System.Diagnostics.Debug.WriteLine($"Right-clicked category: {rightClickedCategory}");
 
-            var element = e.OriginalSource as DependencyObject;
-            while (element != null && !(element is CheckBox))
+            if (listBox?.ContextMenu != null && !string.IsNullOrEmpty(rightClickedCategory))
             {
-                element = VisualTreeHelper.GetParent(element);
+                listBox.ContextMenu.DataContext = rightClickedCategory;
+                listBox.ContextMenu.PlacementTarget = item != null ? item : listBox;
+                listBox.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+                listBox.ContextMenu.IsOpen = true;
             }
-
-            if (element is CheckBox checkBox && checkBox.Content is string category)
+            else
             {
-                rightClickedCategory = category;
-                var listBox = sender as ListBox;
-                if (listBox?.ContextMenu != null)
-                {
-                    listBox.ContextMenu.DataContext = category;
-                    listBox.ContextMenu.PlacementTarget = listBox;
-                    listBox.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
-                    listBox.ContextMenu.IsOpen = true;
-                }
+                System.Diagnostics.Debug.WriteLine("ContextMenu not opened: ListBox or category missing.");
             }
         }
 
-        private void CategoryComboBox_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        private void MenuItem_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            e.Handled = true; // Предотвращаем лишние действия на ComboBox
+            e.Handled = true; // Останавливаем распространение события от MenuItem
+            var popup = (Popup)CategoryComboBox.Template.FindName("Popup", CategoryComboBox);
+            if (popup != null)
+            {
+                popup.IsOpen = true; // Убеждаемся, что Popup остается открытым
+                System.Diagnostics.Debug.WriteLine("Popup forced to stay open.");
+            }
         }
 
         private void ConfirmSelection_Click(object sender, RoutedEventArgs e)
@@ -109,17 +119,18 @@ namespace alesya_rassylka
 
         private void AddCategory_Click(object sender, RoutedEventArgs e)
         {
-            string newCategory = Microsoft.VisualBasic.Interaction.InputBox("Введите новую категорию:");
+            string newCategory = Interaction.InputBox("Введите новую категорию:");
             if (!string.IsNullOrWhiteSpace(newCategory) && !Categories.Contains(newCategory))
             {
                 Categories.Add(newCategory);
-                CategoryComboBox.Items.Refresh();
                 SaveCallback();
+                System.Diagnostics.Debug.WriteLine($"Added category: {newCategory}");
             }
         }
 
         private void DeleteCategory_Click(object sender, RoutedEventArgs e)
         {
+            System.Diagnostics.Debug.WriteLine($"Attempting to delete: {rightClickedCategory}");
             if (!string.IsNullOrWhiteSpace(rightClickedCategory) && Categories.Contains(rightClickedCategory))
             {
                 Categories.Remove(rightClickedCategory);
@@ -127,18 +138,23 @@ namespace alesya_rassylka
                 {
                     r.Categories.Remove(rightClickedCategory);
                 }
-                CategoryComboBox.Items.Refresh();
                 filteredRecipients.Refresh();
                 SaveCallback();
+                System.Diagnostics.Debug.WriteLine($"Deleted category: {rightClickedCategory}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("Delete failed: Category not found or null.");
             }
         }
 
         private void EditCategory_Click(object sender, RoutedEventArgs e)
         {
+            System.Diagnostics.Debug.WriteLine($"Attempting to edit: {rightClickedCategory}");
             if (!string.IsNullOrWhiteSpace(rightClickedCategory))
             {
-                string newCategory = Microsoft.VisualBasic.Interaction.InputBox("Редактировать категорию:", "", rightClickedCategory);
-                if (!string.IsNullOrWhiteSpace(newCategory) && newCategory != rightClickedCategory)
+                string newCategory = Interaction.InputBox("Редактировать категорию:", "Редактирование", rightClickedCategory);
+                if (!string.IsNullOrWhiteSpace(newCategory) && newCategory != rightClickedCategory && !Categories.Contains(newCategory))
                 {
                     int index = Categories.IndexOf(rightClickedCategory);
                     if (index >= 0)
@@ -152,13 +168,22 @@ namespace alesya_rassylka
                                 r.Categories.Add(newCategory);
                             }
                         }
-                        CategoryComboBox.Items.Refresh();
                         filteredRecipients.Refresh();
                         SaveCallback();
+                        System.Diagnostics.Debug.WriteLine($"Edited {rightClickedCategory} to {newCategory}");
                     }
                 }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("Edit failed: New category invalid or already exists.");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("Edit failed: No category selected.");
             }
         }
+
 
         private void AddRecipient_Click(object sender, RoutedEventArgs e)
         {

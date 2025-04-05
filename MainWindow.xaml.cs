@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Net;
 using System.Net.Mail;
@@ -47,15 +48,17 @@ namespace alesya_rassylka
         {
             try
             {
-                // Убедимся, что все категории из получателей добавлены в список Categories
                 var allCategoriesFromRecipients = dataStore.Recipients
                     .SelectMany(r => r.Categories)
                     .Distinct()
                     .ToList();
-                dataStore.Categories = dataStore.Categories
-                    .Union(allCategoriesFromRecipients)
-                    .Distinct()
-                    .ToList();
+                foreach (var category in allCategoriesFromRecipients)
+                {
+                    if (!dataStore.Categories.Contains(category))
+                    {
+                        dataStore.Categories.Add(category);
+                    }
+                }
 
                 string json = JsonSerializer.Serialize(dataStore, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(JsonFilePath, json);
@@ -182,7 +185,7 @@ namespace alesya_rassylka
             if (window.ShowDialog() == true)
             {
                 RecipientList.ItemsSource = window.SelectedRecipients.Select(r => $"{r.Name} - {r.Email}");
-                SaveCustomers(); // сохраняем изменения получателей
+                SaveCustomers();
             }
         }
 
@@ -204,10 +207,9 @@ namespace alesya_rassylka
         public string Email { get; set; }
         public List<string> Categories { get; set; } = new List<string>();
     }
-
     public class DataStore
     {
-        public List<string> Categories { get; set; } = new List<string>();
+        public ObservableCollection<string> Categories { get; set; } = new ObservableCollection<string>();
         public List<Recipient> Recipients { get; set; } = new List<Recipient>();
     }
 }
