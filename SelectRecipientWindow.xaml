@@ -15,6 +15,8 @@
             <Setter Property="Margin" Value="5"/>
         </Style>
 
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+
         <!-- Стили для кнопок -->
         <Style x:Key="ActionButton" TargetType="Button">
             <Setter Property="Background" Value="White"/>
@@ -60,24 +62,56 @@
         </Grid.RowDefinitions>
 
         <!-- Выбор категорий -->
-        <!-- Выбор категорий -->
         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
             <TextBlock Text="Категория:" Style="{StaticResource LabelStyle}" VerticalAlignment="Center"/>
-            <xctk:CheckComboBox x:Name="CategoryComboBox"
-                        Width="300" Margin="10,0,0,0" Height="30"
-                        DisplayMemberPath="."
-                        ValueMemberPath="."
-                        ItemsSource="{Binding Categories}"
-                        PreviewMouseRightButtonDown="CategoryComboBox_PreviewMouseRightButtonDown"
-                        MouseRightButtonUp="CategoryComboBox_MouseRightButtonUp">
-                <xctk:CheckComboBox.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem Header="Добавить категорию" Click="AddCategory_Click"/>
-                        <MenuItem Header="Удалить категорию" Click="DeleteCategory_Click"/>
-                        <MenuItem Header="Редактировать категорию" Click="EditCategory_Click"/>
-                    </ContextMenu>
-                </xctk:CheckComboBox.ContextMenu>
-            </xctk:CheckComboBox>
+            <ComboBox x:Name="CategoryComboBox" 
+              Width="300" Margin="10,0,0,0" Height="30"
+              ItemsSource="{Binding Categories}"
+              PreviewMouseRightButtonDown="CategoryComboBox_PreviewMouseRightButtonDown">
+                <ComboBox.Template>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="ToggleButton" 
+                                IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                Background="White" BorderBrush="#172A74" BorderThickness="1">
+                                <ToggleButton.Content>
+                                    <TextBlock x:Name="SelectedCategoriesText" 
+                                       Text="Выберите категории..." 
+                                       Foreground="#9E9E9E"/>
+                                </ToggleButton.Content>
+                            </ToggleButton>
+                            <Popup x:Name="Popup" 
+                           IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                           Placement="Bottom" 
+                           AllowsTransparency="True" 
+                           PopupAnimation="Slide">
+                                <Border BorderBrush="#172A74" BorderThickness="1" Background="White" MaxHeight="200">
+                                    <ListBox x:Name="CategoryListBox" 
+                                     SelectionMode="Multiple"
+                                     ItemsSource="{Binding ItemsSource, RelativeSource={RelativeSource AncestorType=ComboBox}}"
+                                     SelectionChanged="CategoryListBox_SelectionChanged"
+                                     PreviewMouseRightButtonDown="CategoryListBox_PreviewMouseRightButtonDown">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <CheckBox Content="{Binding}" 
+                                                  IsChecked="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}, Mode=TwoWay}"
+                                                  Margin="5"/>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                        <ListBox.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem Header="Добавить категорию" Click="AddCategory_Click"/>
+                                                <MenuItem Header="Удалить категорию" Click="DeleteCategory_Click"/>
+                                                <MenuItem Header="Редактировать категорию" Click="EditCategory_Click"/>
+                                            </ContextMenu>
+                                        </ListBox.ContextMenu>
+                                    </ListBox>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </ComboBox.Template>
+            </ComboBox>
         </StackPanel>
 
 
