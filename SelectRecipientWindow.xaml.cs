@@ -19,6 +19,7 @@ namespace alesya_rassylka
         public List<Recipient> SelectedRecipients { get; private set; } = new();
         private readonly Action SaveCallback;
         private string rightClickedCategory;
+        private Recipient rightClickedRecipient; // Для хранения получателя, на которого нажали правой кнопкой
         private ObservableCollection<string> selectedCategories = new ObservableCollection<string>();
 
         public ObservableCollection<string> Categories { get; set; }
@@ -97,6 +98,27 @@ namespace alesya_rassylka
             else
             {
                 System.Diagnostics.Debug.WriteLine("ContextMenu not opened: ListBox or category missing.");
+            }
+        }
+
+        private void RecipientsListBox_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            e.Handled = true; // Предотвращаем изменение выделения правой кнопкой
+            var listBox = sender as ListBox;
+            var item = ItemsControl.ContainerFromElement(listBox, e.OriginalSource as DependencyObject) as ListBoxItem;
+            rightClickedRecipient = item?.Content as Recipient; // Сохраняем получателя, на которого нажали правой кнопкой
+            System.Diagnostics.Debug.WriteLine($"Right-clicked recipient: {rightClickedRecipient?.Name}");
+
+            if (listBox?.ContextMenu != null && rightClickedRecipient != null)
+            {
+                listBox.ContextMenu.DataContext = rightClickedRecipient;
+                listBox.ContextMenu.PlacementTarget = item != null ? item : listBox;
+                listBox.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+                listBox.ContextMenu.IsOpen = true;
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("ContextMenu not opened: ListBox or recipient missing.");
             }
         }
 
@@ -265,6 +287,14 @@ namespace alesya_rassylka
         private void DeleteRecipient_Click(object sender, RoutedEventArgs e)
         {
             var selectedRecipients = RecipientsListBox.SelectedItems.Cast<Recipient>().ToList();
+
+            // Если никто не выделен, но есть rightClickedRecipient, добавляем его в список для удаления
+            if (!selectedRecipients.Any() && rightClickedRecipient != null)
+            {
+                selectedRecipients = new List<Recipient> { rightClickedRecipient };
+            }
+
+            // Если после этого список всё еще пуст, показываем ошибку
             if (!selectedRecipients.Any())
             {
                 System.Windows.MessageBox.Show("Выберите хотя бы одного получателя для удаления.", "Ошибка");
@@ -290,13 +320,13 @@ namespace alesya_rassylka
 
         private void EditRecipient_Click(object sender, RoutedEventArgs e)
         {
-            if (RecipientsListBox.SelectedItems.Count != 1)
+            if (rightClickedRecipient == null)
             {
-                System.Windows.MessageBox.Show("Выберите ровно одного получателя для редактирования.", "Ошибка");
+                System.Windows.MessageBox.Show("Выберите получателя для редактирования.", "Ошибка");
                 return;
             }
 
-            var recipient = (Recipient)RecipientsListBox.SelectedItem;
+            var recipient = rightClickedRecipient;
 
             // Ввод нового имени
             string newName = Interaction.InputBox("Введите новое имя получателя:", "Редактирование получателя", recipient.Name);

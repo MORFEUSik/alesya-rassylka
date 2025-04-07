@@ -75,7 +75,6 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-            <!-- Добавляем стиль для ListBoxItem -->
             <Setter Property="ItemContainerStyle">
                 <Setter.Value>
                     <Style TargetType="ListBoxItem">
@@ -90,13 +89,10 @@
                                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                                     </Border>
                                     <ControlTemplate.Triggers>
-                                        <!-- Цвет выделения для активного и неактивного состояния -->
                                         <Trigger Property="IsSelected" Value="True">
                                             <Setter TargetName="Bd" Property="Background" Value="#C0D0F0"/>
-                                            <!-- Синий цвет -->
                                             <Setter Property="Foreground" Value="Black"/>
                                         </Trigger>
-                                        <!-- Цвет при наведении -->
                                         <Trigger Property="IsMouseOver" Value="True">
                                             <Setter TargetName="Bd" Property="Background" Value="#E0E6F8"/>
                                         </Trigger>
@@ -169,9 +165,7 @@
                  PreviewMouseRightButtonDown="CategoryListBox_PreviewMouseRightButtonDown">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <CheckBox Content="{Binding}" 
-                              IsChecked="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}, Mode=TwoWay}"
-                              Margin="5"/>
+                    <TextBlock Text="{Binding}" Margin="5" FontSize="14"/>
                 </DataTemplate>
             </ListBox.ItemTemplate>
             <ListBox.ContextMenu>
@@ -192,7 +186,8 @@
         <!-- Получатели -->
         <ListBox x:Name="RecipientsListBox" Grid.Row="2" SelectionMode="Multiple"
                  Style="{StaticResource ListBoxStyle}"
-                 Margin="0,0,0,10">
+                 Margin="0,0,0,10"
+                 PreviewMouseRightButtonDown="RecipientsListBox_PreviewMouseRightButtonDown">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Vertical" Margin="5">
