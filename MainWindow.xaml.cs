@@ -12,6 +12,8 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using MahApps.Metro.Controls;
+using System.Web; // Для HttpUtility.HtmlEncode
+using System.Net.Mime; // Для LinkedResource
 
 namespace alesya_rassylka
 {
@@ -33,6 +35,65 @@ namespace alesya_rassylka
             {
                 SenderTextBox.Text = selectedSender.Email;
             }
+        }
+
+        private (string htmlBody, List<(string cid, string filePath)> embeddedImages) ConvertRichTextBoxToHtml(RichTextBox richTextBox)
+        {
+            var htmlBody = new System.Text.StringBuilder();
+            var embeddedImages = new List<(string cid, string filePath)>();
+            int imageCounter = 0;
+
+            htmlBody.Append("<html><body>");
+
+            foreach (Block block in richTextBox.Document.Blocks)
+            {
+                if (block is Paragraph paragraph)
+                {
+                    htmlBody.Append("<p>");
+                    foreach (Inline inline in paragraph.Inlines)
+                    {
+                        if (inline is Run run)
+                        {
+                            // Обрабатываем текст с форматированием
+                            string text = run.Text;
+                            if (string.IsNullOrEmpty(text)) continue;
+
+                            bool isBold = run.FontWeight == FontWeights.Bold;
+                            bool isItalic = run.FontStyle == FontStyles.Italic;
+                            bool isUnderlined = run.TextDecorations != null && run.TextDecorations.Contains(TextDecorations.Underline[0]);
+
+                            if (isBold) htmlBody.Append("<b>");
+                            if (isItalic) htmlBody.Append("<i>");
+                            if (isUnderlined) htmlBody.Append("<u>");
+
+                            // Экранируем специальные символы
+                            text = System.Web.HttpUtility.HtmlEncode(text);
+                            // Заменяем переносы строк на <br>
+                            text = text.Replace("\r\n", "<br>").Replace("\n", "<br>");
+                            htmlBody.Append(text);
+
+                            if (isUnderlined) htmlBody.Append("</u>");
+                            if (isItalic) htmlBody.Append("</i>");
+                            if (isBold) htmlBody.Append("</b>");
+                        }
+                        else if (inline is InlineUIContainer container && container.Child is Image image)
+                        {
+                            // Обрабатываем изображение
+                            if (image.Source is BitmapImage bitmapImage)
+                            {
+                                string imagePath = bitmapImage.UriSource.LocalPath;
+                                string cid = $"image{imageCounter++}";
+                                embeddedImages.Add((cid, imagePath));
+                                htmlBody.Append($"<img src=\"cid:{cid}\" width=\"{image.Width}\" height=\"{image.Height}\" />");
+                            }
+                        }
+                    }
+                    htmlBody.Append("</p>");
+                }
+            }
+
+            htmlBody.Append("</body></html>");
+            return (htmlBody.ToString(), embeddedImages);
         }
 
         private void LoadCustomers()
@@ -86,7 +147,6 @@ namespace alesya_rassylka
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
             var recipients = RecipientList.ItemsSource as IEnumerable<string>;
-            string message = new TextRange(MessageRichTextBox.Document.ContentStart, MessageRichTextBox.Document.ContentEnd).Text.Trim();
 
             if (recipients == null || !recipients.Any())
             {
@@ -94,6 +154,8 @@ namespace alesya_rassylka
                 return;
             }
 
+            // Проверяем, есть ли содержимое в RichTextBox
+            string message = new TextRange(MessageRichTextBox.Document.ContentStart, MessageRichTextBox.Document.ContentEnd).Text.Trim();
             if (string.IsNullOrWhiteSpace(message))
             {
                 MessageBox.Show("Введите сообщение!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -111,7 +173,7 @@ namespace alesya_rassylka
                 foreach (var recipient in recipients)
                 {
                     string recipientEmail = recipient.Split(new[] { " - " }, StringSplitOptions.None).Last().Trim();
-                    SendEmail(recipientEmail, message);
+                    SendEmail(recipientEmail, message); // Здесь message используется только для проверки, реальный контент обрабатывается в SendEmail
                 }
                 MessageBox.Show("Сообщения успешно отправлены!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -142,10 +204,31 @@ namespace alesya_rassylka
                     mail.From = new MailAddress(selectedSender.Email);
                     mail.To.Add(recipientEmail);
                     mail.Subject = "Сообщение от компании";
-                    mail.Body = message;
-                    mail.IsBodyHtml = false;
 
-                    // Добавляем прикрепленные файлы
+                    // Преобразуем содержимое RichTextBox в HTML
+                    var (htmlBody, embeddedImages) = ConvertRichTextBoxToHtml(MessageRichTextBox);
+
+                    // Создаем альтернативное представление для HTML
+                    AlternateView htmlView = AlternateView.CreateAlternateViewFromString(htmlBody, null, "text/html");
+
+                    // Добавляем встроенные изображения
+                    foreach (var (cid, filePath) in embeddedImages)
+                    {
+                        if (File.Exists(filePath))
+                        {
+                            LinkedResource imageResource = new LinkedResource(filePath, "image/jpeg")
+                            {
+                                ContentId = cid,
+                                TransferEncoding = System.Net.Mime.TransferEncoding.Base64
+                            };
+                            htmlView.LinkedResources.Add(imageResource);
+                        }
+                    }
+
+                    mail.AlternateViews.Add(htmlView);
+                    mail.IsBodyHtml = true;
+
+                    // Добавляем прикрепленные файлы (отдельные вложения)
                     foreach (var filePath in attachedFiles)
                     {
                         if (File.Exists(filePath))
@@ -384,7 +467,18 @@ namespace alesya_rassylka
             TextSelection selection = MessageRichTextBox.Selection;
             if (!selection.IsEmpty)
             {
-                selection.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Bold);
+                // Проверяем текущее состояние жирного шрифта
+                object fontWeight = selection.GetPropertyValue(TextElement.FontWeightProperty);
+                if (fontWeight != DependencyProperty.UnsetValue && Equals(fontWeight, FontWeights.Bold))
+                {
+                    // Если текст уже жирный, снимаем стиль
+                    selection.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Normal);
+                }
+                else
+                {
+                    // Если текст не жирный, применяем стиль
+                    selection.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Bold);
+                }
             }
         }
 
@@ -393,7 +487,18 @@ namespace alesya_rassylka
             TextSelection selection = MessageRichTextBox.Selection;
             if (!selection.IsEmpty)
             {
-                selection.ApplyPropertyValue(TextElement.FontStyleProperty, FontStyles.Italic);
+                // Проверяем текущее состояние курсива
+                object fontStyle = selection.GetPropertyValue(TextElement.FontStyleProperty);
+                if (fontStyle != DependencyProperty.UnsetValue && Equals(fontStyle, FontStyles.Italic))
+                {
+                    // Если текст уже курсивный, снимаем стиль
+                    selection.ApplyPropertyValue(TextElement.FontStyleProperty, FontStyles.Normal);
+                }
+                else
+                {
+                    // Если текст не курсивный, применяем стиль
+                    selection.ApplyPropertyValue(TextElement.FontStyleProperty, FontStyles.Italic);
+                }
             }
         }
 
@@ -402,7 +507,18 @@ namespace alesya_rassylka
             TextSelection selection = MessageRichTextBox.Selection;
             if (!selection.IsEmpty)
             {
-                selection.ApplyPropertyValue(Inline.TextDecorationsProperty, TextDecorations.Underline);
+                // Проверяем текущее состояние подчеркивания
+                object textDecorations = selection.GetPropertyValue(Inline.TextDecorationsProperty);
+                if (textDecorations != DependencyProperty.UnsetValue && textDecorations is TextDecorationCollection decorations && decorations.Contains(TextDecorations.Underline[0]))
+                {
+                    // Если текст уже подчеркнутый, снимаем подчеркивание
+                    selection.ApplyPropertyValue(Inline.TextDecorationsProperty, null);
+                }
+                else
+                {
+                    // Если текст не подчеркнутый, применяем подчеркивание
+                    selection.ApplyPropertyValue(Inline.TextDecorationsProperty, TextDecorations.Underline);
+                }
             }
         }
 
