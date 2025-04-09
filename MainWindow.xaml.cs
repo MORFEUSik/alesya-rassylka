@@ -8,7 +8,9 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Documents;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using MahApps.Metro.Controls;
 
 namespace alesya_rassylka
@@ -19,6 +21,7 @@ namespace alesya_rassylka
         private const string JsonFilePath = "customers.json";
         private const string LogFilePath = "error.log";
         private Sender selectedSender; // Храним выбранного отправителя
+        private List<string> attachedFiles = new List<string>(); // Список путей к прикрепленным файлам
 
         public MainWindow()
         {
@@ -83,7 +86,7 @@ namespace alesya_rassylka
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
             var recipients = RecipientList.ItemsSource as IEnumerable<string>;
-            string message = MessageTextBox.Text?.Trim();
+            string message = new TextRange(MessageRichTextBox.Document.ContentStart, MessageRichTextBox.Document.ContentEnd).Text.Trim();
 
             if (recipients == null || !recipients.Any())
             {
@@ -121,10 +124,12 @@ namespace alesya_rassylka
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            MessageTextBox.Text = string.Empty;
+            MessageRichTextBox.Document.Blocks.Clear();
             selectedSender = dataStore.Senders.Find(s => s.IsDefault);
             SenderTextBox.Text = selectedSender?.Email ?? string.Empty;
             RecipientList.ItemsSource = null;
+            attachedFiles.Clear();
+            AttachedFilesList.ItemsSource = null;
         }
 
         private void SendEmail(string recipientEmail, string message)
@@ -139,6 +144,15 @@ namespace alesya_rassylka
                     mail.Subject = "Сообщение от компании";
                     mail.Body = message;
                     mail.IsBodyHtml = false;
+
+                    // Добавляем прикрепленные файлы
+                    foreach (var filePath in attachedFiles)
+                    {
+                        if (File.Exists(filePath))
+                        {
+                            mail.Attachments.Add(new Attachment(filePath));
+                        }
+                    }
 
                     smtp.Credentials = new NetworkCredential(selectedSender.Email, selectedSender.Password);
                     smtp.EnableSsl = true;
@@ -163,8 +177,36 @@ namespace alesya_rassylka
             MessageBox.Show($"{ex.Message}\n{ex.StackTrace}", title, MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e) { }
-        private void Button_Click_1(object sender, RoutedEventArgs e) { }
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            string template = "Уважаемый(ая) [Имя получателя],\n\n" +
+                             "Мы рады предложить вам сотрудничество с компанией ATLANT! " +
+                             "Наша компания специализируется на [указать сферу деятельности]. " +
+                             "Мы предлагаем выгодные условия для партнеров, включая:\n" +
+                             "- Скидки на оптовые заказы\n" +
+                             "- Быструю доставку\n" +
+                             "- Индивидуальный подход\n\n" +
+                             "Будем рады обсудить детали! Свяжитесь с нами по телефону [ваш номер] или email [ваш email].\n\n" +
+                             "С уважением,\nКоманда ATLANT";
+
+            MessageRichTextBox.Document.Blocks.Clear();
+            MessageRichTextBox.Document.Blocks.Add(new Paragraph(new Run(template)));
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            string template = "Уважаемый(ая) [Имя получателя],\n\n" +
+                             "Компания ATLANT рада предложить специальные условия для оптовиков!\n" +
+                             "Мы подготовили для вас:\n" +
+                             "- Скидку 20% на заказы от 100 единиц\n" +
+                             "- Бесплатную доставку при заказе от 500 единиц\n" +
+                             "- Персонального менеджера для вашего удобства\n\n" +
+                             "Не упустите возможность! Свяжитесь с нами для оформления заказа: [ваш номер] или [ваш email].\n\n" +
+                             "С уважением,\nКоманда ATLANT";
+
+            MessageRichTextBox.Document.Blocks.Clear();
+            MessageRichTextBox.Document.Blocks.Add(new Paragraph(new Run(template)));
+        }
 
         private void Settings_Click(object sender, RoutedEventArgs e)
         {
@@ -295,6 +337,102 @@ namespace alesya_rassylka
         private void Close_Click(object sender, RoutedEventArgs e)
         {
             Close();
+        }
+
+        private void InsertSmiley_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem && menuItem.Tag is string smiley)
+            {
+                TextPointer caretPosition = MessageRichTextBox.CaretPosition;
+                caretPosition.InsertTextInRun(smiley);
+                MessageRichTextBox.CaretPosition = caretPosition.GetPositionAtOffset(smiley.Length);
+            }
+        }
+
+        private void InsertImage_Click(object sender, RoutedEventArgs e)
+        {
+            var openFileDialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Image files (*.png;*.jpeg;*.jpg;*.gif)|*.png;*.jpeg;*.jpg;*.gif",
+                Title = "Выберите изображение для вставки"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    var image = new Image
+                    {
+                        Source = new BitmapImage(new Uri(openFileDialog.FileName)),
+                        Width = 100, // Ограничиваем размер изображения
+                        Height = 100
+                    };
+                    InlineUIContainer container = new InlineUIContainer(image);
+                    TextPointer caretPosition = MessageRichTextBox.CaretPosition;
+                    caretPosition.Paragraph.Inlines.Add(container);
+                    MessageRichTextBox.CaretPosition = caretPosition.GetNextInsertionPosition(LogicalDirection.Forward);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Ошибка при вставке изображения: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void FormatBold_Click(object sender, RoutedEventArgs e)
+        {
+            TextSelection selection = MessageRichTextBox.Selection;
+            if (!selection.IsEmpty)
+            {
+                selection.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Bold);
+            }
+        }
+
+        private void FormatItalic_Click(object sender, RoutedEventArgs e)
+        {
+            TextSelection selection = MessageRichTextBox.Selection;
+            if (!selection.IsEmpty)
+            {
+                selection.ApplyPropertyValue(TextElement.FontStyleProperty, FontStyles.Italic);
+            }
+        }
+
+        private void FormatUnderline_Click(object sender, RoutedEventArgs e)
+        {
+            TextSelection selection = MessageRichTextBox.Selection;
+            if (!selection.IsEmpty)
+            {
+                selection.ApplyPropertyValue(Inline.TextDecorationsProperty, TextDecorations.Underline);
+            }
+        }
+
+        private void AttachFile_Click(object sender, RoutedEventArgs e)
+        {
+            var openFileDialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Multiselect = true,
+                Title = "Выберите файлы для прикрепления"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                foreach (var filePath in openFileDialog.FileNames)
+                {
+                    attachedFiles.Add(filePath);
+                }
+                AttachedFilesList.ItemsSource = null;
+                AttachedFilesList.ItemsSource = attachedFiles;
+            }
+        }
+
+        private void RemoveFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.DataContext is string filePath)
+            {
+                attachedFiles.Remove(filePath);
+                AttachedFilesList.ItemsSource = null;
+                AttachedFilesList.ItemsSource = attachedFiles;
+            }
         }
     }
 
