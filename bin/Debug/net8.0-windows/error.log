@@ -9,3 +9,5 @@ StackTrace:    at System.Net.Mail.MailCommand.CheckResponse(SmtpStatusCode statu
 StackTrace:    at alesya_rassylka.MainWindow.SendEmail(String recipientEmail, String message) in D:\app\fork\alesya-rassylka\MainWindow.xaml.cs:line 102
    at alesya_rassylka.MainWindow.SendButton_Click(Object sender, RoutedEventArgs e) in D:\app\fork\alesya-rassylka\MainWindow.xaml.cs:line 53
 04.04.2025 11:55:17: [Ошибка при загрузке JSON] The JSON value could not be converted to alesya_rassylka.DataStore. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
+09.04.2025 19:42:26: [Ошибка при отправке email] The client or server is only configured for E-mail addresses with ASCII local-parts: ывфпафы@sdgf.
+09.04.2025 19:42:26: [Ошибка отправки письма] The client or server is only configured for E-mail addresses with ASCII local-parts: ывфпафы@sdgf.

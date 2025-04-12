@@ -14,11 +14,41 @@ using System.Windows.Media.Imaging;
 using MahApps.Metro.Controls;
 using System.Web; // Для HttpUtility.HtmlEncode
 using System.Net.Mime; // Для LinkedResource
+using System.Collections.Generic;
+
 
 namespace alesya_rassylka
 {
+
+    public class Sender
+    {
+        public string Email { get; set; }
+        public string Password { get; set; }
+        public bool IsDefault { get; set; }
+    }
+
+    public class Recipient
+    {
+        public string Name { get; set; }
+        public string Email { get; set; }
+        public List<string> Categories { get; set; } = new List<string>();
+    }
+
+    public class DataStore
+    {
+        public ObservableCollection<string> Categories { get; set; } = new ObservableCollection<string>();
+        public List<Recipient> Recipients { get; set; } = new List<Recipient>();
+        public List<Sender> Senders { get; set; } = new List<Sender>();
+    }
+
     public partial class MainWindow : MetroWindow
     {
+        public class AttachedFileInfo
+        {
+            public string FullPath { get; set; }
+            public string FileName => System.IO.Path.GetFileName(FullPath);
+        }
+
         private DataStore dataStore;
         private const string JsonFilePath = "customers.json";
         private const string LogFilePath = "error.log";
@@ -35,6 +65,7 @@ namespace alesya_rassylka
             {
                 SenderTextBox.Text = selectedSender.Email;
             }
+            attachedFiles = new List<string>();
         }
 
         private (string htmlBody, List<(string cid, string filePath)> embeddedImages) ConvertRichTextBoxToHtml(RichTextBox richTextBox)
@@ -194,6 +225,7 @@ namespace alesya_rassylka
             AttachedFilesList.ItemsSource = null;
         }
 
+
         private void SendEmail(string recipientEmail, string message)
         {
             try
@@ -205,13 +237,9 @@ namespace alesya_rassylka
                     mail.To.Add(recipientEmail);
                     mail.Subject = "Сообщение от компании";
 
-                    // Преобразуем содержимое RichTextBox в HTML
                     var (htmlBody, embeddedImages) = ConvertRichTextBoxToHtml(MessageRichTextBox);
-
-                    // Создаем альтернативное представление для HTML
                     AlternateView htmlView = AlternateView.CreateAlternateViewFromString(htmlBody, null, "text/html");
 
-                    // Добавляем встроенные изображения
                     foreach (var (cid, filePath) in embeddedImages)
                     {
                         if (File.Exists(filePath))
@@ -228,7 +256,7 @@ namespace alesya_rassylka
                     mail.AlternateViews.Add(htmlView);
                     mail.IsBodyHtml = true;
 
-                    // Добавляем прикрепленные файлы (отдельные вложения)
+                    // Добавляем прикрепленные файлы
                     foreach (var filePath in attachedFiles)
                     {
                         if (File.Exists(filePath))
@@ -536,40 +564,71 @@ namespace alesya_rassylka
                 {
                     attachedFiles.Add(filePath);
                 }
-                AttachedFilesList.ItemsSource = null;
-                AttachedFilesList.ItemsSource = attachedFiles;
+                UpdateAttachedFilesList();
             }
         }
 
         private void RemoveFile_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button button && button.DataContext is string filePath)
+            if (sender is Button button && button.DataContext is AttachedFileInfo fileInfo)
             {
-                attachedFiles.Remove(filePath);
-                AttachedFilesList.ItemsSource = null;
-                AttachedFilesList.ItemsSource = attachedFiles;
+                attachedFiles.Remove(fileInfo.FullPath);
+                UpdateAttachedFilesList();
             }
         }
-    }
 
-    public class Sender
-    {
-        public string Email { get; set; }
-        public string Password { get; set; }
-        public bool IsDefault { get; set; }
-    }
 
-    public class Recipient
-    {
-        public string Name { get; set; }
-        public string Email { get; set; }
-        public List<string> Categories { get; set; } = new List<string>();
-    }
+        private void RemoveFileMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (e.Source is MenuItem menuItem && menuItem.DataContext is AttachedFileInfo fileInfo)
+            {
+                attachedFiles.Remove(fileInfo.FullPath);
+                UpdateAttachedFilesList();
+            }
+        }
+        private void OpenFileMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (e.Source is MenuItem menuItem && menuItem.DataContext is AttachedFileInfo fileInfo)
+            {
+                try
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = fileInfo.FullPath,
+                        UseShellExecute = true
+                    });
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Не удалось открыть файл: {ex.Message}", "Ошибка",
+                                  MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
 
-    public class DataStore
-    {
-        public ObservableCollection<string> Categories { get; set; } = new ObservableCollection<string>();
-        public List<Recipient> Recipients { get; set; } = new List<Recipient>();
-        public List<Sender> Senders { get; set; } = new List<Sender>();
+        private void ShowInFolderMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (e.Source is MenuItem menuItem && menuItem.DataContext is AttachedFileInfo fileInfo)
+            {
+                try
+                {
+                    string folderPath = System.IO.Path.GetDirectoryName(fileInfo.FullPath);
+                    System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{fileInfo.FullPath}\"");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Не удалось открыть папку: {ex.Message}", "Ошибка",
+                                  MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void UpdateAttachedFilesList()
+        {
+            AttachedFilesList.ItemsSource = attachedFiles
+                .Select(path => new AttachedFileInfo { FullPath = path })
+                .ToList();
+        }
     }
+       
 }

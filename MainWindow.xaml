@@ -7,6 +7,23 @@
         WindowStyle="SingleBorderWindow">
 
     <Window.Resources>
+
+        <ContextMenu x:Key="FileContextMenu">
+            <MenuItem Header="Удалить" Click="RemoveFileMenuItem_Click"/>
+            <Separator/>
+            <MenuItem Header="Открыть файл" Click="OpenFileMenuItem_Click"/>
+            <MenuItem Header="Показать в папке" Click="ShowInFolderMenuItem_Click"/>
+        </ContextMenu>
+
+        <Style x:Key="FileItemStyle" TargetType="StackPanel">
+            <Setter Property="Background" Value="Transparent"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#E0E6F8"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <Style x:Key="ActionButton" TargetType="Button">
             <Setter Property="Background" Value="White"/>
             <Setter Property="Foreground" Value="#172A74"/>
@@ -118,6 +135,31 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="FormatButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="#172A74"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Width" Value="30"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                        CornerRadius="3">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#E0E6F8"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
 
     <Grid>
@@ -155,7 +197,7 @@
         </Border>
 
         <!-- Основное содержимое -->
-        <Grid Margin="0,10,25,10" Grid.Column="2">
+        <Grid Margin="0,10,25,20" Grid.Column="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <!-- Навигационные кнопки -->
@@ -179,38 +221,71 @@
                 <Button Content="Справка" Style="{StaticResource NavButton}" Margin="0,0,20,0" Click="Help_Click"/>
                 <Button Content="О программе" Style="{StaticResource NavButton}" Click="About_Click"/>
             </StackPanel>
+            <!-- RichTextBox с панелью инструментов -->
+            <Border Grid.Row="1" BorderBrush="#172A74" BorderThickness="1" CornerRadius="5" Background="White" Margin="0,0,0,0" Cursor="">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="40"/>
+                    </Grid.RowDefinitions>
 
-            <!-- Текстовое поле -->
-            <RichTextBox x:Name="MessageRichTextBox" Height="300" Background="White" BorderBrush="#172A74" BorderThickness="1" Grid.Row="1">
-                <RichTextBox.Resources>
-                    <Style TargetType="{x:Type Paragraph}">
-                        <Setter Property="Margin" Value="0"/>
-                    </Style>
-                </RichTextBox.Resources>
-                <RichTextBox.Template>
-                    <ControlTemplate TargetType="RichTextBox">
-                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
-                            <ScrollViewer x:Name="PART_ContentHost"/>
-                        </Border>
-                    </ControlTemplate>
-                </RichTextBox.Template>
-                <RichTextBox.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem Header="Вставить смайлик">
-                            <MenuItem Header="😊 Улыбка" Click="InsertSmiley_Click" Tag="😊"/>
-                            <MenuItem Header="👍 Лайк" Click="InsertSmiley_Click" Tag="👍"/>
-                            <MenuItem Header="❤️ Сердце" Click="InsertSmiley_Click" Tag="❤️"/>
-                            <MenuItem Header="🎉 Праздник" Click="InsertSmiley_Click" Tag="🎉"/>
-                        </MenuItem>
-                        <MenuItem Header="Вставить картинку" Click="InsertImage_Click"/>
-                        <MenuItem Header="Форматировать">
-                            <MenuItem Header="Жирный" Click="FormatBold_Click"/>
-                            <MenuItem Header="Курсив" Click="FormatItalic_Click"/>
-                            <MenuItem Header="Подчеркнутый" Click="FormatUnderline_Click"/>
-                        </MenuItem>
-                    </ContextMenu>
-                </RichTextBox.ContextMenu>
-            </RichTextBox>
+                    <!-- Основное текстовое поле -->
+                    <RichTextBox x:Name="MessageRichTextBox" Height="250" Background="White"
+                     BorderThickness="0">
+                        <RichTextBox.Resources>
+                            <Style TargetType="{x:Type Paragraph}">
+                                <Setter Property="Margin" Value="0"/>
+                            </Style>
+                        </RichTextBox.Resources>
+                        <RichTextBox.Template>
+                            <ControlTemplate TargetType="RichTextBox">
+                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
+                                    <ScrollViewer x:Name="PART_ContentHost"/>
+                                </Border>
+                            </ControlTemplate>
+                        </RichTextBox.Template>
+                        <RichTextBox.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Вставить смайлик">
+                                    <MenuItem Header="😊 Улыбка" Click="InsertSmiley_Click" Tag="😊"/>
+                                    <MenuItem Header="👍 Лайк" Click="InsertSmiley_Click" Tag="👍"/>
+                                    <MenuItem Header="❤️ Сердце" Click="InsertSmiley_Click" Tag="❤️"/>
+                                    <MenuItem Header="🎉 Праздник" Click="InsertSmiley_Click" Tag="🎉"/>
+                                </MenuItem>
+                                <MenuItem Header="Вставить картинку" Click="InsertImage_Click"/>
+                                <MenuItem Header="Форматировать">
+                                    <MenuItem Header="Жирный" Click="FormatBold_Click"/>
+                                    <MenuItem Header="Курсив" Click="FormatItalic_Click"/>
+                                    <MenuItem Header="Подчеркнутый" Click="FormatUnderline_Click"/>
+                                </MenuItem>
+                            </ContextMenu>
+                        </RichTextBox.ContextMenu>
+                    </RichTextBox>
+                    
+
+                    <!-- Панель инструментов -->
+                    <Border Grid.Row="1" Background="#F5F7FA" BorderBrush="#E0E3E8" BorderThickness="0,1,0,0" CornerRadius="0,0,5,5">
+                        <StackPanel Orientation="Horizontal" Margin="10,0" VerticalAlignment="Center">
+                     
+                            <!-- Форматирование текста -->
+                            <Button Content="B" Click="FormatBold_Click"
+                        Style="{StaticResource FormatButton}" Width="32" Height="32"
+                        FontWeight="Bold" ToolTip="Жирный" FontSize="14"/>
+                            <Button Content="I" Click="FormatItalic_Click"
+                        Style="{StaticResource FormatButton}" Width="32" Height="32"
+                        FontStyle="Italic" ToolTip="Курсив" FontSize="14" Margin="5,0,0,0"/>
+                            <Button Click="FormatUnderline_Click"
+                        Style="{StaticResource FormatButton}" Width="32" Height="32"
+                        ToolTip="Подчеркнутый" FontSize="14" Margin="5,0,0,0">
+                                <TextBlock Text="U" TextDecorations="Underline"/>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+
 
             <!-- Отправитель -->
             <Grid Margin="0,25,0,0" Grid.Row="3">
@@ -248,7 +323,7 @@
                         HorizontalAlignment="Stretch" Grid.Column="1" Margin="30,0,0,0">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" 
                                   HorizontalScrollBarVisibility="Disabled"
-                                  Height="Auto" MaxHeight="170">
+                                  Height="Auto" MaxHeight="80" Cursor="">
                         <ItemsControl x:Name="RecipientList">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -273,17 +348,18 @@
 
                 <!-- Список прикрепленных файлов -->
                 <Border Background="White" BorderBrush="#172A74" BorderThickness="1" 
-                        CornerRadius="5" Padding="5"
-                        HorizontalAlignment="Stretch" Grid.Column="1" Margin="10,0,0,0">
+        CornerRadius="5" Padding="5"
+        HorizontalAlignment="Stretch" Grid.Column="1" Margin="10,0,0,0">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" 
-                                  HorizontalScrollBarVisibility="Disabled"
-                                  Height="Auto" MaxHeight="50">
+                  HorizontalScrollBarVisibility="Disabled"
+                  Height="Auto" MaxHeight="70">
                         <ItemsControl x:Name="AttachedFilesList">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{Binding}" Padding="5"/>
-                                        <Button Content="Удалить" Style="{StaticResource SmallNavButton}" Margin="5,0,0,0" Click="RemoveFile_Click"/>
+                                    <StackPanel Orientation="Horizontal" 
+                                ContextMenu="{StaticResource FileContextMenu}"
+                                Style="{StaticResource FileItemStyle}">
+                                        <TextBlock Text="{Binding FileName}" Padding="5"/>
                                     </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
