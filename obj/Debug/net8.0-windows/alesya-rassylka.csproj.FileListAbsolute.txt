@@ -145,3 +145,11 @@ D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\SettingsWindow.g.cs
 D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\GeneratedInternalTypeHelper.g.cs
 D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\alesya-rassylka_MarkupCompile.lref
 D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\SelectRecipientWindow.baml
+C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\TemplateEditWindow.baml
+C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\TemplateManagerWindow.baml
+C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\TemplateEditWindow.g.cs
+C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\TemplateManagerWindow.g.cs
+C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\Microsoft.Office.Interop.Word.dll
+C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\DocumentFormat.OpenXml.dll
+C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\DocumentFormat.OpenXml.Framework.dll
+C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\System.IO.Packaging.dll

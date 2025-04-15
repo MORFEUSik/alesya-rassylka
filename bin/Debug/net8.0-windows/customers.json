@@ -1,67 +1,85 @@
-{
+﻿{
   "Categories": [
-    "\u041F\u0415\u0414 \u0421\u041E\u0421\u0422\u0410\u0412",
-    "\u041F\u044B\u043B\u0435\u0441\u043E\u0441",
-    "\u0421\u0442\u0438\u0440\u0430\u043B\u044C\u043D\u0430\u044F \u043C\u0430\u0448\u0438\u043D\u0430",
-    "\u041D\u043E\u0443\u0442\u0431\u0443\u043A"
+    "ПЕД СОСТАВ",
+    "Пылесос",
+    "Стиральная машина",
+    "Ноутбук",
+    "Холодильник",
+    "Телевизор"
   ],
   "Recipients": [
     {
-      "Name": "\u041D\u0438\u043A\u0438\u0442\u0430 \u0412\u0438\u043D\u043E\u043A\u0443\u0440\u043E\u0432",
+      "Name": "Никита Винокуров",
       "Email": "nikita.vinokurov.05@mail.ru",
       "Categories": [
-        "\u041F\u0415\u0414 \u0421\u041E\u0421\u0422\u0410\u0412"
+        "ПЕД СОСТАВ"
       ]
     },
     {
-      "Name": "\u0418\u0432\u0430\u043D \u041F\u0435\u0442\u0440\u043E\u0432",
+      "Name": "Иван Петров",
       "Email": "ivan.petrov@example.com",
       "Categories": [
-        "\u041F\u044B\u043B\u0435\u0441\u043E\u0441",
-        "\u041D\u043E\u0443\u0442\u0431\u0443\u043A"
+        "Пылесос",
+        "Ноутбук"
       ]
     },
     {
-      "Name": "\u0410\u043B\u0435\u0441\u0438\u044F \u0421\u0438\u043D\u044F\u0432\u0441\u043A\u0430\u044F",
+      "Name": "Алеся Синявская",
       "Email": "alesyaaasin@gmail.com",
       "Categories": [
-        "\u0421\u0442\u0438\u0440\u0430\u043B\u044C\u043D\u0430\u044F \u043C\u0430\u0448\u0438\u043D\u0430"
+        "Стиральная машина"
       ]
     },
     {
-      "Name": "\u041D\u0438\u043A\u0438\u0442\u043E\u0441 \u0412\u0438\u043D\u043E\u0447\u0443\u0440\u043E\u04322",
+      "Name": "Никитос Виночур22",
       "Email": "nelkabrain@gmail.com",
       "Categories": [
-        "\u041D\u043E\u0443\u0442\u0431\u0443\u043A"
+        "Ноутбук"
       ]
     },
     {
-      "Name": "\u0432\u0430\u043F\u0432\u0430\u044B",
-      "Email": "\u044B\u0432\u0444\u043F\u0430\u0444\u044B@sdgf",
+      "Name": "вапваы",
+      "Email": "ывфпафы@sdgf",
       "Categories": [
-        "\u041F\u044B\u043B\u0435\u0441\u043E\u0441",
-        "\u041F\u0415\u0414 \u0421\u041E\u0421\u0422\u0410\u0412"
+        "Пылесос",
+        "ПЕД СОСТАВ"
       ]
     },
     {
       "Name": "cvvcv",
       "Email": "cdbgnh@gmail.com",
       "Categories": [
-        "\u0421\u0442\u0438\u0440\u0430\u043B\u044C\u043D\u0430\u044F \u043C\u0430\u0448\u0438\u043D\u0430"
+        "Стиральная машина"
       ]
     },
     {
       "Name": "dgfgb",
       "Email": "cddfbbgnh@gmail.com",
       "Categories": [
-        "\u041D\u043E\u0443\u0442\u0431\u0443\u043A"
+        "Ноутбук"
       ]
     },
     {
       "Name": "vgnk,,jhgf",
       "Email": "cdbgnnnh@gmail.com",
       "Categories": [
-        "\u041D\u043E\u0443\u0442\u0431\u0443\u043A"
+        "Ноутбук"
+      ]
+    },
+    {
+      "Name": "Екатерина Смирнова",
+      "Email": "ekaterina.smirnova@example.com",
+      "Categories": [
+        "Холодильник",
+        "Телевизор"
+      ]
+    },
+    {
+      "Name": "Алексей Иванов",
+      "Email": "alexei.ivanov@example.com",
+      "Categories": [
+        "Пылесос",
+        "Стиральная машина"
       ]
     }
   ],
@@ -75,6 +93,11 @@
       "Email": "kikbika@gmail.com",
       "Password": "zbobujojpchynxwd",
       "IsDefault": true
+    },
+    {
+      "Email": "support@atlant.com",
+      "Password": "atlant12345",
+      "IsDefault": false
     }
   ]
 }

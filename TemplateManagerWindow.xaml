@@ -1,0 +1,87 @@
+﻿<Controls:MetroWindow x:Class="alesya_rassylka.TemplateManagerWindow"
+                      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
+                      Title="Управление шаблонами" Height="600" Width="800"
+                      WindowStartupLocation="CenterOwner"
+                      Background="#DFE3EB"
+                      WindowStyle="SingleBorderWindow">
+    <Window.Resources>
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#172A74"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontFamily" Value="Arial Black"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#172A74"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="MinHeight" Value="30"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="5"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" 
+                                              TextBlock.TextAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#E0E6F8"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#C0D0F0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Название категории -->
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBlock Text="Название категории:" VerticalAlignment="Center" FontSize="14"/>
+            <TextBox x:Name="CategoryNameTextBox" Width="300" Margin="10,0,0,0" FontSize="14"/>
+            <Button x:Name="SaveCategoryNameButton" Content="Сохранить название" Style="{StaticResource ActionButton}" 
+                    Margin="10,0,0,0" Click="SaveCategoryName_Click"/>
+        </StackPanel>
+
+        <!-- Кнопка для добавления нового шаблона -->
+        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,10">
+            <Button x:Name="AddTemplateButton" Content="Добавить шаблон" Style="{StaticResource ActionButton}" 
+                    Click="AddTemplate_Click"/>
+            <Button x:Name="AddTemplateFromWordButton" Content="Добавить из Word" Style="{StaticResource ActionButton}" 
+                    Margin="10,0,0,0" Click="AddTemplateFromWord_Click"/>
+        </StackPanel>
+
+        <!-- Список шаблонов -->
+        <ListBox x:Name="TemplatesListBox" Grid.Row="2" BorderBrush="#172A74" BorderThickness="1" Background="White">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal" Margin="5">
+                        <TextBlock Text="{Binding Name}" FontSize="14" VerticalAlignment="Center"/>
+                        <Button Content="Редактировать" Margin="10,0,0,0" Click="EditTemplate_Click" Tag="{Binding}"/>
+                        <Button Content="Выбрать" Margin="10,0,0,0" Click="SelectTemplate_Click" Tag="{Binding}"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!-- Кнопка закрытия -->
+        <Button x:Name="CloseButton" Content="Закрыть" Style="{StaticResource ActionButton}" 
+                Grid.Row="3" HorizontalAlignment="Right" Margin="0,10,0,0" Click="Close_Click"/>
+    </Grid>
+</Controls:MetroWindow>

@@ -12,14 +12,12 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using MahApps.Metro.Controls;
-using System.Web; // Для HttpUtility.HtmlEncode
-using System.Net.Mime; // Для LinkedResource
-using System.Collections.Generic;
-
+using System.Web;
+using System.Net.Mime;
+using System.ComponentModel;
 
 namespace alesya_rassylka
 {
-
     public class Sender
     {
         public string Email { get; set; }
@@ -34,6 +32,18 @@ namespace alesya_rassylka
         public List<string> Categories { get; set; } = new List<string>();
     }
 
+    public class Template
+    {
+        public string Name { get; set; }
+        public string Content { get; set; }
+    }
+
+    public class TemplateCategory
+    {
+        public string Name { get; set; }
+        public List<Template> Templates { get; set; } = new List<Template>();
+    }
+
     public class DataStore
     {
         public ObservableCollection<string> Categories { get; set; } = new ObservableCollection<string>();
@@ -41,8 +51,10 @@ namespace alesya_rassylka
         public List<Sender> Senders { get; set; } = new List<Sender>();
     }
 
-    public partial class MainWindow : MetroWindow
+    public partial class MainWindow : MetroWindow, INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler PropertyChanged;
+
         public class AttachedFileInfo
         {
             public string FullPath { get; set; }
@@ -50,22 +62,46 @@ namespace alesya_rassylka
         }
 
         private DataStore dataStore;
+        private ObservableCollection<TemplateCategory> templateCategories;
         private const string JsonFilePath = "customers.json";
+        private const string TemplatesFilePath = "templates.json";
         private const string LogFilePath = "error.log";
-        private Sender selectedSender; // Храним выбранного отправителя
-        private List<string> attachedFiles = new List<string>(); // Список путей к прикрепленным файлам
+        private Sender selectedSender;
+        private List<string> attachedFiles = new List<string>();
 
         public MainWindow()
         {
             InitializeComponent();
             LoadCustomers();
-            // Устанавливаем стандартного отправителя при запуске
+            LoadTemplates();
             selectedSender = dataStore.Senders.Find(s => s.IsDefault);
             if (selectedSender != null)
             {
                 SenderTextBox.Text = selectedSender.Email;
             }
             attachedFiles = new List<string>();
+            DataContext = this;
+
+            // Инициализируем MessageRichTextBox с пустым абзацем
+            if (MessageRichTextBox.Document.Blocks.Count == 0)
+            {
+                MessageRichTextBox.Document.Blocks.Add(new Paragraph());
+            }
+        }
+
+        public ObservableCollection<TemplateCategory> TemplateCategories
+        {
+            get { return templateCategories; }
+            set
+            {
+                templateCategories = value;
+                OnPropertyChanged(nameof(TemplateCategories));
+            }
+        }
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         private (string htmlBody, List<(string cid, string filePath)> embeddedImages) ConvertRichTextBoxToHtml(RichTextBox richTextBox)
@@ -85,7 +121,6 @@ namespace alesya_rassylka
                     {
                         if (inline is Run run)
                         {
-                            // Обрабатываем текст с форматированием
                             string text = run.Text;
                             if (string.IsNullOrEmpty(text)) continue;
 
@@ -97,9 +132,7 @@ namespace alesya_rassylka
                             if (isItalic) htmlBody.Append("<i>");
                             if (isUnderlined) htmlBody.Append("<u>");
 
-                            // Экранируем специальные символы
                             text = System.Web.HttpUtility.HtmlEncode(text);
-                            // Заменяем переносы строк на <br>
                             text = text.Replace("\r\n", "<br>").Replace("\n", "<br>");
                             htmlBody.Append(text);
 
@@ -109,7 +142,6 @@ namespace alesya_rassylka
                         }
                         else if (inline is InlineUIContainer container && container.Child is Image image)
                         {
-                            // Обрабатываем изображение
                             if (image.Source is BitmapImage bitmapImage)
                             {
                                 string imagePath = bitmapImage.UriSource.LocalPath;
@@ -133,8 +165,17 @@ namespace alesya_rassylka
             {
                 if (File.Exists(JsonFilePath))
                 {
-                    string json = File.ReadAllText(JsonFilePath);
-                    dataStore = JsonSerializer.Deserialize<DataStore>(json) ?? new DataStore();
+                    string json = File.ReadAllText(JsonFilePath, System.Text.Encoding.UTF8);
+                    var loadedData = JsonSerializer.Deserialize<DataStore>(json);
+                    if (loadedData != null)
+                    {
+                        dataStore = loadedData;
+                    }
+                    else
+                    {
+                        dataStore = new DataStore();
+                        SaveCustomers();
+                    }
                 }
                 else
                 {
@@ -144,7 +185,7 @@ namespace alesya_rassylka
             }
             catch (Exception ex)
             {
-                LogError("Ошибка при загрузке JSON", ex);
+                LogError("Ошибка при загрузке JSON (customers.json)", ex);
                 ShowDetailedError("Ошибка загрузки данных", ex);
             }
         }
@@ -165,13 +206,142 @@ namespace alesya_rassylka
                     }
                 }
 
-                string json = JsonSerializer.Serialize(dataStore, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(JsonFilePath, json);
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                };
+                string json = JsonSerializer.Serialize(dataStore, options);
+                File.WriteAllText(JsonFilePath, json, System.Text.Encoding.UTF8);
             }
             catch (Exception ex)
             {
-                LogError("Ошибка при сохранении JSON", ex);
+                LogError("Ошибка при сохранении JSON (customers.json)", ex);
                 ShowDetailedError("Ошибка сохранения данных", ex);
+            }
+        }
+
+        private void LoadTemplates()
+        {
+            try
+            {
+                if (File.Exists(TemplatesFilePath))
+                {
+                    string json = File.ReadAllText(TemplatesFilePath, System.Text.Encoding.UTF8);
+                    var loadedTemplates = JsonSerializer.Deserialize<List<TemplateCategory>>(json);
+                    TemplateCategories = new ObservableCollection<TemplateCategory>(loadedTemplates ?? new List<TemplateCategory>());
+                }
+                else
+                {
+                    TemplateCategories = new ObservableCollection<TemplateCategory>();
+                    InitializeDefaultTemplates();
+                    SaveTemplates();
+                }
+            }
+            catch (Exception ex)
+            {
+                LogError("Ошибка при загрузке JSON (templates.json)", ex);
+                ShowDetailedError("Ошибка загрузки шаблонов", ex);
+            }
+        }
+
+        private void SaveTemplates()
+        {
+            try
+            {
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                };
+                string json = JsonSerializer.Serialize(templateCategories, options);
+                File.WriteAllText(TemplatesFilePath, json, System.Text.Encoding.UTF8);
+            }
+            catch (Exception ex)
+            {
+                LogError("Ошибка при сохранении JSON (templates.json)", ex);
+                ShowDetailedError("Ошибка сохранения шаблонов", ex);
+            }
+        }
+
+        private void InitializeDefaultTemplates()
+        {
+            TemplateCategories.Clear();
+            TemplateCategories.Add(new TemplateCategory
+            {
+                Name = "Предложение о сотрудничестве",
+                Templates = new List<Template>
+                {
+                    new Template
+                    {
+                        Name = "Стандартное предложение",
+                        Content = "Уважаемый(ая) [Имя получателя],\n\n" +
+                                  "Мы рады предложить вам сотрудничество с компанией ATLANT! " +
+                                  "Наша компания специализируется на [указать сферу деятельности]. " +
+                                  "Мы предлагаем выгодные условия для партнеров, включая:\n" +
+                                  "- Скидки на оптовые заказы\n" +
+                                  "- Быструю доставку\n" +
+                                  "- Индивидуальный подход\n\n" +
+                                  "Будем рады обсудить детали! Свяжитесь с нами по телефону [ваш номер] или email [ваш email].\n\n" +
+                                  "С уважением,\nКоманда ATLANT"
+                    }
+                }
+            });
+
+            TemplateCategories.Add(new TemplateCategory
+            {
+                Name = "Специальные условия для оптовиков",
+                Templates = new List<Template>
+                {
+                    new Template
+                    {
+                        Name = "Скидки и доставка",
+                        Content = "Уважаемый(ая) [Имя получателя],\n\n" +
+                                  "Компания ATLANT рада предложить специальные условия для оптовиков!\n" +
+                                  "Мы подготовили для вас:\n" +
+                                  "- Скидку 20% на заказы от 100 единиц\n" +
+                                  "- Бесплатную доставку при заказе от 500 единиц\n" +
+                                  "- Персонального менеджера для вашего удобства\n\n" +
+                                  "Не упустите возможность! Свяжитесь с нами для оформления заказа: [ваш номер] или [ваш email].\n\n" +
+                                  "С уважением,\nКоманда ATLANT"
+                    }
+                }
+            });
+
+            string[] otherCategories = new[]
+            {
+                "Анонс новой продукции для оптовиков",
+                "Специальные акции для оптовиков",
+                "Информация о логистике и доставке",
+                "Приглашение на встречу или выставку",
+                "Образовательный контент для закупщиков",
+                "Благодарность за сотрудничество"
+            };
+
+            foreach (var categoryName in otherCategories)
+            {
+                TemplateCategories.Add(new TemplateCategory
+                {
+                    Name = categoryName,
+                    Templates = new List<Template>()
+                });
+            }
+        }
+
+        private void TemplateCategory_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is TemplateCategory category)
+            {
+                var templateWindow = new TemplateManagerWindow(category, SaveTemplates)
+                {
+                    Owner = this
+                };
+
+                if (templateWindow.ShowDialog() == true && templateWindow.SelectedTemplate != null)
+                {
+                    MessageRichTextBox.Document.Blocks.Clear();
+                    MessageRichTextBox.Document.Blocks.Add(new Paragraph(new Run(templateWindow.SelectedTemplate.Content)));
+                }
             }
         }
 
@@ -185,7 +355,6 @@ namespace alesya_rassylka
                 return;
             }
 
-            // Проверяем, есть ли содержимое в RichTextBox
             string message = new TextRange(MessageRichTextBox.Document.ContentStart, MessageRichTextBox.Document.ContentEnd).Text.Trim();
             if (string.IsNullOrWhiteSpace(message))
             {
@@ -204,7 +373,7 @@ namespace alesya_rassylka
                 foreach (var recipient in recipients)
                 {
                     string recipientEmail = recipient.Split(new[] { " - " }, StringSplitOptions.None).Last().Trim();
-                    SendEmail(recipientEmail, message); // Здесь message используется только для проверки, реальный контент обрабатывается в SendEmail
+                    SendEmail(recipientEmail, message);
                 }
                 MessageBox.Show("Сообщения успешно отправлены!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -224,7 +393,6 @@ namespace alesya_rassylka
             attachedFiles.Clear();
             AttachedFilesList.ItemsSource = null;
         }
-
 
         private void SendEmail(string recipientEmail, string message)
         {
@@ -256,7 +424,6 @@ namespace alesya_rassylka
                     mail.AlternateViews.Add(htmlView);
                     mail.IsBodyHtml = true;
 
-                    // Добавляем прикрепленные файлы
                     foreach (var filePath in attachedFiles)
                     {
                         if (File.Exists(filePath))
@@ -280,7 +447,7 @@ namespace alesya_rassylka
         private void LogError(string context, Exception ex)
         {
             string logMessage = $"{DateTime.Now}: [{context}] {ex.Message}\n";
-            File.AppendAllText(LogFilePath, logMessage);
+            File.AppendAllText(LogFilePath, logMessage, System.Text.Encoding.UTF8);
         }
 
         private void ShowDetailedError(string title, Exception ex)
@@ -327,7 +494,6 @@ namespace alesya_rassylka
             };
             settingsWindow.ShowDialog();
 
-            // После закрытия окна настроек обновляем стандартного отправителя
             selectedSender = dataStore.Senders.Find(s => s.IsDefault);
             SenderTextBox.Text = selectedSender?.Email ?? string.Empty;
         }
@@ -364,7 +530,6 @@ namespace alesya_rassylka
                 return;
             }
 
-            // Создаем диалоговое окно "на лету"
             var senderSelectionWindow = new Window
             {
                 Title = "Выбор отправителя",
@@ -386,7 +551,6 @@ namespace alesya_rassylka
                 Background = Brushes.White
             };
 
-            // Настраиваем шаблон для отображения email отправителя
             senderListBox.ItemTemplate = new DataTemplate();
             var factory = new FrameworkElementFactory(typeof(TextBlock));
             factory.SetValue(TextBlock.TextProperty, new Binding("Email"));
@@ -394,7 +558,6 @@ namespace alesya_rassylka
             factory.SetValue(TextBlock.FontSizeProperty, 14.0);
             senderListBox.ItemTemplate.VisualTree = factory;
 
-            // Отмечаем текущего стандартного отправителя
             var defaultSender = dataStore.Senders.Find(s => s.IsDefault);
             if (defaultSender != null)
             {
@@ -475,13 +638,25 @@ namespace alesya_rassylka
                     var image = new Image
                     {
                         Source = new BitmapImage(new Uri(openFileDialog.FileName)),
-                        Width = 100, // Ограничиваем размер изображения
+                        Width = 100,
                         Height = 100
                     };
                     InlineUIContainer container = new InlineUIContainer(image);
                     TextPointer caretPosition = MessageRichTextBox.CaretPosition;
-                    caretPosition.Paragraph.Inlines.Add(container);
-                    MessageRichTextBox.CaretPosition = caretPosition.GetNextInsertionPosition(LogicalDirection.Forward);
+
+                    // Проверяем, есть ли текущий абзац
+                    Paragraph currentParagraph = caretPosition.Paragraph;
+                    if (currentParagraph == null)
+                    {
+                        // Если абзаца нет, создаем новый
+                        currentParagraph = new Paragraph();
+                        MessageRichTextBox.Document.Blocks.Add(currentParagraph);
+                        caretPosition = currentParagraph.ContentStart; // Обновляем позицию курсора
+                    }
+
+                    // Добавляем изображение в абзац
+                    currentParagraph.Inlines.Add(container);
+                    MessageRichTextBox.CaretPosition = caretPosition.GetNextInsertionPosition(LogicalDirection.Forward) ?? caretPosition;
                 }
                 catch (Exception ex)
                 {
@@ -495,16 +670,13 @@ namespace alesya_rassylka
             TextSelection selection = MessageRichTextBox.Selection;
             if (!selection.IsEmpty)
             {
-                // Проверяем текущее состояние жирного шрифта
                 object fontWeight = selection.GetPropertyValue(TextElement.FontWeightProperty);
                 if (fontWeight != DependencyProperty.UnsetValue && Equals(fontWeight, FontWeights.Bold))
                 {
-                    // Если текст уже жирный, снимаем стиль
                     selection.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Normal);
                 }
                 else
                 {
-                    // Если текст не жирный, применяем стиль
                     selection.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Bold);
                 }
             }
@@ -515,16 +687,13 @@ namespace alesya_rassylka
             TextSelection selection = MessageRichTextBox.Selection;
             if (!selection.IsEmpty)
             {
-                // Проверяем текущее состояние курсива
                 object fontStyle = selection.GetPropertyValue(TextElement.FontStyleProperty);
                 if (fontStyle != DependencyProperty.UnsetValue && Equals(fontStyle, FontStyles.Italic))
                 {
-                    // Если текст уже курсивный, снимаем стиль
                     selection.ApplyPropertyValue(TextElement.FontStyleProperty, FontStyles.Normal);
                 }
                 else
                 {
-                    // Если текст не курсивный, применяем стиль
                     selection.ApplyPropertyValue(TextElement.FontStyleProperty, FontStyles.Italic);
                 }
             }
@@ -535,16 +704,13 @@ namespace alesya_rassylka
             TextSelection selection = MessageRichTextBox.Selection;
             if (!selection.IsEmpty)
             {
-                // Проверяем текущее состояние подчеркивания
                 object textDecorations = selection.GetPropertyValue(Inline.TextDecorationsProperty);
                 if (textDecorations != DependencyProperty.UnsetValue && textDecorations is TextDecorationCollection decorations && decorations.Contains(TextDecorations.Underline[0]))
                 {
-                    // Если текст уже подчеркнутый, снимаем подчеркивание
                     selection.ApplyPropertyValue(Inline.TextDecorationsProperty, null);
                 }
                 else
                 {
-                    // Если текст не подчеркнутый, применяем подчеркивание
                     selection.ApplyPropertyValue(Inline.TextDecorationsProperty, TextDecorations.Underline);
                 }
             }
@@ -577,7 +743,6 @@ namespace alesya_rassylka
             }
         }
 
-
         private void RemoveFileMenuItem_Click(object sender, RoutedEventArgs e)
         {
             if (e.Source is MenuItem menuItem && menuItem.DataContext is AttachedFileInfo fileInfo)
@@ -586,6 +751,7 @@ namespace alesya_rassylka
                 UpdateAttachedFilesList();
             }
         }
+
         private void OpenFileMenuItem_Click(object sender, RoutedEventArgs e)
         {
             if (e.Source is MenuItem menuItem && menuItem.DataContext is AttachedFileInfo fileInfo)
@@ -630,5 +796,4 @@ namespace alesya_rassylka
                 .ToList();
         }
     }
-       
 }
