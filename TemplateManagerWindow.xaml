@@ -43,7 +43,7 @@
         </Style>
     </Window.Resources>
 
-    <Grid Margin="20">
+    <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -51,37 +51,30 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Название категории -->
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
             <TextBlock Text="Название категории:" VerticalAlignment="Center" FontSize="14"/>
-            <TextBox x:Name="CategoryNameTextBox" Width="300" Margin="10,0,0,0" FontSize="14"/>
-            <Button x:Name="SaveCategoryNameButton" Content="Сохранить название" Style="{StaticResource ActionButton}" 
-                    Margin="10,0,0,0" Click="SaveCategoryName_Click"/>
+            <TextBox x:Name="CategoryNameTextBox" Width="200" Margin="10,0,0,0" FontSize="14"/>
+            <Button Content="Сохранить" Margin="10,0,0,0" Click="SaveCategoryName_Click" Style="{StaticResource ActionButton}"/>
         </StackPanel>
 
-        <!-- Кнопка для добавления нового шаблона -->
-        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,10">
-            <Button x:Name="AddTemplateButton" Content="Добавить шаблон" Style="{StaticResource ActionButton}" 
-                    Click="AddTemplate_Click"/>
-            <Button x:Name="AddTemplateFromWordButton" Content="Добавить из Word" Style="{StaticResource ActionButton}" 
-                    Margin="10,0,0,0" Click="AddTemplateFromWord_Click"/>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
+            <Button Content="Добавить шаблон" Click="AddTemplate_Click" Style="{StaticResource ActionButton}"/>
+            <Button Content="Добавить из Word" Margin="10,0,0,0" Click="AddTemplateFromWord_Click" Style="{StaticResource ActionButton}"/>
         </StackPanel>
 
-        <!-- Список шаблонов -->
         <ListBox x:Name="TemplatesListBox" Grid.Row="2" BorderBrush="#172A74" BorderThickness="1" Background="White">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal" Margin="5">
                         <TextBlock Text="{Binding Name}" FontSize="14" VerticalAlignment="Center"/>
-                        <Button Content="Редактировать" Margin="10,0,0,0" Click="EditTemplate_Click" Tag="{Binding}"/>
-                        <Button Content="Выбрать" Margin="10,0,0,0" Click="SelectTemplate_Click" Tag="{Binding}"/>
+                        <Button Content="Редактировать" Margin="10,0,0,0" Click="EditTemplate_Click" Tag="{Binding}" Style="{StaticResource ActionButton}"/>
+                        <Button Content="Выбрать" Margin="10,0,0,0" Click="SelectTemplate_Click" Tag="{Binding}" Style="{StaticResource ActionButton}"/>
+                        <Button Content="Удалить" Margin="10,0,0,0" Click="DeleteTemplate_Click" Tag="{Binding}" Style="{StaticResource ActionButton}"/>
                     </StackPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <!-- Кнопка закрытия -->
-        <Button x:Name="CloseButton" Content="Закрыть" Style="{StaticResource ActionButton}" 
-                Grid.Row="3" HorizontalAlignment="Right" Margin="0,10,0,0" Click="Close_Click"/>
+        <Button Grid.Row="3" Content="Закрыть" HorizontalAlignment="Right" Margin="0,10,0,0" Click="Close_Click" Style="{StaticResource ActionButton}"/>
     </Grid>
 </Controls:MetroWindow>

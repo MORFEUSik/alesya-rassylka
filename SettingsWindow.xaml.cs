@@ -14,29 +14,38 @@ namespace alesya_rassylka
         private DataStore dataStore;
         private Action saveCallback;
         private MainWindow mainWindow;
-        private Sender rightClickedSender; // Для хранения отправителя, на котором кликнули правой кнопкой
+        private List<Sender> tempSenders; // Временная копия списка отправителей
 
         public SettingsWindow(DataStore dataStore, Action saveCallback, MainWindow mainWindow)
         {
+            System.Diagnostics.Debug.WriteLine("Starting SettingsWindow initialization");
             InitializeComponent();
+            System.Diagnostics.Debug.WriteLine("InitializeComponent completed");
             this.dataStore = dataStore;
             this.saveCallback = saveCallback;
             this.mainWindow = mainWindow;
 
-            // Заполняем список отправителей
-            SendersListBox.ItemsSource = dataStore.Senders;
-            DefaultSenderComboBox.ItemsSource = dataStore.Senders;
+            // Создаём глубокую копию списка отправителей
+            tempSenders = dataStore.Senders.Select(s => new Sender
+            {
+                Email = s.Email,
+                Password = s.Password,
+                IsDefault = s.IsDefault
+            }).ToList();
+
+            // Заполняем UI временной копией
+            SendersListBox.ItemsSource = tempSenders;
+            DefaultSenderComboBox.ItemsSource = tempSenders;
             DefaultSenderComboBox.DisplayMemberPath = "Email";
-            DefaultSenderComboBox.SelectedItem = dataStore.Senders.Find(s => s.IsDefault);
+            DefaultSenderComboBox.SelectedItem = tempSenders.Find(s => s.IsDefault);
 
             // Устанавливаем текущий цвет приложения
             if (mainWindow.Background is SolidColorBrush backgroundBrush)
             {
-                string currentColorHex = backgroundBrush.Color.ToString(); // Получаем HEX-значение цвета (например, #FFDFE3EB)
+                string currentColorHex = backgroundBrush.Color.ToString();
                 foreach (ComboBoxItem item in ColorComboBox.Items)
                 {
-                    string itemColorHex = item.Tag.ToString(); // Например, #DFE3EB
-                                                               // Приводим оба значения к одному формату (убираем "FF" из начала, если оно есть)
+                    string itemColorHex = item.Tag.ToString();
                     if (currentColorHex.Replace("#FF", "#") == itemColorHex)
                     {
                         ColorComboBox.SelectedItem = item;
@@ -44,6 +53,15 @@ namespace alesya_rassylka
                     }
                 }
             }
+
+            // Подписываемся на событие закрытия окна
+            Closing += SettingsWindow_Closing;
+        }
+
+        private void SettingsWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            // При закрытии крестиком сбрасываем изменения, не сохраняя
+            DialogResult = false;
         }
 
         private void AddSender_Click(object sender, RoutedEventArgs e)
@@ -63,7 +81,7 @@ namespace alesya_rassylka
                 return;
             }
 
-            if (dataStore.Senders.Any(s => s.Email.Equals(email, StringComparison.OrdinalIgnoreCase)))
+            if (tempSenders.Any(s => s.Email.Equals(email, StringComparison.OrdinalIgnoreCase)))
             {
                 MessageBox.Show("Отправитель с таким email уже существует!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
@@ -73,14 +91,14 @@ namespace alesya_rassylka
             {
                 Email = email,
                 Password = password,
-                IsDefault = dataStore.Senders.Count == 0 // Если это первый отправитель, делаем его стандартным
+                IsDefault = tempSenders.Count == 0
             };
 
-            dataStore.Senders.Add(newSender);
+            tempSenders.Add(newSender);
             SendersListBox.ItemsSource = null;
-            SendersListBox.ItemsSource = dataStore.Senders;
+            SendersListBox.ItemsSource = tempSenders;
             DefaultSenderComboBox.ItemsSource = null;
-            DefaultSenderComboBox.ItemsSource = dataStore.Senders;
+            DefaultSenderComboBox.ItemsSource = tempSenders;
             DefaultSenderComboBox.DisplayMemberPath = "Email";
             DefaultSenderComboBox.SelectedItem = newSender;
 
@@ -90,129 +108,110 @@ namespace alesya_rassylka
             MessageBox.Show("Отправитель успешно добавлен!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        private void SendersListBox_PreviewMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            var listBox = sender as ListBox;
-            if (listBox != null)
-            {
-                // Находим элемент под курсором
-                var point = e.GetPosition(listBox);
-                var result = VisualTreeHelper.HitTest(listBox, point);
-                if (result != null)
-                {
-                    var listBoxItem = FindVisualParent<ListBoxItem>(result.VisualHit);
-                    if (listBoxItem != null)
-                    {
-                        rightClickedSender = listBoxItem.DataContext as Sender;
-                        listBox.SelectedItem = rightClickedSender; // Устанавливаем выделение для визуальной обратной связи
-                        e.Handled = true; // Предотвращаем дальнейшую обработку события
-                    }
-                    else
-                    {
-                        rightClickedSender = null;
-                    }
-                }
-            }
-        }
-
-        // Вспомогательный метод для поиска родительского ListBoxItem
-        private T FindVisualParent<T>(DependencyObject child) where T : DependencyObject
-        {
-            while (child != null && !(child is T))
-            {
-                child = VisualTreeHelper.GetParent(child);
-            }
-            return child as T;
-        }
-
         private void DeleteSender_Click(object sender, RoutedEventArgs e)
         {
-            if (rightClickedSender == null)
+            System.Diagnostics.Debug.WriteLine($"DeleteSender_Click: Sender type={sender.GetType().Name}, Tag={((sender as Button)?.Tag)?.GetType().Name}");
+            if (sender is Button button && button.Tag is Sender selectedSender)
             {
-                MessageBox.Show("Выберите отправителя для удаления.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            var result = MessageBox.Show($"Вы уверены, что хотите удалить отправителя {rightClickedSender.Email}?", "Подтверждение удаления", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (result == MessageBoxResult.Yes)
-            {
-                dataStore.Senders.Remove(rightClickedSender);
-                if (rightClickedSender.IsDefault && dataStore.Senders.Count > 0)
+                var result = MessageBox.Show($"Вы уверены, что хотите удалить отправителя {selectedSender.Email}?",
+                                            "Подтверждение удаления",
+                                            MessageBoxButton.YesNo,
+                                            MessageBoxImage.Question);
+                if (result == MessageBoxResult.Yes)
                 {
-                    dataStore.Senders[0].IsDefault = true; // Назначаем нового стандартного отправителя
+                    tempSenders.Remove(selectedSender);
+                    if (selectedSender.IsDefault && tempSenders.Count > 0)
+                    {
+                        tempSenders[0].IsDefault = true;
+                    }
+
+                    SendersListBox.ItemsSource = null;
+                    SendersListBox.ItemsSource = tempSenders;
+                    DefaultSenderComboBox.ItemsSource = null;
+                    DefaultSenderComboBox.ItemsSource = tempSenders;
+                    DefaultSenderComboBox.SelectedItem = tempSenders.Find(s => s.IsDefault);
+
+                    MessageBox.Show("Отправитель успешно удален!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
-
-                SendersListBox.ItemsSource = null;
-                SendersListBox.ItemsSource = dataStore.Senders;
-                DefaultSenderComboBox.ItemsSource = null;
-                DefaultSenderComboBox.ItemsSource = dataStore.Senders;
-                DefaultSenderComboBox.SelectedItem = dataStore.Senders.Find(s => s.IsDefault);
-
-                rightClickedSender = null;
-                MessageBox.Show("Отправитель успешно удален!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("DeleteSender_Click: Invalid sender or tag");
+                MessageBox.Show("Ошибка: отправитель не выбран.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
         private void EditSender_Click(object sender, RoutedEventArgs e)
         {
-            if (rightClickedSender == null)
+            System.Diagnostics.Debug.WriteLine($"EditSender_Click: Sender type={sender.GetType().Name}, Tag={((sender as Button)?.Tag)?.GetType().Name}");
+            if (sender is Button button && button.Tag is Sender senderToEdit)
             {
-                MessageBox.Show("Выберите отправителя для редактирования.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
+                string newEmail = Interaction.InputBox("Введите новый email отправителя:",
+                                                     "Редактирование отправителя",
+                                                     senderToEdit.Email);
+                if (string.IsNullOrWhiteSpace(newEmail) || !newEmail.Contains("@"))
+                {
+                    MessageBox.Show("Некорректный email.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (tempSenders.Any(s => s != senderToEdit && s.Email.Equals(newEmail, StringComparison.OrdinalIgnoreCase)))
+                {
+                    MessageBox.Show("Отправитель с таким email уже существует.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                string newPassword = Interaction.InputBox("Введите новый пароль приложения:",
+                                                        "Редактирование отправителя",
+                                                        senderToEdit.Password);
+                if (string.IsNullOrWhiteSpace(newPassword))
+                {
+                    MessageBox.Show("Пароль не может быть пустым.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                senderToEdit.Email = newEmail;
+                senderToEdit.Password = newPassword;
+
+                SendersListBox.ItemsSource = null;
+                SendersListBox.ItemsSource = tempSenders;
+                DefaultSenderComboBox.ItemsSource = null;
+                DefaultSenderComboBox.ItemsSource = tempSenders;
+                DefaultSenderComboBox.SelectedItem = tempSenders.Find(s => s.IsDefault);
+
+                MessageBox.Show("Отправитель успешно отредактирован!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-
-            var senderToEdit = rightClickedSender;
-
-            // Ввод нового email
-            string newEmail = Interaction.InputBox("Введите новый email отправителя:", "Редактирование отправителя", senderToEdit.Email);
-            if (string.IsNullOrWhiteSpace(newEmail) || !newEmail.Contains("@"))
+            else
             {
-                MessageBox.Show("Некорректный email.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
+                System.Diagnostics.Debug.WriteLine("EditSender_Click: Invalid sender or tag");
+                MessageBox.Show("Ошибка: отправитель не выбран.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
-
-            // Проверка на уникальность email (кроме текущего отправителя)
-            if (dataStore.Senders.Any(s => s != senderToEdit && s.Email.Equals(newEmail, StringComparison.OrdinalIgnoreCase)))
-            {
-                MessageBox.Show("Отправитель с таким email уже существует.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            // Ввод нового пароля
-            string newPassword = Interaction.InputBox("Введите новый пароль приложения:", "Редактирование отправителя", senderToEdit.Password);
-            if (string.IsNullOrWhiteSpace(newPassword))
-            {
-                MessageBox.Show("Пароль не может быть пустым.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            // Обновляем данные отправителя
-            senderToEdit.Email = newEmail;
-            senderToEdit.Password = newPassword;
-
-            SendersListBox.ItemsSource = null;
-            SendersListBox.ItemsSource = dataStore.Senders;
-            DefaultSenderComboBox.ItemsSource = null;
-            DefaultSenderComboBox.ItemsSource = dataStore.Senders;
-            DefaultSenderComboBox.SelectedItem = dataStore.Senders.Find(s => s.IsDefault);
-
-            MessageBox.Show("Отправитель успешно отредактирован!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        private void Save_Click(object sender, RoutedEventArgs e)
+        private void Save_Click(object s, RoutedEventArgs e)
         {
-            // Сохраняем стандартного отправителя
+            // Обновляем основной список отправителей временной копией
+            dataStore.Senders.Clear();
+            foreach (var sender in tempSenders)
+            {
+                dataStore.Senders.Add(new Sender
+                {
+                    Email = sender.Email,
+                    Password = sender.Password,
+                    IsDefault = sender.IsDefault
+                });
+            }
+
             var selectedSender = DefaultSenderComboBox.SelectedItem as Sender;
             if (selectedSender != null)
             {
-                foreach (var s in dataStore.Senders)
+                foreach (var sender in dataStore.Senders)
                 {
-                    s.IsDefault = false;
+                    sender.IsDefault = false;
                 }
-                selectedSender.IsDefault = true;
+                dataStore.Senders.First(sender => sender.Email == selectedSender.Email).IsDefault = true;
             }
 
-            // Сохраняем цвет приложения
             var selectedColorItem = ColorComboBox.SelectedItem as ComboBoxItem;
             if (selectedColorItem != null)
             {
@@ -220,6 +219,7 @@ namespace alesya_rassylka
                 mainWindow.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(colorHex));
             }
 
+            // Сохраняем изменения в файл
             saveCallback();
             DialogResult = true;
             Close();
@@ -227,6 +227,7 @@ namespace alesya_rassylka
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
         {
+            // Сбрасываем изменения, не сохраняя
             DialogResult = false;
             Close();
         }

@@ -18,12 +18,14 @@ namespace alesya_rassylka
 
         public TemplateManagerWindow(TemplateCategory category, Action saveChanges)
         {
+            System.Diagnostics.Debug.WriteLine("Initializing TemplateManagerWindow");
             InitializeComponent();
-            this.category = category;
+            this.category = category ?? throw new ArgumentNullException(nameof(category));
             this.saveChanges = saveChanges;
 
             CategoryNameTextBox.Text = category.Name;
             TemplatesListBox.ItemsSource = category.Templates;
+            System.Diagnostics.Debug.WriteLine("TemplateManagerWindow initialized successfully");
         }
 
         private void SaveCategoryName_Click(object sender, RoutedEventArgs e)
@@ -68,7 +70,6 @@ namespace alesya_rassylka
             {
                 try
                 {
-                    // Проверяем расширение файла
                     if (System.IO.Path.GetExtension(openFileDialog.FileName).ToLower() == ".doc")
                     {
                         MessageBox.Show("Формат .doc не поддерживается. Пожалуйста, конвертируйте файл в .docx.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -78,23 +79,19 @@ namespace alesya_rassylka
                     string filePath = openFileDialog.FileName;
                     string content = "";
 
-                    // Открываем документ Word с помощью OpenXml
                     using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(filePath, false))
                     {
-                        // Извлекаем текст из параграфов
                         var body = wordDoc.MainDocumentPart.Document.Body;
                         content = string.Join("\n", body.Descendants<Paragraph>()
                             .Select(p => p.InnerText)
                             .Where(t => !string.IsNullOrEmpty(t)));
                     }
 
-                    // Добавляем содержимое в шаблон
                     var newTemplate = new Template { Name = "Новый шаблон из Word", Content = content };
                     category.Templates.Add(newTemplate);
                     TemplatesListBox.ItemsSource = null;
                     TemplatesListBox.ItemsSource = category.Templates;
 
-                    // Вызываем делегат для сохранения изменений
                     saveChanges?.Invoke();
                 }
                 catch (Exception ex)
@@ -106,6 +103,7 @@ namespace alesya_rassylka
 
         private void EditTemplate_Click(object sender, RoutedEventArgs e)
         {
+            System.Diagnostics.Debug.WriteLine($"EditTemplate_Click called. Sender type: {sender.GetType().Name}");
             if (sender is Button button && button.Tag is Template template)
             {
                 var editWindow = new TemplateEditWindow(template)
@@ -120,15 +118,48 @@ namespace alesya_rassylka
                     saveChanges?.Invoke();
                 }
             }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"Unexpected sender type in EditTemplate_Click: {sender.GetType().Name}");
+            }
         }
 
         private void SelectTemplate_Click(object sender, RoutedEventArgs e)
         {
+            System.Diagnostics.Debug.WriteLine($"SelectTemplate_Click called. Sender type: {sender.GetType().Name}");
             if (sender is Button button && button.Tag is Template template)
             {
                 SelectedTemplate = template;
                 DialogResult = true;
                 Close();
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"Unexpected sender type in SelectTemplate_Click: {sender.GetType().Name}");
+            }
+        }
+
+        private void DeleteTemplate_Click(object sender, RoutedEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine($"DeleteTemplate_Click called. Sender type: {sender.GetType().Name}");
+            if (sender is Button button && button.Tag is Template template)
+            {
+                var result = MessageBox.Show($"Вы уверены, что хотите удалить шаблон '{template.Name}'?",
+                                            "Подтверждение удаления",
+                                            MessageBoxButton.YesNo,
+                                            MessageBoxImage.Question);
+                if (result == MessageBoxResult.Yes)
+                {
+                    category.Templates.Remove(template);
+                    TemplatesListBox.ItemsSource = null;
+                    TemplatesListBox.ItemsSource = category.Templates;
+                    saveChanges?.Invoke();
+                    MessageBox.Show("Шаблон успешно удален!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"Unexpected sender type in DeleteTemplate_Click: {sender.GetType().Name}");
             }
         }
 

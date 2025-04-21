@@ -15,6 +15,7 @@ using MahApps.Metro.Controls;
 using System.Web;
 using System.Net.Mime;
 using System.ComponentModel;
+using Microsoft.VisualBasic;
 
 namespace alesya_rassylka
 {
@@ -328,10 +329,61 @@ namespace alesya_rassylka
             }
         }
 
+        private void AddCategory_Click(object sender, RoutedEventArgs e)
+        {
+            string categoryName = Interaction.InputBox("Введите название новой категории:",
+                                                     "Добавление категории",
+                                                     "");
+            if (string.IsNullOrWhiteSpace(categoryName))
+            {
+                MessageBox.Show("Название категории не может быть пустым.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (TemplateCategories.Any(c => c.Name.Equals(categoryName, StringComparison.OrdinalIgnoreCase)))
+            {
+                MessageBox.Show("Категория с таким названием уже существует.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            TemplateCategories.Add(new TemplateCategory
+            {
+                Name = categoryName,
+                Templates = new List<Template>()
+            });
+
+            SaveTemplates();
+            MessageBox.Show("Категория успешно добавлена!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void DeleteTemplateCategory_Click(object sender, RoutedEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine($"DeleteTemplateCategory_Click called. Sender type: {sender.GetType().Name}");
+            if (sender is MenuItem menuItem && menuItem.Parent is ContextMenu contextMenu && contextMenu.PlacementTarget is Button button && button.Tag is TemplateCategory category)
+            {
+                var result = MessageBox.Show($"Вы уверены, что хотите удалить категорию '{category.Name}' и все её шаблоны?",
+                                            "Подтверждение удаления",
+                                            MessageBoxButton.YesNo,
+                                            MessageBoxImage.Question);
+                if (result == MessageBoxResult.Yes)
+                {
+                    TemplateCategories.Remove(category);
+                    SaveTemplates();
+                    MessageBox.Show("Категория успешно удалена!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"Unexpected sender in DeleteTemplateCategory_Click: {sender.GetType().Name}");
+            }
+        }
+
         private void TemplateCategory_Click(object sender, RoutedEventArgs e)
         {
+            System.Diagnostics.Debug.WriteLine($"TemplateCategory_Click called. Sender type: {sender.GetType().Name}");
             if (sender is Button button && button.Tag is TemplateCategory category)
             {
+                System.Diagnostics.Debug.WriteLine($"Opening TemplateManagerWindow for category: {category.Name}");
                 var templateWindow = new TemplateManagerWindow(category, SaveTemplates)
                 {
                     Owner = this
@@ -342,6 +394,22 @@ namespace alesya_rassylka
                     MessageRichTextBox.Document.Blocks.Clear();
                     MessageRichTextBox.Document.Blocks.Add(new Paragraph(new Run(templateWindow.SelectedTemplate.Content)));
                 }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"Unexpected sender in TemplateCategory_Click: {sender.GetType().Name}");
+            }
+        }
+
+        private void CategoryButton_PreviewMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (sender is Button button && button.ContextMenu != null)
+            {
+                System.Diagnostics.Debug.WriteLine("Opening ContextMenu for category button");
+                button.ContextMenu.PlacementTarget = button;
+                button.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint;
+                button.ContextMenu.IsOpen = true;
+                e.Handled = true; // Предотвращаем дальнейшую маршрутизацию события
             }
         }
 
