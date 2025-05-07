@@ -332,7 +332,7 @@ namespace alesya_rassylka
         private void AddCategory_Click(object sender, RoutedEventArgs e)
         {
             string categoryName = Interaction.InputBox("Введите название новой категории:",
-                                                     "Добавление категории",
+                                                       "Добавление категории",
                                                      "");
             if (string.IsNullOrWhiteSpace(categoryName))
             {
@@ -590,61 +590,159 @@ namespace alesya_rassylka
             }
         }
 
+
         private void SelectSender_Click(object sender, RoutedEventArgs e)
         {
             if (dataStore.Senders.Count == 0)
             {
-                MessageBox.Show("Нет доступных отправителей. Добавьте отправителя в настройках.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Нет доступных отправителей. Добавьте отправителя в настройках.",
+                               "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             var senderSelectionWindow = new Window
             {
                 Title = "Выбор отправителя",
-                Width = 300,
-                Height = 400,
+                Width = 350,
+                Height = 440,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this,
-                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DFE3EB"))
+                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DFE3EB")),
+                ResizeMode = ResizeMode.NoResize
             };
 
-            var stackPanel = new StackPanel { Margin = new Thickness(10) };
+            var mainStackPanel = new StackPanel
+            {
+                Margin = new Thickness(20),
+                VerticalAlignment = VerticalAlignment.Center
+            };
+
+            // Создаем стиль для ListBox
+            var listBoxStyle = new Style(typeof(ListBox));
+
+            // Основные свойства ListBox
+            listBoxStyle.Setters.Add(new Setter(ListBox.BorderBrushProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+            listBoxStyle.Setters.Add(new Setter(ListBox.BorderThicknessProperty, new Thickness(1)));
+            listBoxStyle.Setters.Add(new Setter(ListBox.BackgroundProperty, Brushes.White));
+
+            // Шаблон ListBox
+            var listBoxTemplate = new ControlTemplate(typeof(ListBox));
+            var listBoxBorder = new FrameworkElementFactory(typeof(Border));
+            listBoxBorder.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(ListBox.BackgroundProperty));
+            listBoxBorder.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(ListBox.BorderBrushProperty));
+            listBoxBorder.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(ListBox.BorderThicknessProperty));
+            listBoxBorder.SetValue(Border.CornerRadiusProperty, new CornerRadius(5));
+
+            var scrollViewer = new FrameworkElementFactory(typeof(ScrollViewer));
+            var itemsPresenter = new FrameworkElementFactory(typeof(ItemsPresenter));
+            scrollViewer.AppendChild(itemsPresenter);
+            listBoxBorder.AppendChild(scrollViewer);
+
+            listBoxTemplate.VisualTree = listBoxBorder;
+            listBoxStyle.Setters.Add(new Setter(ListBox.TemplateProperty, listBoxTemplate));
+
+            // Стиль для элементов ListBoxItem
+            var listBoxItemStyle = new Style(typeof(ListBoxItem));
+
+            // Шаблон ListBoxItem
+            var listBoxItemTemplate = new ControlTemplate(typeof(ListBoxItem));
+            var itemBorder = new FrameworkElementFactory(typeof(Border));
+            itemBorder.Name = "Bd";
+            itemBorder.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(ListBoxItem.BackgroundProperty));
+            itemBorder.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(ListBoxItem.BorderBrushProperty));
+            itemBorder.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(ListBoxItem.BorderThicknessProperty));
+            itemBorder.SetValue(Border.PaddingProperty, new TemplateBindingExtension(ListBoxItem.PaddingProperty));
+
+            var contentPresenter = new FrameworkElementFactory(typeof(ContentPresenter));
+            contentPresenter.SetValue(ContentPresenter.HorizontalAlignmentProperty, new TemplateBindingExtension(ListBoxItem.HorizontalContentAlignmentProperty));
+            contentPresenter.SetValue(ContentPresenter.VerticalAlignmentProperty, new TemplateBindingExtension(ListBoxItem.VerticalContentAlignmentProperty));
+            itemBorder.AppendChild(contentPresenter);
+
+            listBoxItemTemplate.VisualTree = itemBorder;
+
+            // Триггеры для ListBoxItem
+            var isSelectedTrigger = new Trigger()
+            {
+                Property = ListBoxItem.IsSelectedProperty,
+                Value = true
+            };
+            isSelectedTrigger.Setters.Add(new Setter(Border.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C0D0F0")), "Bd"));
+            isSelectedTrigger.Setters.Add(new Setter(ListBoxItem.ForegroundProperty, Brushes.Black));
+
+            var isMouseOverTrigger = new Trigger()
+            {
+                Property = ListBoxItem.IsMouseOverProperty,
+                Value = true
+            };
+            isMouseOverTrigger.Setters.Add(new Setter(Border.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E0E6F8")), "Bd"));
+
+            listBoxItemTemplate.Triggers.Add(isSelectedTrigger);
+            listBoxItemTemplate.Triggers.Add(isMouseOverTrigger);
+
+            listBoxItemStyle.Setters.Add(new Setter(ListBoxItem.TemplateProperty, listBoxItemTemplate));
+            listBoxStyle.Setters.Add(new Setter(ListBox.ItemContainerStyleProperty, listBoxItemStyle));
+
+            // Создаем ListBox
             var senderListBox = new ListBox
             {
                 SelectionMode = SelectionMode.Single,
                 ItemsSource = dataStore.Senders,
                 Height = 300,
-                BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
-                BorderThickness = new Thickness(1),
-                Background = Brushes.White
+                Style = listBoxStyle
             };
 
-            senderListBox.ItemTemplate = new DataTemplate();
+            // Создаем DataTemplate для элементов ListBox
+            var dataTemplate = new DataTemplate();
             var factory = new FrameworkElementFactory(typeof(TextBlock));
             factory.SetValue(TextBlock.TextProperty, new Binding("Email"));
             factory.SetValue(TextBlock.MarginProperty, new Thickness(5));
             factory.SetValue(TextBlock.FontSizeProperty, 14.0);
-            senderListBox.ItemTemplate.VisualTree = factory;
+            dataTemplate.VisualTree = factory;
 
-            var defaultSender = dataStore.Senders.Find(s => s.IsDefault);
+            senderListBox.ItemTemplate = dataTemplate;
+
+            // Устанавливаем выбранного отправителя по умолчанию
+            var defaultSender = dataStore.Senders.FirstOrDefault(s => s.IsDefault);
             if (defaultSender != null)
             {
                 senderListBox.SelectedItem = defaultSender;
             }
 
+            // Стиль для кнопки с закруглёнными углами
+            var buttonStyle = new Style(typeof(Button));
+            var buttonBorderFactory = new FrameworkElementFactory(typeof(Border));
+            buttonBorderFactory.Name = "border";
+            buttonBorderFactory.SetValue(Border.CornerRadiusProperty, new CornerRadius(5));
+            buttonBorderFactory.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Button.BackgroundProperty));
+            buttonBorderFactory.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Button.BorderBrushProperty));
+            buttonBorderFactory.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Button.BorderThicknessProperty));
+
+            var contentPresenterFactory = new FrameworkElementFactory(typeof(ContentPresenter));
+            contentPresenterFactory.Name = "contentPresenter";
+            contentPresenterFactory.SetValue(ContentPresenter.HorizontalAlignmentProperty, HorizontalAlignment.Center);
+            contentPresenterFactory.SetValue(ContentPresenter.VerticalAlignmentProperty, VerticalAlignment.Center);
+            contentPresenterFactory.SetValue(ContentPresenter.RecognizesAccessKeyProperty, true);
+
+            buttonBorderFactory.AppendChild(contentPresenterFactory);
+
+            var buttonTemplate = new ControlTemplate(typeof(Button));
+            buttonTemplate.VisualTree = buttonBorderFactory;
+            buttonStyle.Setters.Add(new Setter(Control.TemplateProperty, buttonTemplate));
+
+            // Создаем кнопку подтверждения
             var confirmButton = new Button
             {
                 Content = "Подтвердить",
-                Width = 100,
-                Margin = new Thickness(0, 10, 0, 0),
+                Width = 150,
+                Height = 40,
+                Margin = new Thickness(0, 20, 0, 0),
                 Background = Brushes.White,
                 Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
-                FontSize = 14,
-                FontFamily = new FontFamily("Arial Black"),
+                FontSize = 16,
                 FontWeight = FontWeights.Bold,
                 BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
                 BorderThickness = new Thickness(1),
-                Padding = new Thickness(5, 2, 5, 2)
+                Style = buttonStyle
             };
 
             Sender selectedSenderFromWindow = null;
@@ -653,17 +751,20 @@ namespace alesya_rassylka
                 selectedSenderFromWindow = senderListBox.SelectedItem as Sender;
                 if (selectedSenderFromWindow == null)
                 {
-                    MessageBox.Show("Выберите отправителя!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("Выберите отправителя!", "Ошибка",
+                                  MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
                 senderSelectionWindow.DialogResult = true;
                 senderSelectionWindow.Close();
             };
 
-            stackPanel.Children.Add(senderListBox);
-            stackPanel.Children.Add(confirmButton);
-            senderSelectionWindow.Content = stackPanel;
+            // Добавляем элементы на окно
+            mainStackPanel.Children.Add(senderListBox);
+            mainStackPanel.Children.Add(confirmButton);
+            senderSelectionWindow.Content = mainStackPanel;
 
+            // Показываем окно и обрабатываем результат
             if (senderSelectionWindow.ShowDialog() == true)
             {
                 selectedSender = selectedSenderFromWindow;

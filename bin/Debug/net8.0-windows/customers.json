@@ -1,6 +1,5 @@
 ﻿{
   "Categories": [
-    "ПЕД СОСТАВ",
     "Пылесос",
     "Стиральная машина",
     "Ноутбук",
@@ -9,60 +8,10 @@
   ],
   "Recipients": [
     {
-      "Name": "Никита Винокуров",
-      "Email": "nikita.vinokurov.05@mail.ru",
-      "Categories": [
-        "ПЕД СОСТАВ"
-      ]
-    },
-    {
       "Name": "Иван Петров",
       "Email": "ivan.petrov@example.com",
       "Categories": [
         "Пылесос",
-        "Ноутбук"
-      ]
-    },
-    {
-      "Name": "Алеся Синявская",
-      "Email": "alesyaaasin@gmail.com",
-      "Categories": [
-        "Стиральная машина"
-      ]
-    },
-    {
-      "Name": "Никитос Виночур22",
-      "Email": "nelkabrain@gmail.com",
-      "Categories": [
-        "Ноутбук"
-      ]
-    },
-    {
-      "Name": "вапваы",
-      "Email": "ывфпафы@sdgf",
-      "Categories": [
-        "Пылесос",
-        "ПЕД СОСТАВ"
-      ]
-    },
-    {
-      "Name": "cvvcv",
-      "Email": "cdbgnh@gmail.com",
-      "Categories": [
-        "Стиральная машина"
-      ]
-    },
-    {
-      "Name": "dgfgb",
-      "Email": "cddfbbgnh@gmail.com",
-      "Categories": [
-        "Ноутбук"
-      ]
-    },
-    {
-      "Name": "vgnk,,jhgf",
-      "Email": "cdbgnnnh@gmail.com",
-      "Categories": [
         "Ноутбук"
       ]
     },
@@ -81,14 +30,16 @@
         "Пылесос",
         "Стиральная машина"
       ]
+    },
+    {
+      "Name": "алеся",
+      "Email": "alesyaaasin@gmail.com",
+      "Categories": [
+        "Ноутбук"
+      ]
     }
   ],
   "Senders": [
-    {
-      "Email": "sdfgds@sdfgd3",
-      "Password": "sdgfsdfg",
-      "IsDefault": false
-    },
     {
       "Email": "kikbika@gmail.com",
       "Password": "zbobujojpchynxwd",

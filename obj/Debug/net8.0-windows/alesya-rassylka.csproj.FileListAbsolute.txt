@@ -153,3 +153,11 @@ C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\refint\alesya-rassylka
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\alesya-rassylka.pdb
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\alesya-rassylka.genruntimeconfig.cache
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\ref\alesya-rassylka.dll
+D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\DocumentFormat.OpenXml.dll
+D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\DocumentFormat.OpenXml.Framework.dll
+D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\Microsoft.Office.Interop.Word.dll
+D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\System.IO.Packaging.dll
+D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\TemplateEditWindow.baml
+D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\TemplateManagerWindow.baml
+D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\TemplateEditWindow.g.cs
+D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\TemplateManagerWindow.g.cs
