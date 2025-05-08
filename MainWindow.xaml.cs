@@ -69,6 +69,8 @@ namespace alesya_rassylka
         private const string LogFilePath = "error.log";
         private Sender selectedSender;
         private List<string> attachedFiles = new List<string>();
+        private const string DefaultSubject = "Тема: Сообщение от компании"; // Значение темы по умолчанию
+        private const string SubjectPrefix = "Тема: "; // Префикс, который нельзя удалить
 
         public MainWindow()
         {
@@ -88,6 +90,9 @@ namespace alesya_rassylka
             {
                 MessageRichTextBox.Document.Blocks.Add(new Paragraph());
             }
+
+            // Устанавливаем тему по умолчанию
+            SubjectTextBox.Text = DefaultSubject;
         }
 
         public ObservableCollection<TemplateCategory> TemplateCategories
@@ -436,12 +441,29 @@ namespace alesya_rassylka
                 return;
             }
 
+            // Проверяем тему
+            string subject = SubjectTextBox.Text;
+            if (string.IsNullOrWhiteSpace(subject) || subject == DefaultSubject)
+            {
+                subject = "Сообщение от компании"; // Если тема пустая или равна плейсхолдеру, используем значение по умолчанию
+            }
+            else if (subject.StartsWith(SubjectPrefix))
+            {
+                subject = subject.Substring(SubjectPrefix.Length).Trim(); // Убираем префикс "Тема: "
+            }
+
+            if (string.IsNullOrWhiteSpace(subject))
+            {
+                MessageBox.Show("Введите тему сообщения!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             try
             {
                 foreach (var recipient in recipients)
                 {
                     string recipientEmail = recipient.Split(new[] { " - " }, StringSplitOptions.None).Last().Trim();
-                    SendEmail(recipientEmail, message);
+                    SendEmail(recipientEmail, message, subject);
                 }
                 MessageBox.Show("Сообщения успешно отправлены!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -460,9 +482,10 @@ namespace alesya_rassylka
             RecipientList.ItemsSource = null;
             attachedFiles.Clear();
             AttachedFilesList.ItemsSource = null;
+            SubjectTextBox.Text = DefaultSubject; // Сбрасываем тему на значение по умолчанию
         }
 
-        private void SendEmail(string recipientEmail, string message)
+        private void SendEmail(string recipientEmail, string message, string subject)
         {
             try
             {
@@ -471,7 +494,7 @@ namespace alesya_rassylka
                 {
                     mail.From = new MailAddress(selectedSender.Email);
                     mail.To.Add(recipientEmail);
-                    mail.Subject = "Сообщение от компании";
+                    mail.Subject = subject; // Используем переданную тему
 
                     var (htmlBody, embeddedImages) = ConvertRichTextBoxToHtml(MessageRichTextBox);
                     AlternateView htmlView = AlternateView.CreateAlternateViewFromString(htmlBody, null, "text/html");
@@ -589,7 +612,6 @@ namespace alesya_rassylka
                 SaveCustomers();
             }
         }
-
 
         private void SelectSender_Click(object sender, RoutedEventArgs e)
         {
@@ -963,6 +985,50 @@ namespace alesya_rassylka
             AttachedFilesList.ItemsSource = attachedFiles
                 .Select(path => new AttachedFileInfo { FullPath = path })
                 .ToList();
+        }
+
+        // Обработчик события GotFocus для SubjectTextBox
+        private void SubjectTextBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (SubjectTextBox.Text == DefaultSubject)
+            {
+                SubjectTextBox.Text = SubjectPrefix; // Оставляем только префикс "Тема: "
+                SubjectTextBox.Foreground = Brushes.Black;
+                SubjectTextBox.CaretIndex = SubjectTextBox.Text.Length; // Перемещаем курсор в конец
+            }
+        }
+
+        // Обработчик события LostFocus для SubjectTextBox
+        private void SubjectTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (SubjectTextBox.Text == SubjectPrefix)
+            {
+                SubjectTextBox.Text = DefaultSubject; // Возвращаем значение по умолчанию
+                SubjectTextBox.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#808080"));
+            }
+        }
+
+        // Обработчик события TextChanged для SubjectTextBox
+        private void SubjectTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            // Проверяем, начинается ли текст с "Тема: "
+            if (!SubjectTextBox.Text.StartsWith(SubjectPrefix))
+            {
+                // Если префикс удалён, восстанавливаем его
+                string userText = SubjectTextBox.Text.Length >= SubjectPrefix.Length
+                    ? SubjectTextBox.Text.Substring(SubjectPrefix.Length)
+                    : "";
+                SubjectTextBox.Text = SubjectPrefix + userText;
+                SubjectTextBox.CaretIndex = SubjectTextBox.Text.Length; // Перемещаем курсор в конец
+            }
+
+            // Если текст начинается с "Тема: ", но пользователь пытается удалить часть префикса
+            string currentText = SubjectTextBox.Text;
+            if (currentText.Length < SubjectPrefix.Length)
+            {
+                SubjectTextBox.Text = SubjectPrefix;
+                SubjectTextBox.CaretIndex = SubjectTextBox.Text.Length; // Перемещаем курсор в конец
+            }
         }
     }
 }

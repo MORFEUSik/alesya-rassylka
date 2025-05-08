@@ -230,16 +230,28 @@
             </StackPanel>
 
             <!-- RichTextBox с панелью инструментов -->
+            <!-- RichTextBox с панелью инструментов -->
             <Border Grid.Row="1" BorderBrush="#172A74" BorderThickness="1" CornerRadius="5" Background="White" Margin="0,0,0,0">
                 <Grid>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <!-- Для TextBox с темой -->
                         <RowDefinition Height="*"/>
+                        <!-- Для RichTextBox -->
                         <RowDefinition Height="40"/>
+                        <!-- Для панели инструментов -->
                     </Grid.RowDefinitions>
 
+                    <!-- Поле для ввода темы -->
+                    <!-- Поле для ввода темы -->
+                    <TextBox x:Name="SubjectTextBox" Grid.Row="0" Margin="10,5,10,0" 
+         Text="Тема: Сообщение от компании" Foreground="#808080"
+         BorderThickness="0,0,0,1" BorderBrush="#172A74" Background="Transparent"
+         FontSize="14" Padding="0,5" GotFocus="SubjectTextBox_GotFocus" 
+         LostFocus="SubjectTextBox_LostFocus" TextChanged="SubjectTextBox_TextChanged"/>
+
                     <!-- Основное текстовое поле -->
-                    <RichTextBox x:Name="MessageRichTextBox" Height="250" Background="White"
-                                 BorderThickness="0">
+                    <RichTextBox x:Name="MessageRichTextBox" Grid.Row="1" Height="250" Background="White" BorderThickness="0" Margin="6,10,0,0">
                         <RichTextBox.Resources>
                             <Style TargetType="{x:Type Paragraph}">
                                 <Setter Property="Margin" Value="0"/>
@@ -248,7 +260,7 @@
                         <RichTextBox.Template>
                             <ControlTemplate TargetType="RichTextBox">
                                 <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                                        BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
                                     <ScrollViewer x:Name="PART_ContentHost"/>
                                 </Border>
                             </ControlTemplate>
@@ -267,18 +279,18 @@
                     </RichTextBox>
 
                     <!-- Панель инструментов -->
-                    <Border Grid.Row="1" Background="#F5F7FA" BorderBrush="#E0E3E8" BorderThickness="0,1,0,0" CornerRadius="0,0,5,5">
+                    <Border Grid.Row="2" Background="#F5F7FA" BorderBrush="#E0E3E8" BorderThickness="0,1,0,0" CornerRadius="0,0,5,5">
                         <StackPanel Orientation="Horizontal" Margin="10,0" VerticalAlignment="Center">
                             <!-- Форматирование текста -->
                             <Button Content="B" Click="FormatBold_Click"
-                                    Style="{StaticResource FormatButton}" Width="32" Height="32"
-                                    FontWeight="Bold" ToolTip="Жирный" FontSize="14"/>
+                        Style="{StaticResource FormatButton}" Width="32" Height="32"
+                        FontWeight="Bold" ToolTip="Жирный" FontSize="14"/>
                             <Button Content="I" Click="FormatItalic_Click"
-                                    Style="{StaticResource FormatButton}" Width="32" Height="32"
-                                    FontStyle="Italic" ToolTip="Курсив" FontSize="14" Margin="5,0,0,0"/>
+                        Style="{StaticResource FormatButton}" Width="32" Height="32"
+                        FontStyle="Italic" ToolTip="Курсив" FontSize="14" Margin="5,0,0,0"/>
                             <Button Click="FormatUnderline_Click"
-                                    Style="{StaticResource FormatButton}" Width="32" Height="32"
-                                    ToolTip="Подчеркнутый" FontSize="14" Margin="5,0,0,0">
+                        Style="{StaticResource FormatButton}" Width="32" Height="32"
+                        ToolTip="Подчеркнутый" FontSize="14" Margin="5,0,0,0">
                                 <TextBlock Text="U" TextDecorations="Underline"/>
                             </Button>
                         </StackPanel>
