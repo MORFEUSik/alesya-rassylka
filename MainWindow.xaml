@@ -245,7 +245,7 @@
                     <!-- Поле для ввода темы -->
                     <!-- Поле для ввода темы -->
                     <TextBox x:Name="SubjectTextBox" Grid.Row="0" Margin="10,5,10,0" 
-         Text="Тема: Сообщение от компании" Foreground="#808080"
+         Text="Тема: " Foreground="#808080"
          BorderThickness="0,0,0,1" BorderBrush="#172A74" Background="Transparent"
          FontSize="14" Padding="0,5" GotFocus="SubjectTextBox_GotFocus" 
          LostFocus="SubjectTextBox_LostFocus" TextChanged="SubjectTextBox_TextChanged"/>

@@ -69,7 +69,7 @@ namespace alesya_rassylka
         private const string LogFilePath = "error.log";
         private Sender selectedSender;
         private List<string> attachedFiles = new List<string>();
-        private const string DefaultSubject = "Тема: Сообщение от компании"; // Значение темы по умолчанию
+        private const string DefaultSubject = "Тема: "; // Значение темы по умолчанию
         private const string SubjectPrefix = "Тема: "; // Префикс, который нельзя удалить
 
         public MainWindow()
@@ -443,19 +443,26 @@ namespace alesya_rassylka
 
             // Проверяем тему
             string subject = SubjectTextBox.Text;
-            if (string.IsNullOrWhiteSpace(subject) || subject == DefaultSubject)
+            bool isSubjectEmpty = subject == SubjectPrefix;
+
+            if (isSubjectEmpty)
             {
-                subject = "Сообщение от компании"; // Если тема пустая или равна плейсхолдеру, используем значение по умолчанию
+                // Показываем диалоговое окно подтверждения
+                var result = MessageBox.Show("В этом сообщении не указана тема. Хотите отправить его?",
+                                             "Подтверждение отправки",
+                                             MessageBoxButton.OKCancel,
+                                             MessageBoxImage.Question);
+
+                if (result != MessageBoxResult.OK)
+                {
+                    return; // Прерываем отправку, если пользователь выбрал "Отменить"
+                }
+
+                subject = ""; // Устанавливаем пустую тему
             }
             else if (subject.StartsWith(SubjectPrefix))
             {
                 subject = subject.Substring(SubjectPrefix.Length).Trim(); // Убираем префикс "Тема: "
-            }
-
-            if (string.IsNullOrWhiteSpace(subject))
-            {
-                MessageBox.Show("Введите тему сообщения!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
             }
 
             try
@@ -1001,11 +1008,7 @@ namespace alesya_rassylka
         // Обработчик события LostFocus для SubjectTextBox
         private void SubjectTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
-            if (SubjectTextBox.Text == SubjectPrefix)
-            {
-                SubjectTextBox.Text = DefaultSubject; // Возвращаем значение по умолчанию
-                SubjectTextBox.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#808080"));
-            }
+            // Ничего не делаем при потере фокуса, оставляем текст как есть
         }
 
         // Обработчик события TextChanged для SubjectTextBox
