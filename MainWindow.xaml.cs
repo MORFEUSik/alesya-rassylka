@@ -69,7 +69,7 @@ namespace alesya_rassylka
         private const string LogFilePath = "error.log";
         private Sender selectedSender;
         private List<string> attachedFiles = new List<string>();
-        private const string DefaultSubject = "Тема: "; // Значение темы по умолчанию
+        private const string DefaultSubject = "Тема:"; // Значение темы по умолчанию
         private const string SubjectPrefix = "Тема: "; // Префикс, который нельзя удалить
 
         public MainWindow()

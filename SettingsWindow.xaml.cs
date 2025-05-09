@@ -53,16 +53,8 @@ namespace alesya_rassylka
                     }
                 }
             }
-
-            // Подписываемся на событие закрытия окна
-            Closing += SettingsWindow_Closing;
         }
 
-        private void SettingsWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            // При закрытии крестиком сбрасываем изменения, не сохраняя
-            DialogResult = false;
-        }
 
         private void AddSender_Click(object sender, RoutedEventArgs e)
         {

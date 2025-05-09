@@ -9,10 +9,11 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Collections.ObjectModel;
 using Microsoft.VisualBasic;
+using MahApps.Metro.Controls;
 
 namespace alesya_rassylka
 {
-    public partial class SelectRecipientWindow : Window
+    public partial class SelectRecipientWindow : MetroWindow
     {
         private List<Recipient> allRecipients;
         private ICollectionView filteredRecipients;

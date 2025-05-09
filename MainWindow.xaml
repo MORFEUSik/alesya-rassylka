@@ -4,7 +4,7 @@
         xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
         Title="Рассылка" Height="750" Width="1000" WindowStartupLocation="CenterScreen"
         Background="#DFE3EB"
-        WindowStyle="SingleBorderWindow">
+        WindowStyle="SingleBorderWindow" Icon="/icons8-почта-100.png">
 
     <Window.Resources>
         <ContextMenu x:Key="FileContextMenu">
@@ -204,7 +204,7 @@
         </Border>
 
         <!-- Основное содержимое -->
-        <Grid Margin="0,10,25,20" Grid.Column="2">
+        <Grid Margin="0,10,22,20" Grid.Column="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <!-- Навигационные кнопки -->

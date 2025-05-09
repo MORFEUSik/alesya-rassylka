@@ -2,9 +2,13 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
-        Title="Настройки" Height="640" Width="600" 
+        Title="Настройки" Height="640" Width="556" 
+        TitleCharacterCasing="Normal"
+        TitleForeground="#172A74"
         Background="#DFE3EB" WindowStartupLocation="CenterOwner"
-        BorderBrush="Black" BorderThickness="1" GlowBrush="Black">
+        BorderBrush="Black" BorderThickness="1" GlowBrush="Black"
+        ResizeMode="NoResize" Icon="/icons8-почта-100.png">
+    <!--ShowCloseButton="False"-->
 
     <Window.Resources>
         <Style x:Key="LabelStyle" TargetType="TextBlock">
@@ -244,7 +248,7 @@
 
     </Window.Resources>
 
-    <Grid Margin="10">
+    <Grid Margin="10,10,8,10" Cursor="">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -268,9 +272,10 @@
         <Button Content="Добавить отправителя" Style="{StaticResource ActionButton}" Grid.Row="3" 
                 Click="AddSender_Click" Width="230" HorizontalAlignment="Left" Margin="0,0,0,20" HorizontalContentAlignment="Center"/>
 
-        <TextBlock Text="Список отправителей" Style="{StaticResource LabelStyle}" Grid.Row="4" Margin="0,0,0,5"/>
+
+        <TextBlock Text="Список отправителей" Style="{StaticResource LabelStyle}" Grid.Row="4" Margin="2,0,0,5"/>
         <ListBox x:Name="SendersListBox" Grid.Row="4" SelectionMode="Single"
-                 Style="{StaticResource ListBoxStyle}" Margin="0,30,0,10" Height="150">
+                 Style="{StaticResource ListBoxStyle}" Margin="0,30,0,15" Height="150">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal" Margin="5">
@@ -285,14 +290,15 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <TextBlock Text="Выбрать стандартного отправителя" Style="{StaticResource LabelStyle}" Grid.Row="5" Margin="0,0,0,5"/>
-        <ComboBox x:Name="DefaultSenderComboBox" Style="{StaticResource ComboBoxStyle}" Grid.Row="5" Margin="0,30,0,20" Width="300" HorizontalAlignment="Left"/>
+        <TextBlock Text="Выбрать стандартного отправителя" Style="{StaticResource LabelStyle}" Grid.Row="5" Margin="0,0,0,10"/>
+        <ComboBox x:Name="DefaultSenderComboBox" Style="{StaticResource ComboBoxStyle}" Grid.Row="5" Margin="0,30,0,15" Width="536" HorizontalAlignment="Center"/>
 
-        <TextBlock Text="Выбрать цвет приложения" Style="{StaticResource LabelStyle}" Grid.Row="6" Margin="0,0,0,5"/>
-        <ComboBox x:Name="ColorComboBox" Grid.Row="6" Style="{StaticResource ComboBoxStyle}" Margin="0,30,0,20" Width="300" HorizontalAlignment="Left">
-            <ComboBoxItem Content="Светло-синий (#DFE3EB)" Tag="#DFE3EB"/>
-            <ComboBoxItem Content="Светло-зеленый (#E3F2E1)" Tag="#E3F2E1"/>
-            <ComboBoxItem Content="Светло-розовый (#F2E1E3)" Tag="#F2E1E3"/>
+        <TextBlock Text="Выбрать цвет приложения" Style="{StaticResource LabelStyle}" Grid.Row="6" Margin="0,0,0,0"/>
+        <ComboBox x:Name="ColorComboBox" Grid.Row="6" Style="{StaticResource ComboBoxStyle}" Margin="0,30,0,20" Width="536" HorizontalAlignment="Center">
+            <ComboBoxItem Content="Голубой" Tag="#DFE3EB"/>
+            <ComboBoxItem Content="Белый" Tag="#FFFFFF"/>
+            <ComboBoxItem Content="Серый" Tag="#E5E5E5"/>
+            <ComboBoxItem Content="Розовый" Tag="#F2E1E3"/>
         </ComboBox>
 
         <StackPanel Orientation="Horizontal" Grid.Row="7" HorizontalAlignment="Center">

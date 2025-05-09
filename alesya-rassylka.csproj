@@ -10,11 +10,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="icons8-почта-100.png" />
+    <None Remove="img-drs2Cg.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="DocumentFormat.OpenXml" Version="3.3.0" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.7.25104.5739" />
     <PackageReference Include="MahApps.Metro" Version="2.4.10" />
     <PackageReference Include="MahApps.Metro.Resources.Standalone" Version="0.1.0" />
     <PackageReference Include="Microsoft.Office.Interop.Word" Version="15.0.4797.1004" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="icons8-почта-100.png" />
+    <Resource Include="img-drs2Cg.jpg" />
   </ItemGroup>
 
 </Project>
