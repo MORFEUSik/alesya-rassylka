@@ -77,10 +77,12 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBox">
                         <Border Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="5">
-                            <ScrollViewer>
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="5">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  Margin="2">
                                 <ItemsPresenter/>
                             </ScrollViewer>
                         </Border>
@@ -94,11 +96,11 @@
                             <Setter.Value>
                                 <ControlTemplate TargetType="ListBoxItem">
                                     <Border x:Name="Bd" Background="{TemplateBinding Background}"
-                                            BorderBrush="{TemplateBinding BorderBrush}"
-                                            BorderThickness="{TemplateBinding BorderThickness}"
-                                            Padding="{TemplateBinding Padding}">
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    Padding="{TemplateBinding Padding}">
                                         <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsSelected" Value="True">
@@ -115,9 +117,10 @@
                     </Style>
                 </Setter.Value>
             </Setter>
-        </Style>
+            </Style>
 
-        <Style x:Key="SearchTextBoxStyle" TargetType="TextBox">
+
+            <Style x:Key="SearchTextBoxStyle" TargetType="TextBox">
             <Setter Property="Foreground" Value="#172A74"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="BorderBrush" Value="#172A74"/>

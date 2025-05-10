@@ -245,10 +245,10 @@
                     <!-- Поле для ввода темы -->
                     <!-- Поле для ввода темы -->
                     <TextBox x:Name="SubjectTextBox" Grid.Row="0" Margin="10,5,10,0" 
-         Text="Тема: " Foreground="#808080"
+         Text="Тема:"
          BorderThickness="0,0,0,1" BorderBrush="#172A74" Background="Transparent"
          FontSize="14" Padding="0,5" GotFocus="SubjectTextBox_GotFocus" 
-         LostFocus="SubjectTextBox_LostFocus" TextChanged="SubjectTextBox_TextChanged"/>
+         TextChanged="SubjectTextBox_TextChanged"/>
 
                     <!-- Основное текстовое поле -->
                     <RichTextBox x:Name="MessageRichTextBox" Grid.Row="1" Height="250" Background="White" BorderThickness="0" Margin="6,10,0,0">
@@ -265,17 +265,6 @@
                                 </Border>
                             </ControlTemplate>
                         </RichTextBox.Template>
-                        <RichTextBox.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="Вставить смайлик">
-                                    <MenuItem Header="😊 Улыбка" Click="InsertSmiley_Click" Tag="😊"/>
-                                    <MenuItem Header="👍 Лайк" Click="InsertSmiley_Click" Tag="👍"/>
-                                    <MenuItem Header="❤️ Сердце" Click="InsertSmiley_Click" Tag="❤️"/>
-                                    <MenuItem Header="🎉 Праздник" Click="InsertSmiley_Click" Tag="🎉"/>
-                                </MenuItem>
-                                <MenuItem Header="Вставить картинку" Click="InsertImage_Click"/>
-                            </ContextMenu>
-                        </RichTextBox.ContextMenu>
                     </RichTextBox>
 
                     <!-- Панель инструментов -->
@@ -293,10 +282,23 @@
                         ToolTip="Подчеркнутый" FontSize="14" Margin="5,0,0,0">
                                 <TextBlock Text="U" TextDecorations="Underline"/>
                             </Button>
+                            <!-- Разделитель -->
+                            <Rectangle Width="1" Height="20" Fill="#172A74" Margin="10,0,10,0"/>
+
+                            <!-- Кнопка вставки картинки -->
+                            <Button Click="InsertImage_Click"
+        Style="{StaticResource FormatButton}" Width="32" Height="32"
+        ToolTip="Вставить картинку">
+                                <TextBlock FontSize="14">🖼</TextBlock>
+                            </Button>
                         </StackPanel>
                     </Border>
                 </Grid>
             </Border>
+            
+           
+
+            
 
             <!-- Прикрепленные файлы -->
             <Grid Margin="0,25,0,0" Grid.Row="2">
@@ -315,7 +317,7 @@
                         HorizontalAlignment="Stretch" Grid.Column="1" Margin="10,0,0,0">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" 
                                   HorizontalScrollBarVisibility="Disabled"
-                                  Height="Auto" MaxHeight="70">
+                                  Height="Auto" MaxHeight="50" >
                         <ItemsControl x:Name="AttachedFilesList">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -367,7 +369,7 @@
                         HorizontalAlignment="Stretch" Grid.Column="1" Margin="30,0,0,0">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" 
                                   HorizontalScrollBarVisibility="Disabled"
-                                  Height="Auto" MaxHeight="80">
+                                  Height="Auto" MaxHeight="60">
                         <ItemsControl x:Name="RecipientList">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>

@@ -811,16 +811,6 @@ namespace alesya_rassylka
             Close();
         }
 
-        private void InsertSmiley_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is MenuItem menuItem && menuItem.Tag is string smiley)
-            {
-                TextPointer caretPosition = MessageRichTextBox.CaretPosition;
-                caretPosition.InsertTextInRun(smiley);
-                MessageRichTextBox.CaretPosition = caretPosition.GetPositionAtOffset(smiley.Length);
-            }
-        }
-
         private void InsertImage_Click(object sender, RoutedEventArgs e)
         {
             var openFileDialog = new Microsoft.Win32.OpenFileDialog
@@ -865,52 +855,78 @@ namespace alesya_rassylka
 
         private void FormatBold_Click(object sender, RoutedEventArgs e)
         {
-            TextSelection selection = MessageRichTextBox.Selection;
+            var richTextBox = MessageRichTextBox;
+            var selection = richTextBox.Selection;
+
+            object fontWeight = selection.GetPropertyValue(TextElement.FontWeightProperty);
+            bool isBold = fontWeight != DependencyProperty.UnsetValue && Equals(fontWeight, FontWeights.Bold);
+
             if (!selection.IsEmpty)
             {
-                object fontWeight = selection.GetPropertyValue(TextElement.FontWeightProperty);
-                if (fontWeight != DependencyProperty.UnsetValue && Equals(fontWeight, FontWeights.Bold))
-                {
-                    selection.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Normal);
-                }
-                else
-                {
-                    selection.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Bold);
-                }
+                selection.ApplyPropertyValue(TextElement.FontWeightProperty, isBold ? FontWeights.Normal : FontWeights.Bold);
+            }
+            else
+            {
+                TextPointer caret = richTextBox.CaretPosition;
+                selection.Select(caret, caret);
+                selection.ApplyPropertyValue(TextElement.FontWeightProperty, isBold ? FontWeights.Normal : FontWeights.Bold);
+                richTextBox.CaretPosition = caret;
+                richTextBox.Focus();
             }
         }
+
 
         private void FormatItalic_Click(object sender, RoutedEventArgs e)
         {
-            TextSelection selection = MessageRichTextBox.Selection;
+            var richTextBox = MessageRichTextBox;
+            var selection = richTextBox.Selection;
+
+            object fontStyle = selection.GetPropertyValue(TextElement.FontStyleProperty);
+            bool isItalic = fontStyle != DependencyProperty.UnsetValue && Equals(fontStyle, FontStyles.Italic);
+
             if (!selection.IsEmpty)
             {
-                object fontStyle = selection.GetPropertyValue(TextElement.FontStyleProperty);
-                if (fontStyle != DependencyProperty.UnsetValue && Equals(fontStyle, FontStyles.Italic))
-                {
-                    selection.ApplyPropertyValue(TextElement.FontStyleProperty, FontStyles.Normal);
-                }
-                else
-                {
-                    selection.ApplyPropertyValue(TextElement.FontStyleProperty, FontStyles.Italic);
-                }
+                selection.ApplyPropertyValue(TextElement.FontStyleProperty, isItalic ? FontStyles.Normal : FontStyles.Italic);
+            }
+            else
+            {
+                TextPointer caret = richTextBox.CaretPosition;
+                selection.Select(caret, caret);
+                selection.ApplyPropertyValue(TextElement.FontStyleProperty, isItalic ? FontStyles.Normal : FontStyles.Italic);
+                richTextBox.CaretPosition = caret;
+                richTextBox.Focus();
             }
         }
 
+
         private void FormatUnderline_Click(object sender, RoutedEventArgs e)
         {
-            TextSelection selection = MessageRichTextBox.Selection;
+            var richTextBox = MessageRichTextBox;
+            var selection = richTextBox.Selection;
+
+            // Определим, нужно ли убрать подчеркивание
+            object current = selection.GetPropertyValue(Inline.TextDecorationsProperty);
+            bool isUnderlined = current != DependencyProperty.UnsetValue &&
+                                current is TextDecorationCollection decorations &&
+                                decorations.Contains(TextDecorations.Underline[0]);
+
+            // Если выделен текст — меняем его стиль
             if (!selection.IsEmpty)
             {
-                object textDecorations = selection.GetPropertyValue(Inline.TextDecorationsProperty);
-                if (textDecorations != DependencyProperty.UnsetValue && textDecorations is TextDecorationCollection decorations && decorations.Contains(TextDecorations.Underline[0]))
-                {
-                    selection.ApplyPropertyValue(Inline.TextDecorationsProperty, null);
-                }
-                else
-                {
-                    selection.ApplyPropertyValue(Inline.TextDecorationsProperty, TextDecorations.Underline);
-                }
+                selection.ApplyPropertyValue(Inline.TextDecorationsProperty, isUnderlined ? null : TextDecorations.Underline);
+            }
+            else
+            {
+                // При пустом выделении — устанавливаем стиль для позиции курсора
+                TextPointer caret = richTextBox.CaretPosition;
+
+                // Создаем пустую выделенную позицию (0 длины) — для применения свойства
+                selection.Select(caret, caret);
+                selection.ApplyPropertyValue(Inline.TextDecorationsProperty, isUnderlined ? null : TextDecorations.Underline);
+
+                // Вернём каретку на место (иначе она может "сброситься")
+                richTextBox.CaretPosition = caret;
+                richTextBox.Focus(); // Вернём фокус, если ушёл
             }
         }
 
@@ -1003,12 +1019,6 @@ namespace alesya_rassylka
                 SubjectTextBox.Foreground = Brushes.Black;
                 SubjectTextBox.CaretIndex = SubjectTextBox.Text.Length; // Перемещаем курсор в конец
             }
-        }
-
-        // Обработчик события LostFocus для SubjectTextBox
-        private void SubjectTextBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            // Ничего не делаем при потере фокуса, оставляем текст как есть
         }
 
         // Обработчик события TextChanged для SubjectTextBox
