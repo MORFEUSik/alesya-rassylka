@@ -11,7 +11,6 @@
 
   <ItemGroup>
     <None Remove="icons8-почта-100.png" />
-    <None Remove="img-drs2Cg.jpg" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,7 +23,6 @@
 
   <ItemGroup>
     <Resource Include="icons8-почта-100.png" />
-    <Resource Include="img-drs2Cg.jpg" />
   </ItemGroup>
 
 </Project>

@@ -16,6 +16,7 @@ using System.Web;
 using System.Net.Mime;
 using System.ComponentModel;
 using Microsoft.VisualBasic;
+using System.Windows.Input;
 
 namespace alesya_rassylka
 {
@@ -240,7 +241,7 @@ namespace alesya_rassylka
                 else
                 {
                     TemplateCategories = new ObservableCollection<TemplateCategory>();
-                    InitializeDefaultTemplates();
+                    //InitializeDefaultTemplates();
                     SaveTemplates();
                 }
             }
@@ -270,80 +271,86 @@ namespace alesya_rassylka
             }
         }
 
-        private void InitializeDefaultTemplates()
-        {
-            TemplateCategories.Clear();
-            TemplateCategories.Add(new TemplateCategory
-            {
-                Name = "Предложение о сотрудничестве",
-                Templates = new List<Template>
-                {
-                    new Template
-                    {
-                        Name = "Стандартное предложение",
-                        Content = "Уважаемый(ая) [Имя получателя],\n\n" +
-                                  "Мы рады предложить вам сотрудничество с компанией ATLANT! " +
-                                  "Наша компания специализируется на [указать сферу деятельности]. " +
-                                  "Мы предлагаем выгодные условия для партнеров, включая:\n" +
-                                  "- Скидки на оптовые заказы\n" +
-                                  "- Быструю доставку\n" +
-                                  "- Индивидуальный подход\n\n" +
-                                  "Будем рады обсудить детали! Свяжитесь с нами по телефону [ваш номер] или email [ваш email].\n\n" +
-                                  "С уважением,\nКоманда ATLANT"
-                    }
-                }
-            });
+        //private void InitializeDefaultTemplates()
+        //{
+        //TemplateCategories.Clear();
+        //TemplateCategories.Add(new TemplateCategory
+        //{
+        //    Name = "Предложение о сотрудничестве",
+        //    Templates = new List<Template>
+        //    {
+        //        new Template
+        //        {
+        //            Name = "Стандартное предложение",
+        //            Content = "Уважаемый(ая) [Имя получателя],\n\n" +
+        //                      "Мы рады предложить вам сотрудничество с компанией ATLANT! " +
+        //                      "Наша компания специализируется на [указать сферу деятельности]. " +
+        //                      "Мы предлагаем выгодные условия для партнеров, включая:\n" +
+        //                      "- Скидки на оптовые заказы\n" +
+        //                      "- Быструю доставку\n" +
+        //                      "- Индивидуальный подход\n\n" +
+        //                      "Будем рады обсудить детали! Свяжитесь с нами по телефону [ваш номер] или email [ваш email].\n\n" +
+        //                      "С уважением,\nКоманда ATLANT"
+        //        }
+        //    }
+        //});
 
-            TemplateCategories.Add(new TemplateCategory
-            {
-                Name = "Специальные условия для оптовиков",
-                Templates = new List<Template>
-                {
-                    new Template
-                    {
-                        Name = "Скидки и доставка",
-                        Content = "Уважаемый(ая) [Имя получателя],\n\n" +
-                                  "Компания ATLANT рада предложить специальные условия для оптовиков!\n" +
-                                  "Мы подготовили для вас:\n" +
-                                  "- Скидку 20% на заказы от 100 единиц\n" +
-                                  "- Бесплатную доставку при заказе от 500 единиц\n" +
-                                  "- Персонального менеджера для вашего удобства\n\n" +
-                                  "Не упустите возможность! Свяжитесь с нами для оформления заказа: [ваш номер] или [ваш email].\n\n" +
-                                  "С уважением,\nКоманда ATLANT"
-                    }
-                }
-            });
+        //TemplateCategories.Add(new TemplateCategory
+        //{
+        //    Name = "Специальные условия для оптовиков",
+        //    Templates = new List<Template>
+        //    {
+        //        new Template
+        //        {
+        //            Name = "Скидки и доставка",
+        //            Content = "Уважаемый(ая) [Имя получателя],\n\n" +
+        //                      "Компания ATLANT рада предложить специальные условия для оптовиков!\n" +
+        //                      "Мы подготовили для вас:\n" +
+        //                      "- Скидку 20% на заказы от 100 единиц\n" +
+        //                      "- Бесплатную доставку при заказе от 500 единиц\n" +
+        //                      "- Персонального менеджера для вашего удобства\n\n" +
+        //                      "Не упустите возможность! Свяжитесь с нами для оформления заказа: [ваш номер] или [ваш email].\n\n" +
+        //                      "С уважением,\nКоманда ATLANT"
+        //        }
+        //    }
+        //});
 
-            string[] otherCategories = new[]
-            {
-                "Анонс новой продукции для оптовиков",
-                "Специальные акции для оптовиков",
-                "Информация о логистике и доставке",
-                "Приглашение на встречу или выставку",
-                "Образовательный контент для закупщиков",
-                "Благодарность за сотрудничество"
-            };
+        //string[] otherCategories = new[]
+        //{
+        //    "Анонс новой продукции для оптовиков",
+        //    "Специальные акции для оптовиков",
+        //    "Информация о логистике и доставке",
+        //    "Приглашение на встречу или выставку",
+        //    "Образовательный контент для закупщиков",
+        //    "Благодарность за сотрудничество"
+        //};
 
-            foreach (var categoryName in otherCategories)
-            {
-                TemplateCategories.Add(new TemplateCategory
-                {
-                    Name = categoryName,
-                    Templates = new List<Template>()
-                });
-            }
-        }
+        //foreach (var categoryName in otherCategories)
+        //{
+        //    TemplateCategories.Add(new TemplateCategory
+        //    {
+        //        Name = categoryName,
+        //        Templates = new List<Template>()
+        //    });
+        //}
+        //}
+
+
 
         private void AddCategory_Click(object sender, RoutedEventArgs e)
         {
-            string categoryName = Interaction.InputBox("Введите название новой категории:",
-                                                       "Добавление категории",
-                                                     "");
-            if (string.IsNullOrWhiteSpace(categoryName))
-            {
-                MessageBox.Show("Название категории не может быть пустым.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+            string categoryName = Interaction.InputBox(
+                "Введите название новой категории:",
+                "Добавление категории",
+                "");
+
+            // Если нажата "Отмена" или окно закрыто — не продолжаем
+            if (categoryName == null)
                 return;
-            }
+
+            // Если строка пуста или состоит из пробелов — тоже не продолжаем
+            if (string.IsNullOrWhiteSpace(categoryName))
+                return;
 
             if (TemplateCategories.Any(c => c.Name.Equals(categoryName, StringComparison.OrdinalIgnoreCase)))
             {
@@ -360,6 +367,7 @@ namespace alesya_rassylka
             SaveTemplates();
             MessageBox.Show("Категория успешно добавлена!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
         }
+
 
         private void DeleteTemplateCategory_Click(object sender, RoutedEventArgs e)
         {
@@ -737,42 +745,66 @@ namespace alesya_rassylka
                 senderListBox.SelectedItem = defaultSender;
             }
 
-            // Стиль для кнопки с закруглёнными углами
             var buttonStyle = new Style(typeof(Button));
-            var buttonBorderFactory = new FrameworkElementFactory(typeof(Border));
-            buttonBorderFactory.Name = "border";
-            buttonBorderFactory.SetValue(Border.CornerRadiusProperty, new CornerRadius(5));
-            buttonBorderFactory.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Button.BackgroundProperty));
-            buttonBorderFactory.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Button.BorderBrushProperty));
-            buttonBorderFactory.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Button.BorderThicknessProperty));
+           ;
+
+            // Базовые свойства
+            buttonStyle.Setters.Add(new Setter(Button.BackgroundProperty, Brushes.White));
+            buttonStyle.Setters.Add(new Setter(Button.ForegroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+            buttonStyle.Setters.Add(new Setter(Button.FontSizeProperty, 14.0));
+            buttonStyle.Setters.Add(new Setter(Button.FontFamilyProperty, new FontFamily("Arial Black")));
+            buttonStyle.Setters.Add(new Setter(Button.FontWeightProperty, FontWeights.Bold));
+            buttonStyle.Setters.Add(new Setter(Button.PaddingProperty, new Thickness(10, 5, 10, 5)));
+            buttonStyle.Setters.Add(new Setter(Button.BorderThicknessProperty, new Thickness(1)));
+            buttonStyle.Setters.Add(new Setter(Button.BorderBrushProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+            buttonStyle.Setters.Add(new Setter(Button.CursorProperty, Cursors.Hand));
+            buttonStyle.Setters.Add(new Setter(Button.MinHeightProperty, 30.0));
+
+            // Шаблон
+            var borderFactory = new FrameworkElementFactory(typeof(Border));
+            borderFactory.SetValue(Border.CornerRadiusProperty, new CornerRadius(5));
+
+            // Привязки (вместо TemplateBinding)
+            borderFactory.SetBinding(Border.BackgroundProperty, new Binding("Background") { RelativeSource = RelativeSource.TemplatedParent });
+            borderFactory.SetBinding(Border.BorderBrushProperty, new Binding("BorderBrush") { RelativeSource = RelativeSource.TemplatedParent });
+            borderFactory.SetBinding(Border.BorderThicknessProperty, new Binding("BorderThickness") { RelativeSource = RelativeSource.TemplatedParent });
+            borderFactory.SetBinding(Border.PaddingProperty, new Binding("Padding") { RelativeSource = RelativeSource.TemplatedParent });
 
             var contentPresenterFactory = new FrameworkElementFactory(typeof(ContentPresenter));
-            contentPresenterFactory.Name = "contentPresenter";
             contentPresenterFactory.SetValue(ContentPresenter.HorizontalAlignmentProperty, HorizontalAlignment.Center);
             contentPresenterFactory.SetValue(ContentPresenter.VerticalAlignmentProperty, VerticalAlignment.Center);
-            contentPresenterFactory.SetValue(ContentPresenter.RecognizesAccessKeyProperty, true);
+            contentPresenterFactory.SetValue(TextBlock.TextAlignmentProperty, TextAlignment.Center);
 
-            buttonBorderFactory.AppendChild(contentPresenterFactory);
+            borderFactory.AppendChild(contentPresenterFactory);
 
-            var buttonTemplate = new ControlTemplate(typeof(Button));
-            buttonTemplate.VisualTree = buttonBorderFactory;
-            buttonStyle.Setters.Add(new Setter(Control.TemplateProperty, buttonTemplate));
+            var controlTemplate = new ControlTemplate(typeof(Button))
+            {
+                VisualTree = borderFactory
+            };
 
-            // Создаем кнопку подтверждения
+            // Добавим триггеры
+            var mouseOverTrigger = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
+            mouseOverTrigger.Setters.Add(new Setter(Button.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E0E6F8"))));
+
+            var pressedTrigger = new Trigger { Property = Button.IsPressedProperty, Value = true };
+            pressedTrigger.Setters.Add(new Setter(Button.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C0D0F0"))));
+
+            controlTemplate.Triggers.Add(mouseOverTrigger);
+            controlTemplate.Triggers.Add(pressedTrigger);
+
+            // Назначаем шаблон
+            buttonStyle.Setters.Add(new Setter(Control.TemplateProperty, controlTemplate));
+
+
             var confirmButton = new Button
             {
                 Content = "Подтвердить",
                 Width = 150,
-                Height = 40,
+                Height = 30,
                 Margin = new Thickness(0, 20, 0, 0),
-                Background = Brushes.White,
-                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
-                FontSize = 16,
-                FontWeight = FontWeights.Bold,
-                BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
-                BorderThickness = new Thickness(1),
                 Style = buttonStyle
             };
+
 
             Sender selectedSenderFromWindow = null;
             confirmButton.Click += (s, args) =>
