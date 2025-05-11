@@ -20,6 +20,19 @@ using System.Windows.Input;
 
 namespace alesya_rassylka
 {
+
+    public class ImageParameters
+    {
+        public double Width { get; set; }
+        public double Height { get; set; }
+        public HorizontalAlignment Alignment { get; set; }
+        public VerticalAlignment VerticalAlignment { get; set; } = VerticalAlignment.Center; // По умолчанию центр
+        public string FilePath { get; set; }
+        public bool IsBackground { get; set; }
+        public int BackgroundLines { get; set; } = 1; // Количество строк для фона
+        public string StretchMode { get; set; } = "Uniform"; // Режим растяжения
+    }
+
     public class Sender
     {
         public string Email { get; set; }
@@ -123,7 +136,30 @@ namespace alesya_rassylka
             {
                 if (block is Paragraph paragraph)
                 {
-                    htmlBody.Append("<p>");
+                    // Определяем стиль абзаца
+                    string alignment = "left";
+                    string backgroundStyle = "";
+                    InlineUIContainer firstImageContainer = paragraph.Inlines.OfType<InlineUIContainer>().FirstOrDefault();
+                    if (firstImageContainer?.Child is Image firstImage && firstImage.Tag is ImageParameters parameters)
+                    {
+                        alignment = parameters.Alignment switch
+                        {
+                            HorizontalAlignment.Left => "left",
+                            HorizontalAlignment.Center => "center",
+                            HorizontalAlignment.Right => "right",
+                            _ => "left"
+                        };
+
+                        if (parameters.IsBackground)
+                        {
+                            string cid = $"background{imageCounter++}";
+                            embeddedImages.Add((cid, parameters.FilePath));
+                            backgroundStyle = $"background-image: url('cid:{cid}'); background-size: cover;";
+                        }
+                    }
+
+                    htmlBody.Append($"<p style=\"text-align: {alignment}; {backgroundStyle}\">");
+
                     foreach (Inline inline in paragraph.Inlines)
                     {
                         if (inline is Run run)
@@ -154,7 +190,19 @@ namespace alesya_rassylka
                                 string imagePath = bitmapImage.UriSource.LocalPath;
                                 string cid = $"image{imageCounter++}";
                                 embeddedImages.Add((cid, imagePath));
-                                htmlBody.Append($"<img src=\"cid:{cid}\" width=\"{image.Width}\" height=\"{image.Height}\" />");
+                                string alignmentStyle = image.HorizontalAlignment switch
+                                {
+                                    HorizontalAlignment.Left => "float: left;",
+                                    HorizontalAlignment.Center => "display: block; margin: 0 auto;",
+                                    HorizontalAlignment.Right => "float: right;",
+                                    _ => ""
+                                };
+                                // Переименовываем parameters на imageParams, чтобы избежать конфликта
+                                if (image.Tag is ImageParameters imageParams && imageParams.IsBackground)
+                                {
+                                    continue; // Пропускаем изображение, если оно используется как фон
+                                }
+                                htmlBody.Append($"<img src=\"cid:{cid}\" width=\"{image.Width}\" height=\"{image.Height}\" style=\"{alignmentStyle}\" />");
                             }
                         }
                     }
@@ -645,7 +693,8 @@ namespace alesya_rassylka
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this,
                 Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DFE3EB")),
-                ResizeMode = ResizeMode.NoResize
+                ResizeMode = ResizeMode.NoResize,
+                Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png")) // Добавлена иконка
             };
 
             var mainStackPanel = new StackPanel
@@ -746,7 +795,7 @@ namespace alesya_rassylka
             }
 
             var buttonStyle = new Style(typeof(Button));
-           ;
+            ;
 
             // Базовые свойства
             buttonStyle.Setters.Add(new Setter(Button.BackgroundProperty, Brushes.White));
@@ -795,7 +844,6 @@ namespace alesya_rassylka
             // Назначаем шаблон
             buttonStyle.Setters.Add(new Setter(Control.TemplateProperty, controlTemplate));
 
-
             var confirmButton = new Button
             {
                 Content = "Подтвердить",
@@ -804,7 +852,6 @@ namespace alesya_rassylka
                 Margin = new Thickness(0, 20, 0, 0),
                 Style = buttonStyle
             };
-
 
             Sender selectedSenderFromWindow = null;
             confirmButton.Click += (s, args) =>
@@ -855,26 +902,50 @@ namespace alesya_rassylka
             {
                 try
                 {
+                    // Создаём изображение
                     var image = new Image
                     {
                         Source = new BitmapImage(new Uri(openFileDialog.FileName)),
                         Width = 100,
                         Height = 100
                     };
+
+                    // Отключаем стандартное контекстное меню
+                    image.ContextMenu = null;
+
+                    // Сохраняем параметры изображения
+                    var parameters = new ImageParameters
+                    {
+                        Width = 100,
+                        Height = 100,
+                        Alignment = HorizontalAlignment.Left,
+                        FilePath = openFileDialog.FileName,
+                        IsBackground = false
+                    };
+                    image.Tag = parameters;
+
+                    // Создаём контекстное меню для изображения
+                    var contextMenu = new ContextMenu();
+                    var editMenuItem = new MenuItem { Header = "Изменить параметры" };
+                    editMenuItem.Click += (s, args) => EditImageParameters(image);
+                    var deleteMenuItem = new MenuItem { Header = "Удалить" };
+                    deleteMenuItem.Click += (s, args) => DeleteImage(image);
+                    contextMenu.Items.Add(editMenuItem);
+                    contextMenu.Items.Add(deleteMenuItem);
+                    image.ContextMenu = contextMenu;
+
+                    // Добавляем изображение в RichTextBox
                     InlineUIContainer container = new InlineUIContainer(image);
                     TextPointer caretPosition = MessageRichTextBox.CaretPosition;
 
-                    // Проверяем, есть ли текущий абзац
                     Paragraph currentParagraph = caretPosition.Paragraph;
                     if (currentParagraph == null)
                     {
-                        // Если абзаца нет, создаем новый
                         currentParagraph = new Paragraph();
                         MessageRichTextBox.Document.Blocks.Add(currentParagraph);
-                        caretPosition = currentParagraph.ContentStart; // Обновляем позицию курсора
+                        caretPosition = currentParagraph.ContentStart;
                     }
 
-                    // Добавляем изображение в абзац
                     currentParagraph.Inlines.Add(container);
                     MessageRichTextBox.CaretPosition = caretPosition.GetNextInsertionPosition(LogicalDirection.Forward) ?? caretPosition;
                 }
@@ -882,6 +953,300 @@ namespace alesya_rassylka
                 {
                     MessageBox.Show($"Ошибка при вставке изображения: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
+            }
+        }
+
+        private void MessageRichTextBox_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            try
+            {
+                // Получаем позицию клика в RichTextBox
+                Point mousePosition = e.GetPosition(MessageRichTextBox);
+                TextPointer pointer = MessageRichTextBox.GetPositionFromPoint(mousePosition, true);
+
+                // Если не удалось определить позицию клика, прерываем обработку
+                if (pointer == null)
+                {
+                    e.Handled = true;
+                    return;
+                }
+
+                // Находим ближайший Inline элемент
+                Inline inline = null;
+                if (pointer.Parent is Inline parentInline)
+                {
+                    inline = parentInline;
+                }
+                else if (pointer.Parent is Paragraph paragraph)
+                {
+                    // Если кликнули на уровне Paragraph, ищем ближайший Inline
+                    TextPointer current = pointer;
+                    int maxIterations = 100; // Ограничение на количество итераций, чтобы избежать бесконечного цикла
+                    while (current != null && current.Parent != null && !(current.Parent is Inline) && maxIterations > 0)
+                    {
+                        current = current.GetPositionAtOffset(0, LogicalDirection.Backward);
+                        maxIterations--;
+                    }
+
+                    if (maxIterations == 0)
+                    {
+                        // Если превышено количество итераций, прерываем обработку
+                        e.Handled = true;
+                        return;
+                    }
+
+                    if (current != null && current.Parent is Inline foundInline)
+                    {
+                        inline = foundInline;
+                    }
+                }
+
+                // Проверяем, является ли Inline элементом InlineUIContainer с изображением
+                if (inline is InlineUIContainer container && container.Child is Image image && image.ContextMenu != null)
+                {
+                    // Открываем контекстное меню изображения
+                    image.ContextMenu.PlacementTarget = image;
+                    image.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint;
+                    image.ContextMenu.IsOpen = true;
+                    e.Handled = true; // Предотвращаем дальнейшую обработку события
+                }
+                else
+                {
+                    // Если клик не на изображении, отключаем стандартное меню
+                    e.Handled = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Логируем ошибку, чтобы понять, что пошло не так
+                LogError("Ошибка при обработке клика правой кнопкой в RichTextBox", ex);
+                e.Handled = true;
+            }
+        }
+
+        private void EditImageParameters(Image image)
+        {
+            var parameters = (ImageParameters)image.Tag;
+            var window = new Window
+            {
+                Title = "Параметры изображения",
+                Width = 350,
+                Height = 500,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = this,
+                ResizeMode = ResizeMode.NoResize,
+                Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png")) // Добавлена иконка
+            };
+
+            var stackPanel = new StackPanel { Margin = new Thickness(10) };
+
+            // Поле для ширины
+            stackPanel.Children.Add(new TextBlock { Text = "Ширина (px):" });
+            var widthBox = new TextBox { Text = parameters.Width.ToString(), Margin = new Thickness(0, 5, 0, 10), Width = 100 };
+            stackPanel.Children.Add(widthBox);
+
+            // Поле для высоты
+            stackPanel.Children.Add(new TextBlock { Text = "Высота (px):" });
+            var heightBox = new TextBox { Text = parameters.Height.ToString(), Margin = new Thickness(0, 5, 0, 10), Width = 100 };
+            stackPanel.Children.Add(heightBox);
+
+            // Выбор режима растяжения
+            stackPanel.Children.Add(new TextBlock { Text = "Режим растяжения:" });
+            var stretchCombo = new ComboBox
+            {
+                ItemsSource = new[] { "Uniform (пропорционально)", "Fill (растянуть полностью)", "UniformToFill (пропорционально с обрезкой)" },
+                SelectedIndex = parameters.StretchMode switch
+                {
+                    "Fill" => 1,
+                    "UniformToFill" => 2,
+                    _ => 0 // Uniform по умолчанию
+                },
+                Margin = new Thickness(0, 5, 0, 10)
+            };
+            stackPanel.Children.Add(stretchCombo);
+
+            // Горизонтальное выравнивание
+            stackPanel.Children.Add(new TextBlock { Text = "Горизонтальное выравнивание:" });
+            var alignmentCombo = new ComboBox
+            {
+                ItemsSource = new[] { "Слева", "По центру", "Справа" },
+                SelectedIndex = parameters.Alignment switch
+                {
+                    HorizontalAlignment.Left => 0,
+                    HorizontalAlignment.Center => 1,
+                    HorizontalAlignment.Right => 2,
+                    _ => 0
+                },
+                Margin = new Thickness(0, 5, 0, 10)
+            };
+            stackPanel.Children.Add(alignmentCombo);
+
+            // Вертикальное выравнивание
+            stackPanel.Children.Add(new TextBlock { Text = "Вертикальное выравнивание:" });
+            var verticalAlignmentCombo = new ComboBox
+            {
+                ItemsSource = new[] { "Верх", "Центр", "Низ" },
+                SelectedIndex = parameters.VerticalAlignment switch
+                {
+                    VerticalAlignment.Top => 0,
+                    VerticalAlignment.Center => 1,
+                    VerticalAlignment.Bottom => 2,
+                    _ => 1 // Центр по умолчанию
+                },
+                Margin = new Thickness(0, 5, 0, 10)
+            };
+            stackPanel.Children.Add(verticalAlignmentCombo);
+
+            // Установка как фон для нескольких строк
+            stackPanel.Children.Add(new TextBlock { Text = "Установить как фон (для нескольких строк):" });
+            var backgroundCheckBox = new CheckBox
+            {
+                IsChecked = parameters.IsBackground,
+                Margin = new Thickness(0, 5, 0, 10)
+            };
+            stackPanel.Children.Add(backgroundCheckBox);
+
+            // Поле для выбора количества строк фона
+            stackPanel.Children.Add(new TextBlock { Text = "Количество строк фона (1 или более):" });
+            var backgroundLinesBox = new TextBox
+            {
+                Text = parameters.IsBackground ? "5" : parameters.BackgroundLines.ToString(), // По умолчанию 5 строк, если фон
+                Margin = new Thickness(0, 5, 0, 10),
+                Width = 100,
+                IsEnabled = parameters.IsBackground
+            };
+            backgroundCheckBox.Checked += (s, e) =>
+            {
+                backgroundLinesBox.IsEnabled = true;
+                if (backgroundLinesBox.Text == "1") backgroundLinesBox.Text = "5"; // Устанавливаем 5 строк при активации
+            };
+            backgroundCheckBox.Unchecked += (s, e) => backgroundLinesBox.IsEnabled = false;
+            stackPanel.Children.Add(backgroundLinesBox);
+
+            // Кнопка подтверждения с новым стилем
+            var confirmButton = new Button
+            {
+                Content = "Применить",
+                Width = 80, // Уменьшенная ширина
+                Height = 25, // Уменьшенная высота
+                Margin = new Thickness(0, 20, 0, 0),
+                FontSize = 12, // Уменьшенный шрифт
+                Style = (Style)FindResource("ActionButton")
+            };
+            confirmButton.Click += (s, args) =>
+            {
+                try
+                {
+                    parameters.Width = double.Parse(widthBox.Text);
+                    parameters.Height = double.Parse(heightBox.Text);
+                    parameters.Alignment = alignmentCombo.SelectedIndex switch
+                    {
+                        0 => HorizontalAlignment.Left,
+                        1 => HorizontalAlignment.Center,
+                        2 => HorizontalAlignment.Right,
+                        _ => HorizontalAlignment.Left
+                    };
+                    parameters.VerticalAlignment = verticalAlignmentCombo.SelectedIndex switch
+                    {
+                        0 => VerticalAlignment.Top,
+                        1 => VerticalAlignment.Center,
+                        2 => VerticalAlignment.Bottom,
+                        _ => VerticalAlignment.Center
+                    };
+                    parameters.StretchMode = stretchCombo.SelectedIndex switch
+                    {
+                        0 => "Uniform",
+                        1 => "Fill",
+                        2 => "UniformToFill",
+                        _ => "Uniform"
+                    };
+                    parameters.IsBackground = backgroundCheckBox.IsChecked == true;
+                    parameters.BackgroundLines = Math.Max(1, int.Parse(backgroundLinesBox.Text));
+
+                    image.Width = parameters.Width;
+                    image.Height = parameters.Height;
+                    image.HorizontalAlignment = parameters.Alignment;
+                    image.VerticalAlignment = parameters.VerticalAlignment;
+                    if (parameters.StretchMode == "Uniform")
+                        image.Stretch = Stretch.Uniform;
+                    else if (parameters.StretchMode == "Fill")
+                        image.Stretch = Stretch.Fill;
+                    else if (parameters.StretchMode == "UniformToFill")
+                        image.Stretch = Stretch.UniformToFill;
+
+                    var container = image.Parent as InlineUIContainer;
+                    var paragraph = container?.Parent as Paragraph;
+                    if (paragraph != null)
+                    {
+                        if (parameters.IsBackground)
+                        {
+                            ImageBrush imageBrush = new ImageBrush
+                            {
+                                ImageSource = new BitmapImage(new Uri(parameters.FilePath)),
+                                Stretch = (Stretch)Enum.Parse(typeof(Stretch), parameters.StretchMode)
+                            };
+                            SetBackgroundForLines(paragraph, imageBrush, parameters.BackgroundLines);
+                        }
+                        else
+                        {
+                            paragraph.Background = null;
+                            var nextParagraphs = GetNextParagraphs(paragraph, parameters.BackgroundLines - 1);
+                            foreach (var p in nextParagraphs)
+                            {
+                                p.Background = null;
+                            }
+                        }
+                    }
+
+                    window.Close();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Ошибка при применении параметров: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            };
+            stackPanel.Children.Add(confirmButton);
+
+            window.Content = stackPanel;
+            window.ShowDialog();
+        }
+
+        // Вспомогательные методы
+        private void SetBackgroundForLines(Paragraph startParagraph, ImageBrush brush, int linesCount)
+        {
+            startParagraph.Background = brush;
+            var nextParagraphs = GetNextParagraphs(startParagraph, linesCount - 1);
+            foreach (var paragraph in nextParagraphs)
+            {
+                paragraph.Background = brush;
+            }
+        }
+
+        private List<Paragraph> GetNextParagraphs(Paragraph startParagraph, int count)
+        {
+            var paragraphs = new List<Paragraph>();
+            Block currentBlock = startParagraph.NextBlock;
+            while (currentBlock != null && paragraphs.Count < count)
+            {
+                if (currentBlock is Paragraph p)
+                {
+                    paragraphs.Add(p);
+                }
+                currentBlock = currentBlock.NextBlock;
+            }
+            return paragraphs;
+        }
+
+        private void DeleteImage(Image image)
+        {
+            var container = image.Parent as InlineUIContainer;
+            var paragraph = container?.Parent as Paragraph;
+            if (paragraph != null && container != null)
+            {
+                // Удаляем фон абзаца, если он был установлен
+                paragraph.Background = null;
+                // Удаляем изображение из абзаца
+                paragraph.Inlines.Remove(container);
             }
         }
 

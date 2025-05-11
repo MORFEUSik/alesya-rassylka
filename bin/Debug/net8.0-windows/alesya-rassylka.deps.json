@@ -8,6 +8,7 @@
     ".NETCoreApp,Version=v8.0": {
       "alesya-rassylka/1.0.0": {
         "dependencies": {
+          "ControlzEx": "4.4.0",
           "DocumentFormat.OpenXml": "3.3.0",
           "Extended.Wpf.Toolkit": "4.7.25104.5739",
           "MahApps.Metro": "2.4.10",

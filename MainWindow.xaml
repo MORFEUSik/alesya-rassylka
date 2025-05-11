@@ -251,7 +251,8 @@
          TextChanged="SubjectTextBox_TextChanged"/>
 
                     <!-- Основное текстовое поле -->
-                    <RichTextBox x:Name="MessageRichTextBox" Grid.Row="1" Height="250" Background="White" BorderThickness="0" Margin="6,10,0,0">
+                    <RichTextBox x:Name="MessageRichTextBox" Grid.Row="1" Height="250" Background="White" BorderThickness="0" Margin="6,10,0,0"
+             PreviewMouseRightButtonDown="MessageRichTextBox_PreviewMouseRightButtonDown">
                         <RichTextBox.Resources>
                             <Style TargetType="{x:Type Paragraph}">
                                 <Setter Property="Margin" Value="0"/>
@@ -260,7 +261,7 @@
                         <RichTextBox.Template>
                             <ControlTemplate TargetType="RichTextBox">
                                 <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
+                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
                                     <ScrollViewer x:Name="PART_ContentHost"/>
                                 </Border>
                             </ControlTemplate>
