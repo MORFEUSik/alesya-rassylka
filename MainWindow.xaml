@@ -228,8 +228,7 @@
                 <Button Content="Справка" Style="{StaticResource NavButton}" Margin="0,0,20,0" Click="Help_Click"/>
                 <Button Content="О программе" Style="{StaticResource NavButton}" Click="About_Click"/>
             </StackPanel>
-
-            <!-- RichTextBox с панелью инструментов -->
+            
             <!-- RichTextBox с панелью инструментов -->
             <Border Grid.Row="1" BorderBrush="#172A74" BorderThickness="1" CornerRadius="5" Background="White" Margin="0,0,0,0">
                 <Grid>
@@ -249,13 +248,17 @@
          BorderThickness="0,0,0,1" BorderBrush="#172A74" Background="Transparent"
          FontSize="14" Padding="0,5" GotFocus="SubjectTextBox_GotFocus" 
          TextChanged="SubjectTextBox_TextChanged"/>
-
+                    
                     <!-- Основное текстовое поле -->
                     <RichTextBox x:Name="MessageRichTextBox" Grid.Row="1" Height="250" Background="White" BorderThickness="0" Margin="6,10,0,0"
-             PreviewMouseRightButtonDown="MessageRichTextBox_PreviewMouseRightButtonDown">
+             PreviewMouseRightButtonDown="MessageRichTextBox_PreviewMouseRightButtonDown"
+             SelectionChanged="MessageRichTextBox_SelectionChanged"
+             FontFamily="Times New Roman" FontSize="12">
                         <RichTextBox.Resources>
                             <Style TargetType="{x:Type Paragraph}">
                                 <Setter Property="Margin" Value="0"/>
+                                <Setter Property="FontFamily" Value="Times New Roman"/>
+                                <Setter Property="FontSize" Value="12"/>
                             </Style>
                         </RichTextBox.Resources>
                         <RichTextBox.Template>
@@ -271,16 +274,35 @@
                     <!-- Панель инструментов -->
                     <Border Grid.Row="2" Background="#F5F7FA" BorderBrush="#E0E3E8" BorderThickness="0,1,0,0" CornerRadius="0,0,5,5">
                         <StackPanel Orientation="Horizontal" Margin="10,0" VerticalAlignment="Center">
+                            <!-- Выбор шрифта -->
+                            <ComboBox x:Name="FontFamilyComboBox" Width="150" Margin="0,0,5,0" SelectionChanged="FontFamilyComboBox_SelectionChanged">
+                                <ComboBoxItem Content="Arial"/>
+                                <ComboBoxItem Content="Times New Roman" IsSelected="True"/>
+                                <ComboBoxItem Content="Calibri"/>
+                                <ComboBoxItem Content="Segoe UI"/>
+                                <ComboBoxItem Content="Verdana"/>
+                            </ComboBox>
+
+                            <!-- Выбор размера шрифта -->
+                            <ComboBox x:Name="FontSizeComboBox" Width="50" Margin="0,0,5,0" SelectionChanged="FontSizeComboBox_SelectionChanged">
+                                <ComboBoxItem Content="10"/>
+                                <ComboBoxItem Content="12" />
+                                <ComboBoxItem Content="14"/>
+                                <ComboBoxItem Content="16"/>
+                                <ComboBoxItem Content="18"/>
+                                <ComboBoxItem Content="20"/>
+                            </ComboBox>
+
                             <!-- Форматирование текста -->
                             <Button Content="B" Click="FormatBold_Click"
-                        Style="{StaticResource FormatButton}" Width="32" Height="32"
-                        FontWeight="Bold" ToolTip="Жирный" FontSize="14"/>
+                Style="{StaticResource FormatButton}" Width="32" Height="32"
+                FontWeight="Bold" ToolTip="Жирный" FontSize="14"/>
                             <Button Content="I" Click="FormatItalic_Click"
-                        Style="{StaticResource FormatButton}" Width="32" Height="32"
-                        FontStyle="Italic" ToolTip="Курсив" FontSize="14" Margin="5,0,0,0"/>
+                Style="{StaticResource FormatButton}" Width="32" Height="32"
+                FontStyle="Italic" ToolTip="Курсив" FontSize="14" Margin="5,0,0,0"/>
                             <Button Click="FormatUnderline_Click"
-                        Style="{StaticResource FormatButton}" Width="32" Height="32"
-                        ToolTip="Подчеркнутый" FontSize="14" Margin="5,0,0,0">
+                Style="{StaticResource FormatButton}" Width="32" Height="32"
+                ToolTip="Подчеркнутый" FontSize="14" Margin="5,0,0,0">
                                 <TextBlock Text="U" TextDecorations="Underline"/>
                             </Button>
                             <!-- Разделитель -->
@@ -288,8 +310,8 @@
 
                             <!-- Кнопка вставки картинки -->
                             <Button Click="InsertImage_Click"
-        Style="{StaticResource FormatButton}" Width="32" Height="32"
-        ToolTip="Вставить картинку">
+                Style="{StaticResource FormatButton}" Width="32" Height="32"
+                ToolTip="Вставить картинку">
                                 <TextBlock FontSize="14">🖼</TextBlock>
                             </Button>
                         </StackPanel>
