@@ -1,7 +1,6 @@
-﻿using MahApps.Metro.Controls;
-using Microsoft.VisualBasic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.IO;
 using System.Net;
 using System.Net.Mail;
@@ -10,9 +9,15 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using MahApps.Metro.Controls;
+using System.Web;
+using System.Net.Mime;
+using System.ComponentModel;
+using Microsoft.VisualBasic;
+using System.Windows.Input;
+using System.Windows.Controls.Primitives;
 
 namespace alesya_rassylka
 {
@@ -1344,14 +1349,13 @@ namespace alesya_rassylka
                 }
                 else
                 {
+                    // Не трогаем существующий текст! Просто применим к пустому диапазону,
+                    // чтобы следующий ввод был с новым шрифтом
                     MessageRichTextBox.Focus();
-                    var caret = MessageRichTextBox.CaretPosition;
-                    var range = new TextRange(caret, caret);
-                    range.ApplyPropertyValue(TextElement.FontFamilyProperty, currentFontFamily);
+                    MessageRichTextBox.Selection.ApplyPropertyValue(TextElement.FontFamilyProperty, currentFontFamily);
                 }
             }
         }
-
 
         private void FontSizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -1367,13 +1371,13 @@ namespace alesya_rassylka
                 }
                 else
                 {
+                    // Только для последующего ввода
                     MessageRichTextBox.Focus();
-                    var caret = MessageRichTextBox.CaretPosition;
-                    var range = new TextRange(caret, caret);
-                    range.ApplyPropertyValue(TextElement.FontSizeProperty, currentFontSize);
+                    MessageRichTextBox.Selection.ApplyPropertyValue(TextElement.FontSizeProperty, currentFontSize);
                 }
             }
         }
+
 
 
         private void ShowInFolderMenuItem_Click(object sender, RoutedEventArgs e)
@@ -1435,3 +1439,4 @@ namespace alesya_rassylka
         }
     }
 }
+

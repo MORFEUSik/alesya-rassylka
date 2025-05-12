@@ -286,7 +286,7 @@
                 <Button Content="Справка" Style="{StaticResource NavButton}" Margin="0,0,20,0" Click="Help_Click"/>
                 <Button Content="О программе" Style="{StaticResource NavButton}" Click="About_Click"/>
             </StackPanel>
-            
+
             <!-- RichTextBox с панелью инструментов -->
             <Border Grid.Row="1" BorderBrush="#172A74" BorderThickness="1" CornerRadius="5" Background="White" Margin="0,0,0,0">
                 <Grid>
@@ -306,7 +306,7 @@
          BorderThickness="0,0,0,1" BorderBrush="#172A74" Background="Transparent"
          FontSize="14" Padding="0,5" GotFocus="SubjectTextBox_GotFocus" 
          TextChanged="SubjectTextBox_TextChanged"/>
-                    
+
                     <!-- Основное текстовое поле -->
                     <RichTextBox x:Name="MessageRichTextBox" Grid.Row="1" Height="250" Background="White" BorderThickness="0" Margin="6,10,0,0"
              PreviewMouseRightButtonDown="MessageRichTextBox_PreviewMouseRightButtonDown"
@@ -381,10 +381,10 @@
                     </Border>
                 </Grid>
             </Border>
-            
-           
 
-            
+
+
+
 
             <!-- Прикрепленные файлы -->
             <Grid Margin="0,25,0,0" Grid.Row="2">
@@ -474,4 +474,4 @@
             </StackPanel>
         </Grid>
     </Grid>
-</Controls:MetroWindow> 
+</Controls:MetroWindow>
