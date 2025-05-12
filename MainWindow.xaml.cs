@@ -17,6 +17,7 @@ using System.Net.Mime;
 using System.ComponentModel;
 using Microsoft.VisualBasic;
 using System.Windows.Input;
+using System.Windows.Controls.Primitives;
 
 namespace alesya_rassylka
 {
@@ -25,12 +26,8 @@ namespace alesya_rassylka
     {
         public double Width { get; set; }
         public double Height { get; set; }
-        public HorizontalAlignment Alignment { get; set; }
-        public VerticalAlignment VerticalAlignment { get; set; } = VerticalAlignment.Center; // По умолчанию центр
         public string FilePath { get; set; }
-        public bool IsBackground { get; set; }
-        public int BackgroundLines { get; set; } = 1; // Количество строк для фона
-        public string StretchMode { get; set; } = "Uniform"; // Режим растяжения
+        public string StretchMode { get; set; } = "Uniform";
     }
 
     public class Sender
@@ -136,29 +133,8 @@ namespace alesya_rassylka
             {
                 if (block is Paragraph paragraph)
                 {
-                    // Определяем стиль абзаца
-                    string alignment = "left";
-                    string backgroundStyle = "";
-                    InlineUIContainer firstImageContainer = paragraph.Inlines.OfType<InlineUIContainer>().FirstOrDefault();
-                    if (firstImageContainer?.Child is Image firstImage && firstImage.Tag is ImageParameters parameters)
-                    {
-                        alignment = parameters.Alignment switch
-                        {
-                            HorizontalAlignment.Left => "left",
-                            HorizontalAlignment.Center => "center",
-                            HorizontalAlignment.Right => "right",
-                            _ => "left"
-                        };
-
-                        if (parameters.IsBackground)
-                        {
-                            string cid = $"background{imageCounter++}";
-                            embeddedImages.Add((cid, parameters.FilePath));
-                            backgroundStyle = $"background-image: url('cid:{cid}'); background-size: cover;";
-                        }
-                    }
-
-                    htmlBody.Append($"<p style=\"text-align: {alignment}; {backgroundStyle}\">");
+                    // Убираем логику, связанную с Alignment и IsBackground, так как этих свойств больше нет
+                    htmlBody.Append("<p>");
 
                     foreach (Inline inline in paragraph.Inlines)
                     {
@@ -190,19 +166,8 @@ namespace alesya_rassylka
                                 string imagePath = bitmapImage.UriSource.LocalPath;
                                 string cid = $"image{imageCounter++}";
                                 embeddedImages.Add((cid, imagePath));
-                                string alignmentStyle = image.HorizontalAlignment switch
-                                {
-                                    HorizontalAlignment.Left => "float: left;",
-                                    HorizontalAlignment.Center => "display: block; margin: 0 auto;",
-                                    HorizontalAlignment.Right => "float: right;",
-                                    _ => ""
-                                };
-                                // Переименовываем parameters на imageParams, чтобы избежать конфликта
-                                if (image.Tag is ImageParameters imageParams && imageParams.IsBackground)
-                                {
-                                    continue; // Пропускаем изображение, если оно используется как фон
-                                }
-                                htmlBody.Append($"<img src=\"cid:{cid}\" width=\"{image.Width}\" height=\"{image.Height}\" style=\"{alignmentStyle}\" />");
+                                // Убираем логику с HorizontalAlignment, так как свойства Alignment больше нет
+                                htmlBody.Append($"<img src=\"cid:{cid}\" width=\"{image.Width}\" height=\"{image.Height}\" />");
                             }
                         }
                     }
@@ -916,11 +881,10 @@ namespace alesya_rassylka
                     // Сохраняем параметры изображения
                     var parameters = new ImageParameters
                     {
-                        Width = 100,
-                        Height = 100,
-                        Alignment = HorizontalAlignment.Left,
+                        Width = 150,
+                        Height = 150,
                         FilePath = openFileDialog.FileName,
-                        IsBackground = false
+                        
                     };
                     image.Tag = parameters;
 
@@ -1031,11 +995,11 @@ namespace alesya_rassylka
             {
                 Title = "Параметры изображения",
                 Width = 350,
-                Height = 500,
+                Height = 270, // Уменьшено, так как меньше параметров
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this,
                 ResizeMode = ResizeMode.NoResize,
-                Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png")) // Добавлена иконка
+                Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png"))
             };
 
             var stackPanel = new StackPanel { Margin = new Thickness(10) };
@@ -1065,72 +1029,14 @@ namespace alesya_rassylka
             };
             stackPanel.Children.Add(stretchCombo);
 
-            // Горизонтальное выравнивание
-            stackPanel.Children.Add(new TextBlock { Text = "Горизонтальное выравнивание:" });
-            var alignmentCombo = new ComboBox
-            {
-                ItemsSource = new[] { "Слева", "По центру", "Справа" },
-                SelectedIndex = parameters.Alignment switch
-                {
-                    HorizontalAlignment.Left => 0,
-                    HorizontalAlignment.Center => 1,
-                    HorizontalAlignment.Right => 2,
-                    _ => 0
-                },
-                Margin = new Thickness(0, 5, 0, 10)
-            };
-            stackPanel.Children.Add(alignmentCombo);
-
-            // Вертикальное выравнивание
-            stackPanel.Children.Add(new TextBlock { Text = "Вертикальное выравнивание:" });
-            var verticalAlignmentCombo = new ComboBox
-            {
-                ItemsSource = new[] { "Верх", "Центр", "Низ" },
-                SelectedIndex = parameters.VerticalAlignment switch
-                {
-                    VerticalAlignment.Top => 0,
-                    VerticalAlignment.Center => 1,
-                    VerticalAlignment.Bottom => 2,
-                    _ => 1 // Центр по умолчанию
-                },
-                Margin = new Thickness(0, 5, 0, 10)
-            };
-            stackPanel.Children.Add(verticalAlignmentCombo);
-
-            // Установка как фон для нескольких строк
-            stackPanel.Children.Add(new TextBlock { Text = "Установить как фон (для нескольких строк):" });
-            var backgroundCheckBox = new CheckBox
-            {
-                IsChecked = parameters.IsBackground,
-                Margin = new Thickness(0, 5, 0, 10)
-            };
-            stackPanel.Children.Add(backgroundCheckBox);
-
-            // Поле для выбора количества строк фона
-            stackPanel.Children.Add(new TextBlock { Text = "Количество строк фона (1 или более):" });
-            var backgroundLinesBox = new TextBox
-            {
-                Text = parameters.IsBackground ? "5" : parameters.BackgroundLines.ToString(), // По умолчанию 5 строк, если фон
-                Margin = new Thickness(0, 5, 0, 10),
-                Width = 100,
-                IsEnabled = parameters.IsBackground
-            };
-            backgroundCheckBox.Checked += (s, e) =>
-            {
-                backgroundLinesBox.IsEnabled = true;
-                if (backgroundLinesBox.Text == "1") backgroundLinesBox.Text = "5"; // Устанавливаем 5 строк при активации
-            };
-            backgroundCheckBox.Unchecked += (s, e) => backgroundLinesBox.IsEnabled = false;
-            stackPanel.Children.Add(backgroundLinesBox);
-
-            // Кнопка подтверждения с новым стилем
+            // Кнопка подтверждения
             var confirmButton = new Button
             {
                 Content = "Применить",
-                Width = 80, // Уменьшенная ширина
-                Height = 25, // Уменьшенная высота
+                Width = 100,
+                Height = 25,
                 Margin = new Thickness(0, 20, 0, 0),
-                FontSize = 12, // Уменьшенный шрифт
+                FontSize = 12,
                 Style = (Style)FindResource("ActionButton")
             };
             confirmButton.Click += (s, args) =>
@@ -1139,20 +1045,6 @@ namespace alesya_rassylka
                 {
                     parameters.Width = double.Parse(widthBox.Text);
                     parameters.Height = double.Parse(heightBox.Text);
-                    parameters.Alignment = alignmentCombo.SelectedIndex switch
-                    {
-                        0 => HorizontalAlignment.Left,
-                        1 => HorizontalAlignment.Center,
-                        2 => HorizontalAlignment.Right,
-                        _ => HorizontalAlignment.Left
-                    };
-                    parameters.VerticalAlignment = verticalAlignmentCombo.SelectedIndex switch
-                    {
-                        0 => VerticalAlignment.Top,
-                        1 => VerticalAlignment.Center,
-                        2 => VerticalAlignment.Bottom,
-                        _ => VerticalAlignment.Center
-                    };
                     parameters.StretchMode = stretchCombo.SelectedIndex switch
                     {
                         0 => "Uniform",
@@ -1160,13 +1052,9 @@ namespace alesya_rassylka
                         2 => "UniformToFill",
                         _ => "Uniform"
                     };
-                    parameters.IsBackground = backgroundCheckBox.IsChecked == true;
-                    parameters.BackgroundLines = Math.Max(1, int.Parse(backgroundLinesBox.Text));
 
                     image.Width = parameters.Width;
                     image.Height = parameters.Height;
-                    image.HorizontalAlignment = parameters.Alignment;
-                    image.VerticalAlignment = parameters.VerticalAlignment;
                     if (parameters.StretchMode == "Uniform")
                         image.Stretch = Stretch.Uniform;
                     else if (parameters.StretchMode == "Fill")
@@ -1174,27 +1062,17 @@ namespace alesya_rassylka
                     else if (parameters.StretchMode == "UniformToFill")
                         image.Stretch = Stretch.UniformToFill;
 
-                    var container = image.Parent as InlineUIContainer;
-                    var paragraph = container?.Parent as Paragraph;
-                    if (paragraph != null)
+                    // Обновляем размеры Canvas
+                    var canvas = image.Parent as Canvas;
+                    if (canvas != null)
                     {
-                        if (parameters.IsBackground)
+                        canvas.Width = parameters.Width;
+                        canvas.Height = parameters.Height;
+                        var resizeThumb = canvas.Children.OfType<Thumb>().FirstOrDefault();
+                        if (resizeThumb != null)
                         {
-                            ImageBrush imageBrush = new ImageBrush
-                            {
-                                ImageSource = new BitmapImage(new Uri(parameters.FilePath)),
-                                Stretch = (Stretch)Enum.Parse(typeof(Stretch), parameters.StretchMode)
-                            };
-                            SetBackgroundForLines(paragraph, imageBrush, parameters.BackgroundLines);
-                        }
-                        else
-                        {
-                            paragraph.Background = null;
-                            var nextParagraphs = GetNextParagraphs(paragraph, parameters.BackgroundLines - 1);
-                            foreach (var p in nextParagraphs)
-                            {
-                                p.Background = null;
-                            }
+                            Canvas.SetLeft(resizeThumb, parameters.Width - 10);
+                            Canvas.SetTop(resizeThumb, parameters.Height - 10);
                         }
                     }
 
@@ -1210,32 +1088,7 @@ namespace alesya_rassylka
             window.Content = stackPanel;
             window.ShowDialog();
         }
-
-        // Вспомогательные методы
-        private void SetBackgroundForLines(Paragraph startParagraph, ImageBrush brush, int linesCount)
-        {
-            startParagraph.Background = brush;
-            var nextParagraphs = GetNextParagraphs(startParagraph, linesCount - 1);
-            foreach (var paragraph in nextParagraphs)
-            {
-                paragraph.Background = brush;
-            }
-        }
-
-        private List<Paragraph> GetNextParagraphs(Paragraph startParagraph, int count)
-        {
-            var paragraphs = new List<Paragraph>();
-            Block currentBlock = startParagraph.NextBlock;
-            while (currentBlock != null && paragraphs.Count < count)
-            {
-                if (currentBlock is Paragraph p)
-                {
-                    paragraphs.Add(p);
-                }
-                currentBlock = currentBlock.NextBlock;
-            }
-            return paragraphs;
-        }
+                   
 
         private void DeleteImage(Image image)
         {
@@ -1243,8 +1096,6 @@ namespace alesya_rassylka
             var paragraph = container?.Parent as Paragraph;
             if (paragraph != null && container != null)
             {
-                // Удаляем фон абзаца, если он был установлен
-                paragraph.Background = null;
                 // Удаляем изображение из абзаца
                 paragraph.Inlines.Remove(container);
             }
