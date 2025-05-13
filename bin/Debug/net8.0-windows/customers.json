@@ -1,48 +1,24 @@
 ﻿{
   "Categories": [
-    "Пылесос",
-    "Стиральная машина",
-    "Ноутбук",
-    "Холодильник",
-    "Телевизор"
+    "Холодильник"
   ],
   "Recipients": [
-    {
-      "Name": "Иван Петров",
-      "Email": "ivan.petrov@example.com",
-      "Categories": [
-        "Пылесос",
-        "Ноутбук"
-      ]
-    },
     {
       "Name": "Екатерина Смирнова",
       "Email": "ekaterina.smirnova@example.com",
       "Categories": [
-        "Холодильник",
-        "Телевизор"
-      ]
-    },
-    {
-      "Name": "Алексей Иванов",
-      "Email": "alexei.ivanov@example.com",
-      "Categories": [
-        "Пылесос",
-        "Стиральная машина"
+        "Холодильник"
       ]
     },
     {
       "Name": "алеся",
       "Email": "alesyaaasin@gmail.com",
-      "Categories": [
-        "Ноутбук"
-      ]
+      "Categories": []
     },
     {
       "Name": "ыва",
       "Email": "nelkabrain@gmail.com",
       "Categories": [
-        "Ноутбук",
         "Холодильник"
       ]
     }

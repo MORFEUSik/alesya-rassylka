@@ -153,7 +153,6 @@ namespace alesya_rassylka
             {
                 if (block is Paragraph paragraph)
                 {
-                    // Убираем логику, связанную с Alignment и IsBackground, так как этих свойств больше нет
                     htmlBody.Append("<p>");
 
                     foreach (Inline inline in paragraph.Inlines)
@@ -166,18 +165,20 @@ namespace alesya_rassylka
                             bool isBold = run.FontWeight == FontWeights.Bold;
                             bool isItalic = run.FontStyle == FontStyles.Italic;
                             bool isUnderlined = run.TextDecorations != null && run.TextDecorations.Contains(TextDecorations.Underline[0]);
+                            string fontFamily = run.FontFamily?.Source ?? "Times New Roman";
+                            double fontSize = run.FontSize > 0 ? run.FontSize : 12;
 
-                            if (isBold) htmlBody.Append("<b>");
-                            if (isItalic) htmlBody.Append("<i>");
-                            if (isUnderlined) htmlBody.Append("<u>");
+                            htmlBody.Append($"<span style=\"font-family: {fontFamily}; font-size: {fontSize}pt;\"");
+                            if (isBold) htmlBody.Append(" font-weight: bold;");
+                            if (isItalic) htmlBody.Append(" font-style: italic;");
+                            if (isUnderlined) htmlBody.Append(" text-decoration: underline;");
+                            htmlBody.Append(">");
 
                             text = System.Web.HttpUtility.HtmlEncode(text);
                             text = text.Replace("\r\n", "<br>").Replace("\n", "<br>");
                             htmlBody.Append(text);
 
-                            if (isUnderlined) htmlBody.Append("</u>");
-                            if (isItalic) htmlBody.Append("</i>");
-                            if (isBold) htmlBody.Append("</b>");
+                            htmlBody.Append("</span>");
                         }
                         else if (inline is InlineUIContainer container && container.Child is Image image)
                         {
@@ -186,7 +187,6 @@ namespace alesya_rassylka
                                 string imagePath = bitmapImage.UriSource.LocalPath;
                                 string cid = $"image{imageCounter++}";
                                 embeddedImages.Add((cid, imagePath));
-                                // Убираем логику с HorizontalAlignment, так как свойства Alignment больше нет
                                 htmlBody.Append($"<img src=\"cid:{cid}\" width=\"{image.Width}\" height=\"{image.Height}\" />");
                             }
                         }
@@ -199,6 +199,10 @@ namespace alesya_rassylka
             return (htmlBody.ToString(), embeddedImages);
         }
 
+        public void RefreshTemplateCategories()
+        {
+            LoadTemplates(); // Перезагружаем шаблоны, чтобы обновить UI
+        }
         private void LoadCustomers()
         {
             try

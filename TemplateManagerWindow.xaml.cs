@@ -38,7 +38,14 @@ namespace alesya_rassylka
             }
 
             category.Name = newName;
-            saveChanges?.Invoke();
+            saveChanges?.Invoke(); // Сохраняем изменения в JSON
+
+            // Уведомляем MainWindow об обновлении (например, через событие или прямой вызов)
+            if (Owner is MainWindow mainWindow)
+            {
+                mainWindow.RefreshTemplateCategories(); // Добавим этот метод в MainWindow
+            }
+
             MessageBox.Show("Название категории обновлено!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
