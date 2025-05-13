@@ -334,8 +334,8 @@
                         <StackPanel Orientation="Horizontal" Margin="10,0" VerticalAlignment="Center">
                             <!-- Выбор шрифта -->
                             <ComboBox x:Name="FontFamilyComboBox"
-          Style="{StaticResource PrettyComboBox}"
-          Width="150" Margin="0,0,5,0" SelectionChanged="FontFamilyComboBox_SelectionChanged">
+                  Style="{StaticResource PrettyComboBox}"
+                  Width="150" Margin="0,0,5,0" SelectionChanged="FontFamilyComboBox_SelectionChanged">
                                 <ComboBoxItem Content="Arial"/>
                                 <ComboBoxItem Content="Times New Roman" IsSelected="True"/>
                                 <ComboBoxItem Content="Calibri"/>
@@ -345,8 +345,8 @@
 
                             <!-- Выбор размера шрифта -->
                             <ComboBox x:Name="FontSizeComboBox"
-          Style="{StaticResource PrettyComboBox}"
-          Width="60" Margin="0,0,5,0" SelectionChanged="FontSizeComboBox_SelectionChanged">
+                  Style="{StaticResource PrettyComboBox}"
+                  Width="60" Margin="0,0,5,0" SelectionChanged="FontSizeComboBox_SelectionChanged">
                                 <ComboBoxItem Content="10"/>
                                 <ComboBoxItem Content="12"/>
                                 <ComboBoxItem Content="14"/>
@@ -354,7 +354,6 @@
                                 <ComboBoxItem Content="18"/>
                                 <ComboBoxItem Content="20"/>
                             </ComboBox>
-
 
                             <!-- Форматирование текста -->
                             <Button Content="B" Click="FormatBold_Click"
@@ -376,6 +375,20 @@
                 Style="{StaticResource FormatButton}" Width="32" Height="32"
                 ToolTip="Вставить картинку">
                                 <TextBlock FontSize="14">🖼</TextBlock>
+                            </Button>
+
+                            <!-- Новая кнопка для маркированного списка -->
+                            <Button Click="CreateBulletList_Click"
+                Style="{StaticResource FormatButton}" Width="32" Height="32"
+                ToolTip="Маркированный список" Margin="5,0,0,0">
+                                <TextBlock FontSize="14">•</TextBlock>
+                            </Button>
+
+                            <!-- Новая кнопка для нумерованного списка -->
+                            <Button Click="CreateNumberedList_Click"
+                Style="{StaticResource FormatButton}" Width="32" Height="32"
+                ToolTip="Нумерованный список" Margin="5,0,0,0">
+                                <TextBlock FontSize="14">1.</TextBlock>
                             </Button>
                         </StackPanel>
                     </Border>

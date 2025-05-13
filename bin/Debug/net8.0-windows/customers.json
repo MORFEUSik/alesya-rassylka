@@ -1,14 +1,10 @@
 ﻿{
-  "Categories": [
-    "Холодильник"
-  ],
+  "Categories": [],
   "Recipients": [
     {
       "Name": "Екатерина Смирнова",
       "Email": "ekaterina.smirnova@example.com",
-      "Categories": [
-        "Холодильник"
-      ]
+      "Categories": []
     },
     {
       "Name": "алеся",
@@ -18,9 +14,7 @@
     {
       "Name": "ыва",
       "Email": "nelkabrain@gmail.com",
-      "Categories": [
-        "Холодильник"
-      ]
+      "Categories": []
     }
   ],
   "Senders": [

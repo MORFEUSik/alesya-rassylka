@@ -193,6 +193,61 @@ namespace alesya_rassylka
                     }
                     htmlBody.Append("</p>");
                 }
+                else if (block is List list)
+                {
+                    string listTag = list.MarkerStyle == TextMarkerStyle.Disc ? "ul" : "ol";
+                    htmlBody.Append($"<{listTag}>");
+
+                    foreach (ListItem listItem in list.ListItems)
+                    {
+                        htmlBody.Append("<li>");
+
+                        foreach (Block itemBlock in listItem.Blocks)
+                        {
+                            if (itemBlock is Paragraph itemParagraph)
+                            {
+                                foreach (Inline inline in itemParagraph.Inlines)
+                                {
+                                    if (inline is Run run)
+                                    {
+                                        string text = run.Text;
+                                        if (string.IsNullOrEmpty(text)) continue;
+
+                                        bool isBold = run.FontWeight == FontWeights.Bold;
+                                        bool isItalic = run.FontStyle == FontStyles.Italic;
+                                        bool isUnderlined = run.TextDecorations != null && run.TextDecorations.Contains(TextDecorations.Underline[0]);
+                                        string fontFamily = run.FontFamily?.Source ?? "Times New Roman";
+                                        double fontSize = run.FontSize > 0 ? run.FontSize : 12;
+
+                                        htmlBody.Append($"<span style=\"font-family: {fontFamily}; font-size: {fontSize}pt;\"");
+                                        if (isBold) htmlBody.Append(" font-weight: bold;");
+                                        if (isItalic) htmlBody.Append(" font-style: italic;");
+                                        if (isUnderlined) htmlBody.Append(" text-decoration: underline;");
+                                        htmlBody.Append(">");
+
+                                        text = System.Web.HttpUtility.HtmlEncode(text);
+                                        text = text.Replace("\r\n", "<br>").Replace("\n", "<br>");
+                                        htmlBody.Append(text);
+
+                                        htmlBody.Append("</span>");
+                                    }
+                                    else if (inline is InlineUIContainer container && container.Child is Image image)
+                                    {
+                                        if (image.Source is BitmapImage bitmapImage)
+                                        {
+                                            string imagePath = bitmapImage.UriSource.LocalPath;
+                                            string cid = $"image{imageCounter++}";
+                                            embeddedImages.Add((cid, imagePath));
+                                            htmlBody.Append($"<img src=\"cid:{cid}\" width=\"{image.Width}\" height=\"{image.Height}\" />");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        htmlBody.Append("</li>");
+                    }
+                    htmlBody.Append($"</{listTag}>");
+                }
             }
 
             htmlBody.Append("</body></html>");
@@ -674,16 +729,18 @@ namespace alesya_rassylka
                 return;
             }
 
-            var senderSelectionWindow = new Window
+            var senderSelectionWindow = new MetroWindow
             {
                 Title = "Выбор отправителя",
                 Width = 350,
-                Height = 440,
+                Height = 460,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this,
                 Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DFE3EB")),
                 ResizeMode = ResizeMode.NoResize,
-                Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png")) // Добавлена иконка
+                Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png")),
+                WindowTitleBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DFE3EB")), // Фон заголовка
+                TitleForeground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")) // Цвет текста заголовка
             };
 
             var mainStackPanel = new StackPanel
@@ -783,63 +840,14 @@ namespace alesya_rassylka
                 senderListBox.SelectedItem = defaultSender;
             }
 
-            var buttonStyle = new Style(typeof(Button));
-            ;
-
-            // Базовые свойства
-            buttonStyle.Setters.Add(new Setter(Button.BackgroundProperty, Brushes.White));
-            buttonStyle.Setters.Add(new Setter(Button.ForegroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
-            buttonStyle.Setters.Add(new Setter(Button.FontSizeProperty, 14.0));
-            buttonStyle.Setters.Add(new Setter(Button.FontFamilyProperty, new FontFamily("Arial Black")));
-            buttonStyle.Setters.Add(new Setter(Button.FontWeightProperty, FontWeights.Bold));
-            buttonStyle.Setters.Add(new Setter(Button.PaddingProperty, new Thickness(10, 5, 10, 5)));
-            buttonStyle.Setters.Add(new Setter(Button.BorderThicknessProperty, new Thickness(1)));
-            buttonStyle.Setters.Add(new Setter(Button.BorderBrushProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
-            buttonStyle.Setters.Add(new Setter(Button.CursorProperty, Cursors.Hand));
-            buttonStyle.Setters.Add(new Setter(Button.MinHeightProperty, 30.0));
-
-            // Шаблон
-            var borderFactory = new FrameworkElementFactory(typeof(Border));
-            borderFactory.SetValue(Border.CornerRadiusProperty, new CornerRadius(5));
-
-            // Привязки (вместо TemplateBinding)
-            borderFactory.SetBinding(Border.BackgroundProperty, new Binding("Background") { RelativeSource = RelativeSource.TemplatedParent });
-            borderFactory.SetBinding(Border.BorderBrushProperty, new Binding("BorderBrush") { RelativeSource = RelativeSource.TemplatedParent });
-            borderFactory.SetBinding(Border.BorderThicknessProperty, new Binding("BorderThickness") { RelativeSource = RelativeSource.TemplatedParent });
-            borderFactory.SetBinding(Border.PaddingProperty, new Binding("Padding") { RelativeSource = RelativeSource.TemplatedParent });
-
-            var contentPresenterFactory = new FrameworkElementFactory(typeof(ContentPresenter));
-            contentPresenterFactory.SetValue(ContentPresenter.HorizontalAlignmentProperty, HorizontalAlignment.Center);
-            contentPresenterFactory.SetValue(ContentPresenter.VerticalAlignmentProperty, VerticalAlignment.Center);
-            contentPresenterFactory.SetValue(TextBlock.TextAlignmentProperty, TextAlignment.Center);
-
-            borderFactory.AppendChild(contentPresenterFactory);
-
-            var controlTemplate = new ControlTemplate(typeof(Button))
-            {
-                VisualTree = borderFactory
-            };
-
-            // Добавим триггеры
-            var mouseOverTrigger = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
-            mouseOverTrigger.Setters.Add(new Setter(Button.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E0E6F8"))));
-
-            var pressedTrigger = new Trigger { Property = Button.IsPressedProperty, Value = true };
-            pressedTrigger.Setters.Add(new Setter(Button.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C0D0F0"))));
-
-            controlTemplate.Triggers.Add(mouseOverTrigger);
-            controlTemplate.Triggers.Add(pressedTrigger);
-
-            // Назначаем шаблон
-            buttonStyle.Setters.Add(new Setter(Control.TemplateProperty, controlTemplate));
-
+            // Используем существующий стиль ActionButton из XAML
             var confirmButton = new Button
             {
                 Content = "Подтвердить",
-                Width = 150,
-                Height = 30,
+                Width = 200,
+                Height = 50,
                 Margin = new Thickness(0, 20, 0, 0),
-                Style = buttonStyle
+                Style = (Style)FindResource("ActionButton")
             };
 
             Sender selectedSenderFromWindow = null;
@@ -1441,6 +1449,107 @@ namespace alesya_rassylka
                 SubjectTextBox.CaretIndex = SubjectTextBox.Text.Length; // Перемещаем курсор в конец
             }
         }
+
+        private void CreateBulletList_Click(object sender, RoutedEventArgs e)
+        {
+            var richTextBox = MessageRichTextBox;
+            TextPointer caretPosition = richTextBox.CaretPosition;
+
+            // Создаем новый список с маркерами (точками)
+            List list = new List
+            {
+                MarkerStyle = TextMarkerStyle.Disc
+            };
+
+            // Добавляем начальный элемент списка
+            ListItem listItem = new ListItem(new Paragraph());
+            list.ListItems.Add(listItem);
+
+            // Заменяем текущий абзац или вставляем список
+            if (caretPosition.Paragraph != null)
+            {
+                BlockCollection blocks = richTextBox.Document.Blocks;
+                int index = -1;
+                int currentIndex = 0;
+                foreach (Block block in blocks)
+                {
+                    if (block == caretPosition.Paragraph)
+                    {
+                        index = currentIndex;
+                        break;
+                    }
+                    currentIndex++;
+                }
+
+                if (index >= 0)
+                {
+                    blocks.InsertBefore(caretPosition.Paragraph, list);
+                    blocks.Remove(caretPosition.Paragraph);
+                }
+                else
+                {
+                    blocks.Add(list);
+                }
+            }
+            else
+            {
+                richTextBox.Document.Blocks.Add(list);
+            }
+
+            richTextBox.CaretPosition = listItem.ContentStart;
+            richTextBox.Focus();
+        }
+
+        private void CreateNumberedList_Click(object sender, RoutedEventArgs e)
+        {
+            var richTextBox = MessageRichTextBox;
+            TextPointer caretPosition = richTextBox.CaretPosition;
+
+            // Создаем новый нумерованный список
+            List list = new List
+            {
+                MarkerStyle = TextMarkerStyle.Decimal
+            };
+
+            // Добавляем начальный элемент списка
+            ListItem listItem = new ListItem(new Paragraph());
+            list.ListItems.Add(listItem);
+
+            // Заменяем текущий абзац или вставляем список
+            if (caretPosition.Paragraph != null)
+            {
+                BlockCollection blocks = richTextBox.Document.Blocks;
+                int index = -1;
+                int currentIndex = 0;
+                foreach (Block block in blocks)
+                {
+                    if (block == caretPosition.Paragraph)
+                    {
+                        index = currentIndex;
+                        break;
+                    }
+                    currentIndex++;
+                }
+
+                if (index >= 0)
+                {
+                    blocks.InsertBefore(caretPosition.Paragraph, list);
+                    blocks.Remove(caretPosition.Paragraph);
+                }
+                else
+                {
+                    blocks.Add(list);
+                }
+            }
+            else
+            {
+                richTextBox.Document.Blocks.Add(list);
+            }
+
+            richTextBox.CaretPosition = listItem.ContentStart;
+            richTextBox.Focus();
+        }
+
     }
 }
 
