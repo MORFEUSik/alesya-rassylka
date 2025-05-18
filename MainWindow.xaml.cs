@@ -142,116 +142,133 @@ namespace alesya_rassylka
         }
 
         private (string htmlBody, List<(string cid, string filePath)> embeddedImages) ConvertRichTextBoxToHtml(RichTextBox richTextBox)
+{
+    var embeddedImages = new List<(string cid, string filePath)>();
+    int imageCounter = 0;
+
+    var htmlBody = new System.Text.StringBuilder();
+    htmlBody.Append("<html><body>");
+
+    void ProcessBlocks(BlockCollection blocks)
+    {
+        foreach (Block block in blocks)
         {
-            var htmlBody = new System.Text.StringBuilder();
-            var embeddedImages = new List<(string cid, string filePath)>();
-            int imageCounter = 0;
-
-            htmlBody.Append("<html><body>");
-
-            foreach (Block block in richTextBox.Document.Blocks)
+            if (block is Paragraph paragraph)
             {
-                if (block is Paragraph paragraph)
+                htmlBody.Append("<p>");
+
+                foreach (Inline inline in paragraph.Inlines)
                 {
-                    htmlBody.Append("<p>");
-
-                    foreach (Inline inline in paragraph.Inlines)
-                    {
-                        if (inline is Run run)
-                        {
-                            string text = run.Text;
-                            if (string.IsNullOrEmpty(text)) continue;
-
-                            bool isBold = run.FontWeight == FontWeights.Bold;
-                            bool isItalic = run.FontStyle == FontStyles.Italic;
-                            bool isUnderlined = run.TextDecorations != null && run.TextDecorations.Contains(TextDecorations.Underline[0]);
-                            string fontFamily = run.FontFamily?.Source ?? "Times New Roman";
-                            double fontSize = run.FontSize > 0 ? run.FontSize : 12;
-
-                            htmlBody.Append($"<span style=\"font-family: {fontFamily}; font-size: {fontSize}pt;\"");
-                            if (isBold) htmlBody.Append(" font-weight: bold;");
-                            if (isItalic) htmlBody.Append(" font-style: italic;");
-                            if (isUnderlined) htmlBody.Append(" text-decoration: underline;");
-                            htmlBody.Append(">");
-
-                            text = System.Web.HttpUtility.HtmlEncode(text);
-                            text = text.Replace("\r\n", "<br>").Replace("\n", "<br>");
-                            htmlBody.Append(text);
-
-                            htmlBody.Append("</span>");
-                        }
-                        else if (inline is InlineUIContainer container && container.Child is Image image)
-                        {
-                            if (image.Source is BitmapImage bitmapImage)
-                            {
-                                string imagePath = bitmapImage.UriSource.LocalPath;
-                                string cid = $"image{imageCounter++}";
-                                embeddedImages.Add((cid, imagePath));
-                                htmlBody.Append($"<img src=\"cid:{cid}\" width=\"{image.Width}\" height=\"{image.Height}\" />");
-                            }
-                        }
-                    }
-                    htmlBody.Append("</p>");
+                    ProcessInline(inline);
                 }
-                else if (block is List list)
+
+                htmlBody.Append("</p>");
+            }
+            else if (block is List list)
+            {
+                ProcessList(list);
+            }
+        }
+    }
+
+    void ProcessInline(Inline inline)
+    {
+        if (inline is Run run)
+        {
+            string text = run.Text;
+            if (string.IsNullOrEmpty(text)) return;
+
+            bool isBold = run.FontWeight == FontWeights.Bold;
+            bool isItalic = run.FontStyle == FontStyles.Italic;
+            bool isUnderlined = run.TextDecorations != null && run.TextDecorations.Contains(TextDecorations.Underline[0]);
+            string fontFamily = run.FontFamily?.Source ?? "Times New Roman";
+            double fontSize = run.FontSize > 0 ? run.FontSize : 12;
+
+            htmlBody.Append($"<span style=\"font-family: {fontFamily}; font-size: {fontSize}pt;");
+            if (isBold) htmlBody.Append(" font-weight: bold;");
+            if (isItalic) htmlBody.Append(" font-style: italic;");
+            if (isUnderlined) htmlBody.Append(" text-decoration: underline;");
+            htmlBody.Append("\">");
+
+            text = System.Web.HttpUtility.HtmlEncode(text);
+            text = text.Replace("\r\n", "<br>").Replace("\n", "<br>");
+            htmlBody.Append(text);
+
+            htmlBody.Append("</span>");
+        }
+        else if (inline is InlineUIContainer container && container.Child is Image image)
+        {
+            if (image.Source is BitmapImage bitmapImage)
+            {
+                string imagePath = bitmapImage.UriSource.LocalPath;
+                string cid = $"image{imageCounter++}";
+                embeddedImages.Add((cid, imagePath));
+                htmlBody.Append($"<img src=\"cid:{cid}\" width=\"{image.Width}\" height=\"{image.Height}\" />");
+            }
+        }
+    }
+
+    void ProcessList(List list)
+    {
+        string tag;
+        switch (list.MarkerStyle)
+        {
+            case TextMarkerStyle.Disc:
+                tag = "ul style=\"list-style-type: disc;\"";  // ●
+                break;
+            case TextMarkerStyle.Circle:
+                tag = "ul style=\"list-style-type: circle;\""; // ○
+                break;
+            case TextMarkerStyle.Square:
+                tag = "ul style=\"list-style-type: square;\""; // ■
+                break;
+            case TextMarkerStyle.Decimal:
+                tag = "ol";
+                break;
+            default:
+                tag = "ul";
+                break;
+        }
+
+        htmlBody.Append($"<{tag}>");
+
+        foreach (ListItem listItem in list.ListItems)
+        {
+            htmlBody.Append("<li>");
+
+            // В ListItem может быть как Paragraph, так и вложенный List (рекурсивно)
+            foreach (Block itemBlock in listItem.Blocks)
+            {
+                if (itemBlock is Paragraph para)
                 {
-                    string listTag = list.MarkerStyle == TextMarkerStyle.Disc ? "ul" : "ol";
-                    htmlBody.Append($"<{listTag}>");
-
-                    foreach (ListItem listItem in list.ListItems)
+                    foreach (Inline inline in para.Inlines)
                     {
-                        htmlBody.Append("<li>");
-
-                        foreach (Block itemBlock in listItem.Blocks)
-                        {
-                            if (itemBlock is Paragraph itemParagraph)
-                            {
-                                foreach (Inline inline in itemParagraph.Inlines)
-                                {
-                                    if (inline is Run run)
-                                    {
-                                        string text = run.Text;
-                                        if (string.IsNullOrEmpty(text)) continue;
-
-                                        bool isBold = run.FontWeight == FontWeights.Bold;
-                                        bool isItalic = run.FontStyle == FontStyles.Italic;
-                                        bool isUnderlined = run.TextDecorations != null && run.TextDecorations.Contains(TextDecorations.Underline[0]);
-                                        string fontFamily = run.FontFamily?.Source ?? "Times New Roman";
-                                        double fontSize = run.FontSize > 0 ? run.FontSize : 12;
-
-                                        htmlBody.Append($"<span style=\"font-family: {fontFamily}; font-size: {fontSize}pt;\"");
-                                        if (isBold) htmlBody.Append(" font-weight: bold;");
-                                        if (isItalic) htmlBody.Append(" font-style: italic;");
-                                        if (isUnderlined) htmlBody.Append(" text-decoration: underline;");
-                                        htmlBody.Append(">");
-
-                                        text = System.Web.HttpUtility.HtmlEncode(text);
-                                        text = text.Replace("\r\n", "<br>").Replace("\n", "<br>");
-                                        htmlBody.Append(text);
-
-                                        htmlBody.Append("</span>");
-                                    }
-                                    else if (inline is InlineUIContainer container && container.Child is Image image)
-                                    {
-                                        if (image.Source is BitmapImage bitmapImage)
-                                        {
-                                            string imagePath = bitmapImage.UriSource.LocalPath;
-                                            string cid = $"image{imageCounter++}";
-                                            embeddedImages.Add((cid, imagePath));
-                                            htmlBody.Append($"<img src=\"cid:{cid}\" width=\"{image.Width}\" height=\"{image.Height}\" />");
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        htmlBody.Append("</li>");
+                        ProcessInline(inline);
                     }
-                    htmlBody.Append($"</{listTag}>");
+                }
+                else if (itemBlock is List nestedList)
+                {
+                    ProcessList(nestedList);  // рекурсивно для вложенного списка
                 }
             }
 
-            htmlBody.Append("</body></html>");
-            return (htmlBody.ToString(), embeddedImages);
+            htmlBody.Append("</li>");
+        }
+
+        htmlBody.Append($"</{tag.Split(' ')[0]}>"); // Закрываем тег, например, ul или ol
+    }
+
+    ProcessBlocks(richTextBox.Document.Blocks);
+
+    htmlBody.Append("</body></html>");
+    return (htmlBody.ToString(), embeddedImages);
+}
+
+        private void ListButton_Click(object sender, RoutedEventArgs e)
+        {
+            ListButton.ContextMenu.PlacementTarget = ListButton;
+            ListButton.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+            ListButton.ContextMenu.IsOpen = true;
         }
 
         public void RefreshTemplateCategories()
@@ -653,36 +670,36 @@ namespace alesya_rassylka
             MessageBox.Show($"{ex.Message}\n{ex.StackTrace}", title, MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            string template = "Уважаемый(ая) [Имя получателя],\n\n" +
-                             "Мы рады предложить вам сотрудничество с компанией ATLANT! " +
-                             "Наша компания специализируется на [указать сферу деятельности]. " +
-                             "Мы предлагаем выгодные условия для партнеров, включая:\n" +
-                             "- Скидки на оптовые заказы\n" +
-                             "- Быструю доставку\n" +
-                             "- Индивидуальный подход\n\n" +
-                             "Будем рады обсудить детали! Свяжитесь с нами по телефону [ваш номер] или email [ваш email].\n\n" +
-                             "С уважением,\nКоманда ATLANT";
+        //private void Button_Click(object sender, RoutedEventArgs e)
+        //{
+        //    string template = "Уважаемый(ая) [Имя получателя],\n\n" +
+        //                     "Мы рады предложить вам сотрудничество с компанией ATLANT! " +
+        //                     "Наша компания специализируется на [указать сферу деятельности]. " +
+        //                     "Мы предлагаем выгодные условия для партнеров, включая:\n" +
+        //                     "- Скидки на оптовые заказы\n" +
+        //                     "- Быструю доставку\n" +
+        //                     "- Индивидуальный подход\n\n" +
+        //                     "Будем рады обсудить детали! Свяжитесь с нами по телефону [ваш номер] или email [ваш email].\n\n" +
+        //                     "С уважением,\nКоманда ATLANT";
 
-            MessageRichTextBox.Document.Blocks.Clear();
-            MessageRichTextBox.Document.Blocks.Add(new Paragraph(new Run(template)));
-        }
+        //    MessageRichTextBox.Document.Blocks.Clear();
+        //    MessageRichTextBox.Document.Blocks.Add(new Paragraph(new Run(template)));
+        //}
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
-        {
-            string template = "Уважаемый(ая) [Имя получателя],\n\n" +
-                             "Компания ATLANT рада предложить специальные условия для оптовиков!\n" +
-                             "Мы подготовили для вас:\n" +
-                             "- Скидку 20% на заказы от 100 единиц\n" +
-                             "- Бесплатную доставку при заказе от 500 единиц\n" +
-                             "- Персонального менеджера для вашего удобства\n\n" +
-                             "Не упустите возможность! Свяжитесь с нами для оформления заказа: [ваш номер] или [ваш email].\n\n" +
-                             "С уважением,\nКоманда ATLANT";
+        //private void Button_Click_1(object sender, RoutedEventArgs e)
+        //{
+        //    string template = "Уважаемый(ая) [Имя получателя],\n\n" +
+        //                     "Компания ATLANT рада предложить специальные условия для оптовиков!\n" +
+        //                     "Мы подготовили для вас:\n" +
+        //                     "- Скидку 20% на заказы от 100 единиц\n" +
+        //                     "- Бесплатную доставку при заказе от 500 единиц\n" +
+        //                     "- Персонального менеджера для вашего удобства\n\n" +
+        //                     "Не упустите возможность! Свяжитесь с нами для оформления заказа: [ваш номер] или [ваш email].\n\n" +
+        //                     "С уважением,\nКоманда ATLANT";
 
-            MessageRichTextBox.Document.Blocks.Clear();
-            MessageRichTextBox.Document.Blocks.Add(new Paragraph(new Run(template)));
-        }
+        //    MessageRichTextBox.Document.Blocks.Clear();
+        //    MessageRichTextBox.Document.Blocks.Add(new Paragraph(new Run(template)));
+        //}
 
         private void Settings_Click(object sender, RoutedEventArgs e)
         {
@@ -733,20 +750,23 @@ namespace alesya_rassylka
             {
                 Title = "Выбор отправителя",
                 Width = 350,
-                Height = 460,
+                Height = 403,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this,
                 Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DFE3EB")),
                 ResizeMode = ResizeMode.NoResize,
                 Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png")),
-                WindowTitleBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DFE3EB")), // Фон заголовка
-                TitleForeground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")) // Цвет текста заголовка
+                TitleForeground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                BorderThickness = new Thickness(1)
             };
+
+            senderSelectionWindow.TitleCharacterCasing = CharacterCasing.Normal;
 
             var mainStackPanel = new StackPanel
             {
-                Margin = new Thickness(20),
-                VerticalAlignment = VerticalAlignment.Center
+                Margin = new Thickness(10, 10, 10, 0), // уменьшаем отступы сверху и снизу
+                VerticalAlignment = VerticalAlignment.Top
             };
 
             // Создаем стиль для ListBox
@@ -843,10 +863,10 @@ namespace alesya_rassylka
             // Используем существующий стиль ActionButton из XAML
             var confirmButton = new Button
             {
-                Content = "Подтвердить",
+                Content = "Применить",
                 Width = 200,
-                Height = 50,
-                Margin = new Thickness(0, 20, 0, 0),
+                Height = 40,
+                Margin = new Thickness(0, 10, 0, 0),
                 Style = (Style)FindResource("ActionButton")
             };
 
@@ -1549,6 +1569,166 @@ namespace alesya_rassylka
             richTextBox.CaretPosition = listItem.ContentStart;
             richTextBox.Focus();
         }
+
+        private void CreateList(TextMarkerStyle markerStyle)
+        {
+            var richTextBox = MessageRichTextBox;
+            TextPointer caretPosition = richTextBox.CaretPosition;
+
+            List list = new List
+            {
+                MarkerStyle = markerStyle
+            };
+            ListItem listItem = new ListItem(new Paragraph());
+            list.ListItems.Add(listItem);
+
+            var blocks = richTextBox.Document.Blocks;
+            if (caretPosition.Paragraph != null)
+            {
+                Block target = caretPosition.Paragraph;
+                if (blocks.Contains(target))
+                {
+                    blocks.InsertBefore(target, list);
+                    blocks.Remove(target);
+                }
+                else
+                {
+                    blocks.Add(list);
+                }
+            }
+            else
+            {
+                blocks.Add(list);
+            }
+
+            richTextBox.CaretPosition = listItem.ContentStart;
+            richTextBox.Focus();
+        }
+
+        private void CreateDiscList_Click(object sender, RoutedEventArgs e) =>
+            CreateList(TextMarkerStyle.Disc);
+
+        private void CreateCircleList_Click(object sender, RoutedEventArgs e) =>
+            CreateList(TextMarkerStyle.Circle);
+
+        private void CreateSquareList_Click(object sender, RoutedEventArgs e) =>
+            CreateList(TextMarkerStyle.Square);
+
+
+ private void MessageRichTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+{
+    if (e.Key == Key.Tab)
+    {
+        var rtb = MessageRichTextBox;
+        var caret = rtb.CaretPosition;
+        var currentParagraph = caret.Paragraph;
+
+        if (currentParagraph == null) return;
+
+        // Проверяем, что курсор в ListItem
+        if (currentParagraph.Parent is ListItem listItem)
+        {
+            e.Handled = true;
+
+            // Сохраняем позицию курсора относительно ListItem
+            var caretOffset = listItem.ContentStart.GetOffsetToPosition(caret);
+
+            if (e.KeyboardDevice.Modifiers.HasFlag(ModifierKeys.Shift))
+            {
+                // Уменьшить уровень вложенности
+                var parentList = listItem.Parent as List;
+                if (parentList?.Parent is ListItem grandParentItem)
+                {
+                    // Удаляем из текущего списка
+                    parentList.ListItems.Remove(listItem);
+
+                    // Добавляем в родительский список после grandParentItem
+                    var grandParentList = grandParentItem.Parent as List;
+                    if (grandParentList != null)
+                    {
+                        int index = GetListItemIndex(grandParentList.ListItems, grandParentItem);
+                        if (index >= 0)
+                        {
+                            InsertListItemAt(grandParentList.ListItems, index + 1, listItem);
+                        }
+                        else
+                        {
+                            grandParentList.ListItems.Add(listItem);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // Увеличить уровень вложенности
+                var parentList = listItem.Parent as List;
+                int index = GetListItemIndex(parentList.ListItems, listItem);
+                if (index > 0)
+                {
+                    var previousItem = GetListItemAt(parentList.ListItems, index - 1);
+                    if (previousItem != null)
+                    {
+                        var nestedList = new List { MarkerStyle = parentList.MarkerStyle };
+                        parentList.ListItems.Remove(listItem);
+                        nestedList.ListItems.Add(listItem);
+
+                        previousItem.Blocks.Add(nestedList);
+                    }
+                }
+            }
+
+            // После изменений восстановим позицию курсора
+            rtb.Focus();
+            var newCaretPos = listItem.ContentStart.GetPositionAtOffset(caretOffset);
+            if (newCaretPos != null)
+                rtb.CaretPosition = newCaretPos;
+        }
+    }
+}
+
+// Методы для работы с ListItemCollection
+private int GetListItemIndex(ListItemCollection collection, ListItem item)
+{
+    int i = 0;
+    foreach (var listItem in collection)
+    {
+        if (listItem == item) return i;
+        i++;
+    }
+    return -1;
+}
+
+private ListItem GetListItemAt(ListItemCollection collection, int index)
+{
+    int i = 0;
+    foreach (var item in collection)
+    {
+        if (i == index) return item;
+        i++;
+    }
+    return null;
+}
+
+private void InsertListItemAt(ListItemCollection collection, int index, ListItem item)
+{
+    // ListItemCollection не поддерживает Insert, приходится пересоздавать коллекцию
+    var tempList = new List<ListItem>(collection.Count + 1);
+    int i = 0;
+    foreach (var listItem in collection)
+    {
+        if (i == index)
+            tempList.Add(item);
+        tempList.Add(listItem);
+        i++;
+    }
+    if (index >= collection.Count)
+        tempList.Add(item);
+
+    collection.Clear();
+    foreach (var li in tempList)
+        collection.Add(li);
+}
+
 
     }
 }

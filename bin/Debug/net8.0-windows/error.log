@@ -11,3 +11,5 @@ StackTrace:    at alesya_rassylka.MainWindow.SendEmail(String recipientEmail, St
 04.04.2025 11:55:17: [Ошибка при загрузке JSON] The JSON value could not be converted to alesya_rassylka.DataStore. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
 09.04.2025 19:42:26: [Ошибка при отправке email] The client or server is only configured for E-mail addresses with ASCII local-parts: ывфпафы@sdgf.
 09.04.2025 19:42:26: [Ошибка отправки письма] The client or server is only configured for E-mail addresses with ASCII local-parts: ывфпафы@sdgf.
+16.05.2025 16:51:35: [Ошибка при отправке email] Failure sending mail.
+16.05.2025 16:51:35: [Ошибка отправки письма] Failure sending mail.

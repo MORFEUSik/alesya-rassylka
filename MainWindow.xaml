@@ -4,6 +4,7 @@
         xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
         Title="Рассылка" Height="750" Width="1000" WindowStartupLocation="CenterScreen"
         Background="#DFE3EB"
+        BorderBrush="#172A74" BorderThickness="1"
         WindowStyle="SingleBorderWindow" Icon="/icons8-почта-100.png">
 
     <Window.Resources>
@@ -300,7 +301,6 @@
                     </Grid.RowDefinitions>
 
                     <!-- Поле для ввода темы -->
-                    <!-- Поле для ввода темы -->
                     <TextBox x:Name="SubjectTextBox" Grid.Row="0" Margin="10,5,10,0" 
          Text="Тема:"
          BorderThickness="0,0,0,1" BorderBrush="#172A74" Background="Transparent"
@@ -308,10 +308,12 @@
          TextChanged="SubjectTextBox_TextChanged"/>
 
                     <!-- Основное текстовое поле -->
-                    <RichTextBox x:Name="MessageRichTextBox" Grid.Row="1" Height="250" Background="White" BorderThickness="0" Margin="6,10,0,0"
+                    <RichTextBox x:Name="MessageRichTextBox" Grid.Row="1" Height="250"
+             Background="White" BorderThickness="0" Margin="6,10,0,0"
+             FontFamily="Times New Roman" FontSize="12"
+             PreviewKeyDown="MessageRichTextBox_PreviewKeyDown"
              PreviewMouseRightButtonDown="MessageRichTextBox_PreviewMouseRightButtonDown"
-             SelectionChanged="MessageRichTextBox_SelectionChanged"
-             FontFamily="Times New Roman" FontSize="12">
+             SelectionChanged="MessageRichTextBox_SelectionChanged">
                         <RichTextBox.Resources>
                             <Style TargetType="{x:Type Paragraph}">
                                 <Setter Property="Margin" Value="0"/>
@@ -377,19 +379,22 @@
                                 <TextBlock FontSize="14">🖼</TextBlock>
                             </Button>
 
-                            <!-- Новая кнопка для маркированного списка -->
-                            <Button Click="CreateBulletList_Click"
-                Style="{StaticResource FormatButton}" Width="32" Height="32"
-                ToolTip="Маркированный список" Margin="5,0,0,0">
-                                <TextBlock FontSize="14">•</TextBlock>
+                            <Button Name="ListButton" Width="32" Height="32" Margin="5,0,0,0"
+        ToolTip="Списки" Style="{StaticResource FormatButton}" Click="ListButton_Click">
+                                <TextBlock FontSize="14">📋</TextBlock>
+                                <Button.ContextMenu>
+                                    <ContextMenu x:Name="ListContextMenu">
+                                        <MenuItem Header="Маркированный список">
+                                            <MenuItem Header="● Точка" Click="CreateDiscList_Click"/>
+                                            <MenuItem Header="○ Кружочек" Click="CreateCircleList_Click"/>
+                                            <MenuItem Header="■ Квадрат" Click="CreateSquareList_Click"/>
+                                        </MenuItem>
+                                        <MenuItem Header="Нумерованный список" Click="CreateNumberedList_Click"/>
+                                    </ContextMenu>
+                                </Button.ContextMenu>
                             </Button>
 
-                            <!-- Новая кнопка для нумерованного списка -->
-                            <Button Click="CreateNumberedList_Click"
-                Style="{StaticResource FormatButton}" Width="32" Height="32"
-                ToolTip="Нумерованный список" Margin="5,0,0,0">
-                                <TextBlock FontSize="14">1.</TextBlock>
-                            </Button>
+
                         </StackPanel>
                     </Border>
                 </Grid>

@@ -385,8 +385,8 @@ namespace alesya_rassylka
             var addRecipientWindow = new MetroWindow
             {
                 Title = "Добавление получателя",
-                Width = 400,
-                Height = 500,
+                Width = 700,
+                Height = 700,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this,
                 ResizeMode = ResizeMode.NoResize,

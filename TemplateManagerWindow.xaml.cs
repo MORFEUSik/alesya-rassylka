@@ -170,9 +170,5 @@ namespace alesya_rassylka
             }
         }
 
-        private void Close_Click(object sender, RoutedEventArgs e)
-        {
-            Close();
-        }
     }
 }

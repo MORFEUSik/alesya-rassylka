@@ -1,5 +1,7 @@
 ﻿{
-  "Categories": [],
+  "Categories": [
+    "ашшаил"
+  ],
   "Recipients": [
     {
       "Name": "Екатерина Смирнова",
@@ -15,6 +17,13 @@
       "Name": "ыва",
       "Email": "nelkabrain@gmail.com",
       "Categories": []
+    },
+    {
+      "Name": "ЧМАР",
+      "Email": "ВППОЛБ@gmail.com",
+      "Categories": [
+        "ашшаил"
+      ]
     }
   ],
   "Senders": [
