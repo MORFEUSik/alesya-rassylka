@@ -55,7 +55,6 @@
 
         <Style x:Key="SmallActionButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
             <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Padding" Value="8,3"/>
             <Setter Property="MinHeight" Value="24"/>
             <Setter Property="MinWidth" Value="80"/>
         </Style>
@@ -92,7 +91,11 @@
                         BorderThickness="{TemplateBinding BorderThickness}"
                         CornerRadius="5">
                             <ScrollViewer>
-                                <ItemsPresenter/>
+                                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                 HorizontalScrollBarVisibility="Disabled"
+                                 Margin="5">
+                                    <ItemsPresenter/>
+                                </ScrollViewer>
                             </ScrollViewer>
                         </Border>
                     </ControlTemplate>
