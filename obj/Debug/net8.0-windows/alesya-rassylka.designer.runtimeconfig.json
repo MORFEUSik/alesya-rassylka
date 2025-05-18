@@ -12,8 +12,8 @@
       }
     ],
     "additionalProbingPaths": [
-      "C:\\Users\\alesy\\.dotnet\\store\\|arch|\\|tfm|",
-      "C:\\Users\\alesy\\.nuget\\packages",
+      "C:\\Users\\morfeus\\.dotnet\\store\\|arch|\\|tfm|",
+      "C:\\Users\\morfeus\\.nuget\\packages",
       "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
     ],
     "configProperties": {

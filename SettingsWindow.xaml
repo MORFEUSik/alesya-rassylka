@@ -88,9 +88,9 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBox">
                         <Border Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="5">
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="5">
                             <ScrollViewer>
                                 <ItemsPresenter/>
                             </ScrollViewer>
@@ -102,15 +102,17 @@
                 <Setter.Value>
                     <Style TargetType="ListBoxItem">
                         <Setter Property="Focusable" Value="False"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <!-- Добавляем растяжку -->
                         <Setter Property="Template">
                             <Setter.Value>
                                 <ControlTemplate TargetType="ListBoxItem">
                                     <Border x:Name="Bd" Background="{TemplateBinding Background}"
-                                            BorderBrush="{TemplateBinding BorderBrush}"
-                                            BorderThickness="{TemplateBinding BorderThickness}"
-                                            Padding="{TemplateBinding Padding}">
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    Padding="{TemplateBinding Padding}">
                                         <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsSelected" Value="True">
@@ -278,14 +280,16 @@
                  Style="{StaticResource ListBoxStyle}" Margin="0,30,0,10" Height="150">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <StackPanel Orientation="Horizontal" Margin="5">
-                        <StackPanel Orientation="Vertical">
+                    <DockPanel Margin="5" LastChildFill="False">
+                        <StackPanel Orientation="Vertical" DockPanel.Dock="Left">
                             <TextBlock Text="{Binding Email}" FontSize="14" FontWeight="Bold"/>
                             <TextBlock Text="{Binding Password}" FontSize="12" Foreground="Gray"/>
                         </StackPanel>
-                        <Button Content="Редактировать" Margin="10,0,0,0" Click="EditSender_Click" Tag="{Binding}" Style="{StaticResource SmallActionButton}"/>
-                        <Button Content="Удалить" Margin="10,0,0,0" Click="DeleteSender_Click" Tag="{Binding}" Style="{StaticResource SmallActionButton}"/>
-                    </StackPanel>
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
+                            <Button Content="Редактировать" Margin="10,0,0,0" Click="EditSender_Click" Tag="{Binding}" Style="{StaticResource SmallActionButton}"/>
+                            <Button Content="Удалить" Margin="10,0,0,0" Click="DeleteSender_Click" Tag="{Binding}" Style="{StaticResource SmallActionButton}"/>
+                        </StackPanel>
+                    </DockPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>

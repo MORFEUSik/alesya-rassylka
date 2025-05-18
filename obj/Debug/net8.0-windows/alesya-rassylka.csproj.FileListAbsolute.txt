@@ -108,12 +108,10 @@ C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\alesya-rassylka.csproj
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\MainWindow.baml
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\SettingsWindow.baml
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\TemplateEditWindow.baml
-C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\TemplateManagerWindow.baml
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\MainWindow.g.cs
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\SelectRecipientWindow.g.cs
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\SettingsWindow.g.cs
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\TemplateEditWindow.g.cs
-C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\TemplateManagerWindow.g.cs
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\App.g.cs
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\GeneratedInternalTypeHelper.g.cs
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\alesya-rassylka_MarkupCompile.cache
@@ -148,7 +146,9 @@ C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\ru\Xceed.Wpf.AvalonDoc
 C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\sv\Xceed.Wpf.AvalonDock.resources.dll
 C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\zh-Hans\Xceed.Wpf.AvalonDock.resources.dll
 C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\de\MahApps.Metro.resources.dll
+C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\TemplateManagerWindow.g.cs
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\SelectRecipientWindow.baml
+C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\TemplateManagerWindow.baml
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\alesya-rassylka.g.resources
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\alesya-rassylka.GeneratedMSBuildEditorConfig.editorconfig
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\alesya-rassylka.AssemblyInfoInputs.cache

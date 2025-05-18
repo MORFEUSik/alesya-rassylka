@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "D:\\app\\fork\\alesya-rassylka\\alesya-rassylka.csproj": {}
+    "C:\\Users\\morfeus\\alesya-rassylka\\alesya-rassylka.csproj": {}
   },
   "projects": {
-    "D:\\app\\fork\\alesya-rassylka\\alesya-rassylka.csproj": {
+    "C:\\Users\\morfeus\\alesya-rassylka\\alesya-rassylka.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\app\\fork\\alesya-rassylka\\alesya-rassylka.csproj",
+        "projectUniqueName": "C:\\Users\\morfeus\\alesya-rassylka\\alesya-rassylka.csproj",
         "projectName": "alesya-rassylka",
-        "projectPath": "D:\\app\\fork\\alesya-rassylka\\alesya-rassylka.csproj",
-        "packagesPath": "C:\\Users\\alesy\\.nuget\\packages\\",
-        "outputPath": "D:\\app\\fork\\alesya-rassylka\\obj\\",
+        "projectPath": "C:\\Users\\morfeus\\alesya-rassylka\\alesya-rassylka.csproj",
+        "packagesPath": "C:\\Users\\morfeus\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\morfeus\\alesya-rassylka\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\alesy\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\morfeus\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -95,7 +95,7 @@
               "privateAssets": "none"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.200/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.204/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
