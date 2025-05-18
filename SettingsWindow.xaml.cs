@@ -60,129 +60,47 @@ namespace alesya_rassylka
 
         private void AddSender_Click(object sender, RoutedEventArgs e)
         {
-            var addSenderWindow = new MetroWindow
+            string email = SenderEmailTextBox.Text?.Trim();
+            string password = SenderPasswordTextBox.Text?.Trim();
+
+            if (string.IsNullOrWhiteSpace(email) || !email.Contains("@"))
             {
-                Title = "Добавление отправителя",
-                Width = 350,
-                Height = 290,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                Owner = this,
-                ResizeMode = ResizeMode.NoResize,
-                Background = new LinearGradientBrush
-                {
-                    StartPoint = new Point(0, 0),
-                    EndPoint = new Point(1, 1),
-                    GradientStops = new GradientStopCollection
-            {
-                new GradientStop((Color)ColorConverter.ConvertFromString("#F5F6F5"), 0.0),
-                new GradientStop((Color)ColorConverter.ConvertFromString("#E0E7E9"), 1.0)
+                MessageBox.Show("Введите корректный email!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
             }
-                },
-                BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30")),
-                BorderThickness = new Thickness(1),
-                Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png"))
-            };
 
-            var stackPanel = new StackPanel { Margin = new Thickness(20) };
-
-            var title = new TextBlock
+            if (string.IsNullOrWhiteSpace(password))
             {
-                Text = "Введите данные отправителя:",
-                FontSize = 16,
-                FontWeight = FontWeights.Bold,
-                Margin = new Thickness(0, 0, 0, 15),
-                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30"))
-            };
-            stackPanel.Children.Add(title);
+                MessageBox.Show("Введите пароль приложения!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
-            var emailLabel = new TextBlock { Text = "Email:", FontSize = 14, Margin = new Thickness(0, 0, 0, 5), Foreground = Brushes.Black };
-            var emailTextBox = new TextBox { Width = 250, Height = 30, FontSize = 14, Margin = new Thickness(0, 0, 0, 15), BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30")), BorderThickness = new Thickness(1), Background = Brushes.White };
-            stackPanel.Children.Add(emailLabel);
-            stackPanel.Children.Add(emailTextBox);
-
-            var passwordLabel = new TextBlock { Text = "Пароль:", FontSize = 14, Margin = new Thickness(0, 0, 0, 5), Foreground = Brushes.Black };
-            var passwordTextBox = new TextBox { Width = 250, Height = 30, FontSize = 14, Margin = new Thickness(0, 0, 0, 15), BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30")), BorderThickness = new Thickness(1), Background = Brushes.White };
-            stackPanel.Children.Add(passwordLabel);
-            stackPanel.Children.Add(passwordTextBox);
-
-            var buttonPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Center };
-
-            var saveButton = new Button
+            if (tempSenders.Any(s => s.Email.Equals(email, StringComparison.OrdinalIgnoreCase)))
             {
-                Content = "Сохранить",
-                Width = 100,
-                Height = 35,
-                Margin = new Thickness(0, 0, 10, 0),
-                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30")),
-                Foreground = Brushes.White,
-                FontSize = 14,
-                FontWeight = FontWeights.Medium,
-                Cursor = Cursors.Hand
-            };
+                MessageBox.Show("Отправитель с таким email уже существует!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
-            var cancelButton = new Button
+            var newSender = new Sender
             {
-                Content = "Отмена",
-                Width = 100,
-                Height = 35,
-                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D3D3D3")),
-                Foreground = Brushes.Black,
-                FontSize = 14,
-                FontWeight = FontWeights.Medium,
-                Cursor = Cursors.Hand
+                Email = email,
+                Password = password,
+                IsDefault = tempSenders.Count == 0
             };
 
-            saveButton.Click += (s, args) =>
-            {
-                string email = emailTextBox.Text?.Trim();
-                string password = passwordTextBox.Text?.Trim();
+            tempSenders.Add(newSender);
+            SendersListBox.ItemsSource = null;
+            SendersListBox.ItemsSource = tempSenders;
 
-                if (string.IsNullOrWhiteSpace(email) || !email.Contains("@"))
-                {
-                    MessageBox.Show("Введите корректный email!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
+            DefaultSenderComboBox.ItemsSource = null;
+            DefaultSenderComboBox.ItemsSource = tempSenders;
+            DefaultSenderComboBox.DisplayMemberPath = "Email";
+            DefaultSenderComboBox.SelectedItem = newSender;
 
-                if (string.IsNullOrWhiteSpace(password))
-                {
-                    MessageBox.Show("Введите пароль приложения!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
+            SenderEmailTextBox.Text = string.Empty;
+            SenderPasswordTextBox.Text = string.Empty;
 
-                if (tempSenders.Any(s => s.Email.Equals(email, StringComparison.OrdinalIgnoreCase)))
-                {
-                    MessageBox.Show("Отправитель с таким email уже существует!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                var newSender = new Sender
-                {
-                    Email = email,
-                    Password = password,
-                    IsDefault = tempSenders.Count == 0
-                };
-
-                tempSenders.Add(newSender);
-                SendersListBox.ItemsSource = null;
-                SendersListBox.ItemsSource = tempSenders;
-                DefaultSenderComboBox.ItemsSource = null;
-                DefaultSenderComboBox.ItemsSource = tempSenders;
-                DefaultSenderComboBox.DisplayMemberPath = "Email";
-                DefaultSenderComboBox.SelectedItem = newSender;
-
-                emailTextBox.Text = string.Empty;
-                passwordTextBox.Text = string.Empty;
-
-                MessageBox.Show("Отправитель успешно добавлен!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
-                addSenderWindow.Close();
-            };
-            cancelButton.Click += (s, args) => addSenderWindow.Close();
-
-            buttonPanel.Children.Add(saveButton);
-            buttonPanel.Children.Add(cancelButton);
-            stackPanel.Children.Add(buttonPanel);
-            addSenderWindow.Content = stackPanel;
-            addSenderWindow.ShowDialog();
+            MessageBox.Show("Отправитель успешно добавлен!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void EditSender_Click(object sender, RoutedEventArgs e)

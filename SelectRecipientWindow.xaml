@@ -7,7 +7,7 @@
         Title="Выбор получателей" Height="500" Width="600" 
         Background="#DFE3EB" WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
-        GlowBrush="#DFE3EB" 
+       
         BorderBrush="#172A74" BorderThickness="1"
         Icon="/icons8-почта-100.png"
         TitleCharacterCasing="Normal"
@@ -181,9 +181,9 @@
             </ListBox.ItemTemplate>
             <ListBox.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Добавить категорию" Click="AddCategory_Click"/>
-                    <MenuItem Header="Удалить категорию" Click="DeleteCategory_Click"/>
-                    <MenuItem Header="Редактировать категорию" Click="EditCategory_Click"/>
+                    <MenuItem Header="Добавить" Click="AddCategory_Click"/>
+                    <MenuItem Header="Удалить" Click="DeleteCategory_Click"/>
+                    <MenuItem Header="Редактировать" Click="EditCategory_Click"/>
                 </ContextMenu>
             </ListBox.ContextMenu>
         </ListBox>
@@ -212,8 +212,8 @@
             <ListBox.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Добавить" Click="AddRecipient_Click"/>
-                    <MenuItem Header="Удалить" Click="DeleteRecipient_Click"/>
                     <MenuItem Header="Редактировать" Click="EditRecipient_Click"/>
+                    <MenuItem Header="Удалить" Click="DeleteRecipient_Click"/>
                 </ContextMenu>
             </ListBox.ContextMenu>
         </ListBox>

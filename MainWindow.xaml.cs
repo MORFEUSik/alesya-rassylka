@@ -391,72 +391,6 @@ namespace alesya_rassylka
             }
         }
 
-        //private void InitializeDefaultTemplates()
-        //{
-        //TemplateCategories.Clear();
-        //TemplateCategories.Add(new TemplateCategory
-        //{
-        //    Name = "Предложение о сотрудничестве",
-        //    Templates = new List<Template>
-        //    {
-        //        new Template
-        //        {
-        //            Name = "Стандартное предложение",
-        //            Content = "Уважаемый(ая) [Имя получателя],\n\n" +
-        //                      "Мы рады предложить вам сотрудничество с компанией ATLANT! " +
-        //                      "Наша компания специализируется на [указать сферу деятельности]. " +
-        //                      "Мы предлагаем выгодные условия для партнеров, включая:\n" +
-        //                      "- Скидки на оптовые заказы\n" +
-        //                      "- Быструю доставку\n" +
-        //                      "- Индивидуальный подход\n\n" +
-        //                      "Будем рады обсудить детали! Свяжитесь с нами по телефону [ваш номер] или email [ваш email].\n\n" +
-        //                      "С уважением,\nКоманда ATLANT"
-        //        }
-        //    }
-        //});
-
-        //TemplateCategories.Add(new TemplateCategory
-        //{
-        //    Name = "Специальные условия для оптовиков",
-        //    Templates = new List<Template>
-        //    {
-        //        new Template
-        //        {
-        //            Name = "Скидки и доставка",
-        //            Content = "Уважаемый(ая) [Имя получателя],\n\n" +
-        //                      "Компания ATLANT рада предложить специальные условия для оптовиков!\n" +
-        //                      "Мы подготовили для вас:\n" +
-        //                      "- Скидку 20% на заказы от 100 единиц\n" +
-        //                      "- Бесплатную доставку при заказе от 500 единиц\n" +
-        //                      "- Персонального менеджера для вашего удобства\n\n" +
-        //                      "Не упустите возможность! Свяжитесь с нами для оформления заказа: [ваш номер] или [ваш email].\n\n" +
-        //                      "С уважением,\nКоманда ATLANT"
-        //        }
-        //    }
-        //});
-
-        //string[] otherCategories = new[]
-        //{
-        //    "Анонс новой продукции для оптовиков",
-        //    "Специальные акции для оптовиков",
-        //    "Информация о логистике и доставке",
-        //    "Приглашение на встречу или выставку",
-        //    "Образовательный контент для закупщиков",
-        //    "Благодарность за сотрудничество"
-        //};
-
-        //foreach (var categoryName in otherCategories)
-        //{
-        //    TemplateCategories.Add(new TemplateCategory
-        //    {
-        //        Name = categoryName,
-        //        Templates = new List<Template>()
-        //    });
-        //}
-        //}
-
-
-
         private void AddCategory_Click(object sender, RoutedEventArgs e)
         {
             string categoryName = Interaction.InputBox(
@@ -681,37 +615,7 @@ namespace alesya_rassylka
             MessageBox.Show($"{ex.Message}\n{ex.StackTrace}", title, MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
-        //private void Button_Click(object sender, RoutedEventArgs e)
-        //{
-        //    string template = "Уважаемый(ая) [Имя получателя],\n\n" +
-        //                     "Мы рады предложить вам сотрудничество с компанией ATLANT! " +
-        //                     "Наша компания специализируется на [указать сферу деятельности]. " +
-        //                     "Мы предлагаем выгодные условия для партнеров, включая:\n" +
-        //                     "- Скидки на оптовые заказы\n" +
-        //                     "- Быструю доставку\n" +
-        //                     "- Индивидуальный подход\n\n" +
-        //                     "Будем рады обсудить детали! Свяжитесь с нами по телефону [ваш номер] или email [ваш email].\n\n" +
-        //                     "С уважением,\nКоманда ATLANT";
-
-        //    MessageRichTextBox.Document.Blocks.Clear();
-        //    MessageRichTextBox.Document.Blocks.Add(new Paragraph(new Run(template)));
-        //}
-
-        //private void Button_Click_1(object sender, RoutedEventArgs e)
-        //{
-        //    string template = "Уважаемый(ая) [Имя получателя],\n\n" +
-        //                     "Компания ATLANT рада предложить специальные условия для оптовиков!\n" +
-        //                     "Мы подготовили для вас:\n" +
-        //                     "- Скидку 20% на заказы от 100 единиц\n" +
-        //                     "- Бесплатную доставку при заказе от 500 единиц\n" +
-        //                     "- Персонального менеджера для вашего удобства\n\n" +
-        //                     "Не упустите возможность! Свяжитесь с нами для оформления заказа: [ваш номер] или [ваш email].\n\n" +
-        //                     "С уважением,\nКоманда ATLANT";
-
-        //    MessageRichTextBox.Document.Blocks.Clear();
-        //    MessageRichTextBox.Document.Blocks.Add(new Paragraph(new Run(template)));
-        //}
-
+       
         private void Settings_Click(object sender, RoutedEventArgs e)
         {
             var settingsWindow = new SettingsWindow(dataStore, SaveCustomers, this)

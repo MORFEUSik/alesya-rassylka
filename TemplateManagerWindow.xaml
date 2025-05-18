@@ -143,7 +143,7 @@
 
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
             <TextBlock Text="Название категории:" VerticalAlignment="Center" FontSize="16" FontWeight="Bold" Foreground="#172A74" Margin="5"/>
-            <TextBox x:Name="CategoryNameTextBox" Width="280" Margin="10,0,0,0" Style="{StaticResource InputTextBoxStyle}"/>
+            <TextBox x:Name="CategoryNameTextBox" Width="318" Margin="10,0,0,0" Style="{StaticResource InputTextBoxStyle}"/>
             <Button Content="Сохранить" Margin="10,0,0,0" Click="SaveCategoryName_Click" Style="{StaticResource ActionButton}" Width="105"/>
         </StackPanel>
 
