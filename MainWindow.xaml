@@ -380,7 +380,7 @@
                             </Button>
 
                             <Button Name="ListButton" Width="32" Height="32" Margin="5,0,0,0"
-        ToolTip="Списки" Style="{StaticResource FormatButton}" Click="ListButton_Click">
+                ToolTip="Списки" Style="{StaticResource FormatButton}" Click="ListButton_Click">
                                 <TextBlock FontSize="14">📋</TextBlock>
                                 <Button.ContextMenu>
                                     <ContextMenu x:Name="ListContextMenu">
@@ -394,7 +394,30 @@
                                 </Button.ContextMenu>
                             </Button>
 
+                            <!-- Разделитель -->
+                            <Rectangle Width="1" Height="20" Fill="#172A74" Margin="10,0,10,0"/>
 
+                            <!-- Кнопки выравнивания -->
+                            <Button Click="AlignLeft_Click"
+                Style="{StaticResource FormatButton}" Width="32" Height="32"
+                ToolTip="Выровнять по левому краю">
+                                <TextBlock FontSize="14">⬅</TextBlock>
+                            </Button>
+                            <Button Click="AlignCenter_Click"
+                Style="{StaticResource FormatButton}" Width="32" Height="32"
+                ToolTip="Выровнять по центру" Margin="5,0,0,0">
+                                <TextBlock FontSize="14">↔</TextBlock>
+                            </Button>
+                            <Button Click="AlignRight_Click"
+                Style="{StaticResource FormatButton}" Width="32" Height="32"
+                ToolTip="Выровнять по правому краю" Margin="5,0,0,0">
+                                <TextBlock FontSize="14">➡</TextBlock>
+                            </Button>
+                            <Button Click="AlignJustify_Click"
+                Style="{StaticResource FormatButton}" Width="32" Height="32"
+                ToolTip="Выровнять по ширине" Margin="5,0,0,0">
+                                <TextBlock FontSize="14">📏</TextBlock>
+                            </Button>
                         </StackPanel>
                     </Border>
                 </Grid>

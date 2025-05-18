@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using MahApps.Metro.Controls;
+using Microsoft.VisualBasic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Net;
 using System.Net.Mail;
@@ -9,15 +10,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using MahApps.Metro.Controls;
-using System.Web;
-using System.Net.Mime;
-using System.ComponentModel;
-using Microsoft.VisualBasic;
-using System.Windows.Input;
-using System.Windows.Controls.Primitives;
 
 namespace alesya_rassylka
 {
@@ -142,127 +137,143 @@ namespace alesya_rassylka
         }
 
         private (string htmlBody, List<(string cid, string filePath)> embeddedImages) ConvertRichTextBoxToHtml(RichTextBox richTextBox)
-{
-    var embeddedImages = new List<(string cid, string filePath)>();
-    int imageCounter = 0;
-
-    var htmlBody = new System.Text.StringBuilder();
-    htmlBody.Append("<html><body>");
-
-    void ProcessBlocks(BlockCollection blocks)
-    {
-        foreach (Block block in blocks)
         {
-            if (block is Paragraph paragraph)
-            {
-                htmlBody.Append("<p>");
+            var embeddedImages = new List<(string cid, string filePath)>();
+            int imageCounter = 0;
 
-                foreach (Inline inline in paragraph.Inlines)
+            var htmlBody = new System.Text.StringBuilder();
+            htmlBody.Append("<html><body>");
+
+            void ProcessBlocks(BlockCollection blocks)
+            {
+                foreach (Block block in blocks)
                 {
-                    ProcessInline(inline);
-                }
-
-                htmlBody.Append("</p>");
-            }
-            else if (block is List list)
-            {
-                ProcessList(list);
-            }
-        }
-    }
-
-    void ProcessInline(Inline inline)
-    {
-        if (inline is Run run)
-        {
-            string text = run.Text;
-            if (string.IsNullOrEmpty(text)) return;
-
-            bool isBold = run.FontWeight == FontWeights.Bold;
-            bool isItalic = run.FontStyle == FontStyles.Italic;
-            bool isUnderlined = run.TextDecorations != null && run.TextDecorations.Contains(TextDecorations.Underline[0]);
-            string fontFamily = run.FontFamily?.Source ?? "Times New Roman";
-            double fontSize = run.FontSize > 0 ? run.FontSize : 12;
-
-            htmlBody.Append($"<span style=\"font-family: {fontFamily}; font-size: {fontSize}pt;");
-            if (isBold) htmlBody.Append(" font-weight: bold;");
-            if (isItalic) htmlBody.Append(" font-style: italic;");
-            if (isUnderlined) htmlBody.Append(" text-decoration: underline;");
-            htmlBody.Append("\">");
-
-            text = System.Web.HttpUtility.HtmlEncode(text);
-            text = text.Replace("\r\n", "<br>").Replace("\n", "<br>");
-            htmlBody.Append(text);
-
-            htmlBody.Append("</span>");
-        }
-        else if (inline is InlineUIContainer container && container.Child is Image image)
-        {
-            if (image.Source is BitmapImage bitmapImage)
-            {
-                string imagePath = bitmapImage.UriSource.LocalPath;
-                string cid = $"image{imageCounter++}";
-                embeddedImages.Add((cid, imagePath));
-                htmlBody.Append($"<img src=\"cid:{cid}\" width=\"{image.Width}\" height=\"{image.Height}\" />");
-            }
-        }
-    }
-
-    void ProcessList(List list)
-    {
-        string tag;
-        switch (list.MarkerStyle)
-        {
-            case TextMarkerStyle.Disc:
-                tag = "ul style=\"list-style-type: disc;\"";  // ●
-                break;
-            case TextMarkerStyle.Circle:
-                tag = "ul style=\"list-style-type: circle;\""; // ○
-                break;
-            case TextMarkerStyle.Square:
-                tag = "ul style=\"list-style-type: square;\""; // ■
-                break;
-            case TextMarkerStyle.Decimal:
-                tag = "ol";
-                break;
-            default:
-                tag = "ul";
-                break;
-        }
-
-        htmlBody.Append($"<{tag}>");
-
-        foreach (ListItem listItem in list.ListItems)
-        {
-            htmlBody.Append("<li>");
-
-            // В ListItem может быть как Paragraph, так и вложенный List (рекурсивно)
-            foreach (Block itemBlock in listItem.Blocks)
-            {
-                if (itemBlock is Paragraph para)
-                {
-                    foreach (Inline inline in para.Inlines)
+                    if (block is Paragraph paragraph)
                     {
-                        ProcessInline(inline);
+                        // Добавляем стиль выравнивания для абзаца
+                        string alignStyle = GetTextAlignmentStyle(paragraph.TextAlignment);
+                        htmlBody.Append($"<p style=\"{alignStyle}\">");
+
+                        foreach (Inline inline in paragraph.Inlines)
+                        {
+                            ProcessInline(inline);
+                        }
+
+                        htmlBody.Append("</p>");
+                    }
+                    else if (block is List list)
+                    {
+                        ProcessList(list);
                     }
                 }
-                else if (itemBlock is List nestedList)
+            }
+
+            void ProcessInline(Inline inline)
+            {
+                if (inline is Run run)
                 {
-                    ProcessList(nestedList);  // рекурсивно для вложенного списка
+                    string text = run.Text;
+                    if (string.IsNullOrEmpty(text)) return;
+
+                    bool isBold = run.FontWeight == FontWeights.Bold;
+                    bool isItalic = run.FontStyle == FontStyles.Italic;
+                    bool isUnderlined = run.TextDecorations != null && run.TextDecorations.Contains(TextDecorations.Underline[0]);
+                    string fontFamily = run.FontFamily?.Source ?? "Times New Roman";
+                    double fontSize = run.FontSize > 0 ? run.FontSize : 12;
+
+                    htmlBody.Append($"<span style=\"font-family: {fontFamily}; font-size: {fontSize}pt;");
+                    if (isBold) htmlBody.Append(" font-weight: bold;");
+                    if (isItalic) htmlBody.Append(" font-style: italic;");
+                    if (isUnderlined) htmlBody.Append(" text-decoration: underline;");
+                    htmlBody.Append("\">");
+
+                    text = System.Web.HttpUtility.HtmlEncode(text);
+                    text = text.Replace("\r\n", "<br>").Replace("\n", "<br>");
+                    htmlBody.Append(text);
+
+                    htmlBody.Append("</span>");
+                }
+                else if (inline is InlineUIContainer container && container.Child is Image image)
+                {
+                    if (image.Source is BitmapImage bitmapImage)
+                    {
+                        string imagePath = bitmapImage.UriSource.LocalPath;
+                        string cid = $"image{imageCounter++}";
+                        embeddedImages.Add((cid, imagePath));
+                        htmlBody.Append($"<img src=\"cid:{cid}\" width=\"{image.Width}\" height=\"{image.Height}\" />");
+                    }
                 }
             }
 
-            htmlBody.Append("</li>");
+            void ProcessList(List list)
+            {
+                string tag;
+                switch (list.MarkerStyle)
+                {
+                    case TextMarkerStyle.Disc:
+                        tag = "ul style=\"list-style-type: disc;\"";  // ●
+                        break;
+                    case TextMarkerStyle.Circle:
+                        tag = "ul style=\"list-style-type: circle;\""; // ○
+                        break;
+                    case TextMarkerStyle.Square:
+                        tag = "ul style=\"list-style-type: square;\""; // ■
+                        break;
+                    case TextMarkerStyle.Decimal:
+                        tag = "ol";
+                        break;
+                    default:
+                        tag = "ul";
+                        break;
+                }
+
+                // Добавляем стиль выравнивания для списка
+                string alignStyle = GetTextAlignmentStyle(list.ListItems.FirstOrDefault()?.Blocks.FirstOrDefault()?.TextAlignment ?? TextAlignment.Left);
+                htmlBody.Append($"<{tag} style=\"{alignStyle}\">");
+
+                foreach (ListItem listItem in list.ListItems)
+                {
+                    htmlBody.Append("<li>");
+
+                    // В ListItem может быть как Paragraph, так и вложенный List (рекурсивно)
+                    foreach (Block itemBlock in listItem.Blocks)
+                    {
+                        if (itemBlock is Paragraph para)
+                        {
+                            foreach (Inline inline in para.Inlines)
+                            {
+                                ProcessInline(inline);
+                            }
+                        }
+                        else if (itemBlock is List nestedList)
+                        {
+                            ProcessList(nestedList);  // рекурсивно для вложенного списка
+                        }
+                    }
+
+                    htmlBody.Append("</li>");
+                }
+
+                htmlBody.Append($"</{tag.Split(' ')[0]}>"); // Закрываем тег, например, ul или ol
+            }
+
+            // Метод для получения стиля выравнивания
+            string GetTextAlignmentStyle(TextAlignment alignment)
+            {
+                return alignment switch
+                {
+                    TextAlignment.Center => "text-align: center;",
+                    TextAlignment.Right => "text-align: right;",
+                    TextAlignment.Justify => "text-align: justify;",
+                    _ => "text-align: left;" // По умолчанию
+                };
+            }
+
+            ProcessBlocks(richTextBox.Document.Blocks);
+
+            htmlBody.Append("</body></html>");
+            return (htmlBody.ToString(), embeddedImages);
         }
-
-        htmlBody.Append($"</{tag.Split(' ')[0]}>"); // Закрываем тег, например, ul или ol
-    }
-
-    ProcessBlocks(richTextBox.Document.Blocks);
-
-    htmlBody.Append("</body></html>");
-    return (htmlBody.ToString(), embeddedImages);
-}
 
         private void ListButton_Click(object sender, RoutedEventArgs e)
         {
@@ -1615,120 +1626,211 @@ namespace alesya_rassylka
             CreateList(TextMarkerStyle.Square);
 
 
- private void MessageRichTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
-{
-    if (e.Key == Key.Tab)
-    {
-        var rtb = MessageRichTextBox;
-        var caret = rtb.CaretPosition;
-        var currentParagraph = caret.Paragraph;
-
-        if (currentParagraph == null) return;
-
-        // Проверяем, что курсор в ListItem
-        if (currentParagraph.Parent is ListItem listItem)
+        private void MessageRichTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            e.Handled = true;
-
-            // Сохраняем позицию курсора относительно ListItem
-            var caretOffset = listItem.ContentStart.GetOffsetToPosition(caret);
-
-            if (e.KeyboardDevice.Modifiers.HasFlag(ModifierKeys.Shift))
+            if (e.Key == Key.Tab)
             {
-                // Уменьшить уровень вложенности
-                var parentList = listItem.Parent as List;
-                if (parentList?.Parent is ListItem grandParentItem)
-                {
-                    // Удаляем из текущего списка
-                    parentList.ListItems.Remove(listItem);
+                var rtb = MessageRichTextBox;
+                var caret = rtb.CaretPosition;
+                var currentParagraph = caret.Paragraph;
 
-                    // Добавляем в родительский список после grandParentItem
-                    var grandParentList = grandParentItem.Parent as List;
-                    if (grandParentList != null)
+                if (currentParagraph == null) return;
+
+                // Проверяем, что курсор в ListItem
+                if (currentParagraph.Parent is ListItem listItem)
+                {
+                    e.Handled = true;
+
+                    // Сохраняем позицию курсора относительно ListItem
+                    var caretOffset = listItem.ContentStart.GetOffsetToPosition(caret);
+
+                    if (e.KeyboardDevice.Modifiers.HasFlag(ModifierKeys.Shift))
                     {
-                        int index = GetListItemIndex(grandParentList.ListItems, grandParentItem);
-                        if (index >= 0)
+                        // Уменьшить уровень вложенности
+                        var parentList = listItem.Parent as List;
+                        if (parentList?.Parent is ListItem grandParentItem)
                         {
-                            InsertListItemAt(grandParentList.ListItems, index + 1, listItem);
-                        }
-                        else
-                        {
-                            grandParentList.ListItems.Add(listItem);
+                            // Удаляем из текущего списка
+                            parentList.ListItems.Remove(listItem);
+
+                            // Добавляем в родительский список после grandParentItem
+                            var grandParentList = grandParentItem.Parent as List;
+                            if (grandParentList != null)
+                            {
+                                int index = GetListItemIndex(grandParentList.ListItems, grandParentItem);
+                                if (index >= 0)
+                                {
+                                    InsertListItemAt(grandParentList.ListItems, index + 1, listItem);
+                                }
+                                else
+                                {
+                                    grandParentList.ListItems.Add(listItem);
+                                }
+                            }
                         }
                     }
+                    else
+                    {
+                        // Увеличить уровень вложенности
+                        var parentList = listItem.Parent as List;
+                        int index = GetListItemIndex(parentList.ListItems, listItem);
+                        if (index > 0)
+                        {
+                            var previousItem = GetListItemAt(parentList.ListItems, index - 1);
+                            if (previousItem != null)
+                            {
+                                var nestedList = new List { MarkerStyle = parentList.MarkerStyle };
+                                parentList.ListItems.Remove(listItem);
+                                nestedList.ListItems.Add(listItem);
+
+                                previousItem.Blocks.Add(nestedList);
+                            }
+                        }
+                    }
+
+                    // После изменений восстановим позицию курсора
+                    rtb.Focus();
+                    var newCaretPos = listItem.ContentStart.GetPositionAtOffset(caretOffset);
+                    if (newCaretPos != null)
+                        rtb.CaretPosition = newCaretPos;
+                }
+            }
+        }
+
+        // Методы для работы с ListItemCollection
+        private int GetListItemIndex(ListItemCollection collection, ListItem item)
+        {
+            int i = 0;
+            foreach (var listItem in collection)
+            {
+                if (listItem == item) return i;
+                i++;
+            }
+            return -1;
+        }
+
+        private ListItem GetListItemAt(ListItemCollection collection, int index)
+        {
+            int i = 0;
+            foreach (var item in collection)
+            {
+                if (i == index) return item;
+                i++;
+            }
+            return null;
+        }
+
+        private void InsertListItemAt(ListItemCollection collection, int index, ListItem item)
+        {
+            // ListItemCollection не поддерживает Insert, приходится пересоздавать коллекцию
+            var tempList = new List<ListItem>(collection.Count + 1);
+            int i = 0;
+            foreach (var listItem in collection)
+            {
+                if (i == index)
+                    tempList.Add(item);
+                tempList.Add(listItem);
+                i++;
+            }
+            if (index >= collection.Count)
+                tempList.Add(item);
+
+            collection.Clear();
+            foreach (var li in tempList)
+                collection.Add(li);
+        }
+
+
+        private void AlignLeft_Click(object sender, RoutedEventArgs e)
+        {
+            SetTextAlignment(TextAlignment.Left);
+        }
+
+        private void AlignCenter_Click(object sender, RoutedEventArgs e)
+        {
+            SetTextAlignment(TextAlignment.Center);
+        }
+
+        private void AlignRight_Click(object sender, RoutedEventArgs e)
+        {
+            SetTextAlignment(TextAlignment.Right);
+        }
+
+        private void AlignJustify_Click(object sender, RoutedEventArgs e)
+        {
+            SetTextAlignment(TextAlignment.Justify);
+        }
+
+        private void SetTextAlignment(TextAlignment alignment)
+        {
+            var richTextBox = MessageRichTextBox;
+            var selection = richTextBox.Selection;
+
+            // Если есть выделение, применяем выравнивание ко всем абзацам в выделении
+            if (!selection.IsEmpty)
+            {
+                TextPointer start = selection.Start;
+                TextPointer end = selection.End;
+
+                // Находим все абзацы в выделении
+                List<Paragraph> paragraphsToAlign = new List<Paragraph>();
+                Block currentBlock = start.Paragraph;
+
+                while (currentBlock != null && (currentBlock.ContentStart.CompareTo(end) <= 0 || currentBlock == end.Paragraph))
+                {
+                    if (currentBlock is Paragraph paragraph)
+                    {
+                        paragraphsToAlign.Add(paragraph);
+                    }
+                    else if (currentBlock is List list)
+                    {
+                        // Для списков применяем выравнивание к каждому ListItem
+                        foreach (ListItem listItem in list.ListItems)
+                        {
+                            foreach (Block block in listItem.Blocks)
+                            {
+                                if (block is Paragraph listItemParagraph)
+                                {
+                                    paragraphsToAlign.Add(listItemParagraph);
+                                }
+                            }
+                        }
+                    }
+                    currentBlock = currentBlock.NextBlock;
+                }
+
+                // Применяем выравнивание к найденным абзацам
+                foreach (var paragraph in paragraphsToAlign)
+                {
+                    paragraph.TextAlignment = alignment;
                 }
             }
             else
             {
-                // Увеличить уровень вложенности
-                var parentList = listItem.Parent as List;
-                int index = GetListItemIndex(parentList.ListItems, listItem);
-                if (index > 0)
-                {
-                    var previousItem = GetListItemAt(parentList.ListItems, index - 1);
-                    if (previousItem != null)
-                    {
-                        var nestedList = new List { MarkerStyle = parentList.MarkerStyle };
-                        parentList.ListItems.Remove(listItem);
-                        nestedList.ListItems.Add(listItem);
+                // Если выделения нет, применяем выравнивание к текущему абзацу
+                TextPointer caretPosition = richTextBox.CaretPosition;
+                Paragraph currentParagraph = caretPosition.Paragraph;
 
-                        previousItem.Blocks.Add(nestedList);
-                    }
+                if (currentParagraph != null)
+                {
+                    currentParagraph.TextAlignment = alignment;
                 }
+                else
+                {
+                    // Если абзаца нет (например, документ пустой), создаём новый с заданным выравниванием
+                    currentParagraph = new Paragraph();
+                    currentParagraph.TextAlignment = alignment;
+                    richTextBox.Document.Blocks.Add(currentParagraph);
+                    richTextBox.CaretPosition = currentParagraph.ContentStart;
+                }
+
+                // Применяем выравнивание к текущему пустому выделению, чтобы новый текст наследовал выравнивание
+                selection.Select(caretPosition, caretPosition);
+                selection.ApplyPropertyValue(Paragraph.TextAlignmentProperty, alignment);
             }
 
-            // После изменений восстановим позицию курсора
-            rtb.Focus();
-            var newCaretPos = listItem.ContentStart.GetPositionAtOffset(caretOffset);
-            if (newCaretPos != null)
-                rtb.CaretPosition = newCaretPos;
+            richTextBox.Focus();
         }
-    }
-}
-
-// Методы для работы с ListItemCollection
-private int GetListItemIndex(ListItemCollection collection, ListItem item)
-{
-    int i = 0;
-    foreach (var listItem in collection)
-    {
-        if (listItem == item) return i;
-        i++;
-    }
-    return -1;
-}
-
-private ListItem GetListItemAt(ListItemCollection collection, int index)
-{
-    int i = 0;
-    foreach (var item in collection)
-    {
-        if (i == index) return item;
-        i++;
-    }
-    return null;
-}
-
-private void InsertListItemAt(ListItemCollection collection, int index, ListItem item)
-{
-    // ListItemCollection не поддерживает Insert, приходится пересоздавать коллекцию
-    var tempList = new List<ListItem>(collection.Count + 1);
-    int i = 0;
-    foreach (var listItem in collection)
-    {
-        if (i == index)
-            tempList.Add(item);
-        tempList.Add(listItem);
-        i++;
-    }
-    if (index >= collection.Count)
-        tempList.Add(item);
-
-    collection.Clear();
-    foreach (var li in tempList)
-        collection.Add(li);
-}
-
 
     }
 }
