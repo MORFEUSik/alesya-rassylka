@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Documents;
 using MahApps.Metro.Controls;
 
 namespace alesya_rassylka
@@ -13,7 +14,13 @@ namespace alesya_rassylka
             Template = template ?? new Template { Name = "Новый шаблон", Content = "" };
 
             TemplateNameTextBox.Text = Template.Name;
-            TemplateContentTextBox.Text = Template.Content;
+
+            // Загрузка содержимого в RichTextBox
+            if (!string.IsNullOrEmpty(Template.Content))
+            {
+                TemplateContentRichTextBox.Document.Blocks.Clear();
+                TemplateContentRichTextBox.Document.Blocks.Add(new Paragraph(new Run(Template.Content)));
+            }
         }
 
         private void Save_Click(object sender, RoutedEventArgs e)
@@ -21,12 +28,20 @@ namespace alesya_rassylka
             string newName = TemplateNameTextBox.Text.Trim();
             if (string.IsNullOrEmpty(newName))
             {
-                MessageBox.Show("Название шаблона не может быть пустым!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Название шаблона не может быть пустым!", "Ошибка",
+                               MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             Template.Name = newName;
-            Template.Content = TemplateContentTextBox.Text;
+
+            // Получение текста из RichTextBox
+            TextRange textRange = new TextRange(
+                TemplateContentRichTextBox.Document.ContentStart,
+                TemplateContentRichTextBox.Document.ContentEnd
+            );
+            Template.Content = textRange.Text;
+
             DialogResult = true;
             Close();
         }

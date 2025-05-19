@@ -4,6 +4,7 @@
         xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
         Title="Рассылка" Height="750" Width="1000" WindowStartupLocation="CenterScreen"
         Background="#DFE3EB"
+        TitleForeground="#172A74"
         BorderBrush="#172A74" BorderThickness="1"
         WindowStyle="SingleBorderWindow" Icon="/icons8-почта-100.png">
 
@@ -228,9 +229,9 @@
         </Grid.ColumnDefinitions>
 
         <!-- Левая панель -->
-        <Border Background="#172A74" Grid.Column="0"
-                BorderBrush="Transparent" BorderThickness="0,0,1,1"
-                CornerRadius="0,15,15,0">
+        <Border x:Name="LeftBorder" Background="#172A74" Grid.Column="0"
+        BorderBrush="Transparent" BorderThickness="0,0,1,1"
+        CornerRadius="0,15,15,0">
             <DockPanel>
                 <StackPanel>
                     <Border Background="White" CornerRadius="15" Margin="10" Padding="10" Height="53">
@@ -284,8 +285,8 @@
             <!-- Навигационные кнопки -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,10" Height="38" Grid.Row="0">
                 <Button Content="Настройки" Style="{StaticResource NavButton}" Margin="0,0,20,0" Click="Settings_Click"/>
-                <Button Content="Справка" Style="{StaticResource NavButton}" Margin="0,0,20,0" Click="Help_Click"/>
-                <Button Content="О программе" Style="{StaticResource NavButton}" Click="About_Click"/>
+                <!--<Button Content="Справка" Style="{StaticResource NavButton}" Margin="0,0,20,0" Click="Help_Click"/>
+                <Button Content="О программе" Style="{StaticResource NavButton}" Click="About_Click"/>-->
             </StackPanel>
 
             <!-- RichTextBox с панелью инструментов -->
@@ -369,6 +370,32 @@
                 ToolTip="Подчеркнутый" FontSize="14" Margin="5,0,0,0">
                                 <TextBlock Text="U" TextDecorations="Underline"/>
                             </Button>
+
+                            <!-- Разделитель -->
+                            <Rectangle Width="1" Height="20" Fill="#172A74" Margin="10,0,10,0"/>
+
+                            <!-- Кнопки выравнивания -->
+                            <Button Click="AlignLeft_Click"
+Style="{StaticResource FormatButton}" Width="32" Height="32"
+ToolTip="Выровнять по левому краю">
+                                <TextBlock FontSize="14">⬅</TextBlock>
+                            </Button>
+                            <Button Click="AlignCenter_Click"
+Style="{StaticResource FormatButton}" Width="32" Height="32"
+ToolTip="Выровнять по центру" Margin="5,0,0,0">
+                                <TextBlock FontSize="14">⬌</TextBlock>
+                            </Button>
+                            <Button Click="AlignRight_Click"
+Style="{StaticResource FormatButton}" Width="32" Height="32"
+ToolTip="Выровнять по правому краю" Margin="5,0,0,0">
+                                <TextBlock FontSize="14">⮕</TextBlock>
+                            </Button>
+                            <Button Click="AlignJustify_Click"
+Style="{StaticResource FormatButton}" Width="32" Height="32"
+ToolTip="Выровнять по ширине" Margin="5,0,0,0">
+                                <TextBlock FontSize="14">☰</TextBlock>
+                            </Button>
+                            
                             <!-- Разделитель -->
                             <Rectangle Width="1" Height="20" Fill="#172A74" Margin="10,0,10,0"/>
 
@@ -394,38 +421,11 @@
                                 </Button.ContextMenu>
                             </Button>
 
-                            <!-- Разделитель -->
-                            <Rectangle Width="1" Height="20" Fill="#172A74" Margin="10,0,10,0"/>
-
-                            <!-- Кнопки выравнивания -->
-                            <Button Click="AlignLeft_Click"
-                Style="{StaticResource FormatButton}" Width="32" Height="32"
-                ToolTip="Выровнять по левому краю">
-                                <TextBlock FontSize="14">⬅</TextBlock>
-                            </Button>
-                            <Button Click="AlignCenter_Click"
-                Style="{StaticResource FormatButton}" Width="32" Height="32"
-                ToolTip="Выровнять по центру" Margin="5,0,0,0">
-                                <TextBlock FontSize="14">↔</TextBlock>
-                            </Button>
-                            <Button Click="AlignRight_Click"
-                Style="{StaticResource FormatButton}" Width="32" Height="32"
-                ToolTip="Выровнять по правому краю" Margin="5,0,0,0">
-                                <TextBlock FontSize="14">➡</TextBlock>
-                            </Button>
-                            <Button Click="AlignJustify_Click"
-                Style="{StaticResource FormatButton}" Width="32" Height="32"
-                ToolTip="Выровнять по ширине" Margin="5,0,0,0">
-                                <TextBlock FontSize="14">📏</TextBlock>
-                            </Button>
+                           
                         </StackPanel>
                     </Border>
                 </Grid>
             </Border>
-
-
-
-
 
             <!-- Прикрепленные файлы -->
             <Grid Margin="0,25,0,0" Grid.Row="2">

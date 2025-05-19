@@ -393,33 +393,179 @@ namespace alesya_rassylka
 
         private void AddCategory_Click(object sender, RoutedEventArgs e)
         {
-            string categoryName = Interaction.InputBox(
-                "Введите название новой категории:",
-                "Добавление категории",
-                "");
-
-            // Если нажата "Отмена" или окно закрыто — не продолжаем
-            if (categoryName == null)
-                return;
-
-            // Если строка пуста или состоит из пробелов — тоже не продолжаем
-            if (string.IsNullOrWhiteSpace(categoryName))
-                return;
-
-            if (TemplateCategories.Any(c => c.Name.Equals(categoryName, StringComparison.OrdinalIgnoreCase)))
+            var addCategoryWindow = new MetroWindow
             {
-                MessageBox.Show("Категория с таким названием уже существует.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
+                Title = "Добавление категории",
+                TitleCharacterCasing = CharacterCasing.Normal,
+                Width = 350,
+                Height = 165,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = this,
+                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DFE3EB")),
+                ResizeMode = ResizeMode.NoResize,
+                Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png")),
+                TitleForeground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                BorderThickness = new Thickness(1)
+            };
+
+            var stackPanel = new StackPanel { Margin = new Thickness(10) };
+
+            ControlTemplate CreateRoundedTextBoxTemplate()
+            {
+                var template = new ControlTemplate(typeof(TextBox));
+                var border = new FrameworkElementFactory(typeof(Border));
+                border.Name = "Border";
+                border.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
+                border.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Control.BorderBrushProperty));
+                border.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Control.BorderThicknessProperty));
+                border.SetValue(Border.CornerRadiusProperty, new CornerRadius(5));
+
+                var scrollViewer = new FrameworkElementFactory(typeof(ScrollViewer));
+                scrollViewer.Name = "PART_ContentHost";
+                scrollViewer.SetValue(ScrollViewer.MarginProperty, new Thickness(0));
+                border.AppendChild(scrollViewer);
+
+                template.VisualTree = border;
+                return template;
             }
 
-            TemplateCategories.Add(new TemplateCategory
+            Style CreateActionButtonStyle()
             {
-                Name = categoryName,
-                Templates = new List<Template>()
-            });
+                var style = new Style(typeof(Button));
+                style.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.White));
+                style.Setters.Add(new Setter(Control.ForegroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+                style.Setters.Add(new Setter(Control.FontSizeProperty, 16.0));
+                style.Setters.Add(new Setter(Control.FontFamilyProperty, new FontFamily("Arial Black")));
+                style.Setters.Add(new Setter(Control.FontWeightProperty, FontWeights.Bold));
+                style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(10, 5, 10, 5)));
+                style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
+                style.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+                style.Setters.Add(new Setter(Control.CursorProperty, Cursors.Hand));
+                style.Setters.Add(new Setter(Control.MinHeightProperty, 30.0));
+                style.Setters.Add(new Setter(Control.TemplateProperty, CreateButtonTemplate()));
+                return style;
+            }
 
-            SaveTemplates();
-            MessageBox.Show("Категория успешно добавлена!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+            ControlTemplate CreateButtonTemplate()
+            {
+                var template = new ControlTemplate(typeof(Button));
+                var border = new FrameworkElementFactory(typeof(Border));
+                border.Name = "border";
+                border.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
+                border.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Control.BorderBrushProperty));
+                border.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Control.BorderThicknessProperty));
+                border.SetValue(Border.CornerRadiusProperty, new CornerRadius(5));
+                border.SetValue(Border.PaddingProperty, new TemplateBindingExtension(Control.PaddingProperty));
+
+                var contentPresenter = new FrameworkElementFactory(typeof(ContentPresenter));
+                contentPresenter.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Center);
+                contentPresenter.SetValue(VerticalAlignmentProperty, VerticalAlignment.Center);
+                border.AppendChild(contentPresenter);
+
+                template.VisualTree = border;
+
+                var mouseOverTrigger = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
+                mouseOverTrigger.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E0E6F8")), "border"));
+                template.Triggers.Add(mouseOverTrigger);
+
+                var pressedTrigger = new Trigger { Property = Button.IsPressedProperty, Value = true };
+                pressedTrigger.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C0D0F0")), "border"));
+                template.Triggers.Add(pressedTrigger);
+
+                return template;
+            }
+
+            var title = new TextBlock
+            {
+                Text = "Введите название новой категории:",
+                FontSize = 16,
+                FontWeight = FontWeights.Bold,
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                Margin = new Thickness(0, 0, 0, 10)
+            };
+            stackPanel.Children.Add(title);
+
+            var inputTextBox = new TextBox
+            {
+                Height = 30,
+                FontSize = 14,
+                Padding = new Thickness(5),
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                BorderThickness = new Thickness(1),
+                Background = Brushes.White,
+                Margin = new Thickness(0, 0, 0, 15),
+                Template = CreateRoundedTextBoxTemplate()
+            };
+            stackPanel.Children.Add(inputTextBox);
+
+            var buttonPanel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+
+            var saveButton = new Button
+            {
+                Content = "Применить",
+                Width = 125,
+                Height = 35,
+                Margin = new Thickness(0, 0, 15, 0),
+                Style = CreateActionButtonStyle()
+            };
+
+            var cancelButton = new Button
+            {
+                Content = "Отменить",
+                Width = 125,
+                Height = 35,
+                Style = CreateActionButtonStyle()
+            };
+
+            buttonPanel.Children.Add(saveButton);
+            buttonPanel.Children.Add(cancelButton);
+            stackPanel.Children.Add(buttonPanel);
+
+            bool confirmed = false;
+
+            saveButton.Click += (s, args) =>
+            {
+                string categoryName = inputTextBox.Text.Trim();
+
+                if (string.IsNullOrWhiteSpace(categoryName))
+                {
+                    MessageBox.Show("Название категории не может быть пустым.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (TemplateCategories.Any(c => c.Name.Equals(categoryName, StringComparison.OrdinalIgnoreCase)))
+                {
+                    MessageBox.Show("Категория с таким названием уже существует.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                TemplateCategories.Add(new TemplateCategory
+                {
+                    Name = categoryName,
+                    Templates = new List<Template>()
+                });
+
+                SaveTemplates();
+                MessageBox.Show("Категория успешно добавлена!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                confirmed = true;
+                addCategoryWindow.Close();
+            };
+
+            cancelButton.Click += (s, args) =>
+            {
+                addCategoryWindow.Close();
+            };
+
+            addCategoryWindow.Content = stackPanel;
+            addCategoryWindow.ShowDialog();
+
         }
 
 

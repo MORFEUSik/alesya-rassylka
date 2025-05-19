@@ -505,55 +505,209 @@ namespace alesya_rassylka
             var addRecipientWindow = new MetroWindow
             {
                 Title = "Добавление получателя",
-                Width = 700,
-                Height = 700,
+                Width = 350,
+                Height = 445,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this,
                 ResizeMode = ResizeMode.NoResize,
-                Background = new LinearGradientBrush
-                {
-                    StartPoint = new Point(0, 0),
-                    EndPoint = new Point(1, 1),
-                    GradientStops = new GradientStopCollection
-                    {
-                        new GradientStop((Color)ColorConverter.ConvertFromString("#F5F6F5"), 0.0),
-                        new GradientStop((Color)ColorConverter.ConvertFromString("#E0E7E9"), 1.0)
-                    }
-                },
-                BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30")),
+                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DFE3EB")),
+                BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
                 BorderThickness = new Thickness(1),
-                Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png"))
+                Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png")),
+                TitleForeground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                TitleCharacterCasing = CharacterCasing.Normal
             };
 
-            var stackPanel = new StackPanel { Margin = new Thickness(20) };
+            Style CreateActionButtonStyle()
+            {
+                var style = new Style(typeof(Button));
+                style.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.White));
+                style.Setters.Add(new Setter(Control.ForegroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+                style.Setters.Add(new Setter(Control.FontSizeProperty, 16.0));
+                style.Setters.Add(new Setter(Control.FontFamilyProperty, new FontFamily("Arial Black")));
+                style.Setters.Add(new Setter(Control.FontWeightProperty, FontWeights.Bold));
+                style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(10, 5, 10, 5)));
+                style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
+                style.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+                style.Setters.Add(new Setter(Control.CursorProperty, Cursors.Hand));
+                style.Setters.Add(new Setter(Control.MinHeightProperty, 30.0));
+                style.Setters.Add(new Setter(Control.TemplateProperty, CreateButtonTemplate()));
+                return style;
+            }
+
+            ControlTemplate CreateButtonTemplate()
+            {
+                var template = new ControlTemplate(typeof(Button));
+                var border = new FrameworkElementFactory(typeof(Border));
+                border.Name = "border";
+                border.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
+                border.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Control.BorderBrushProperty));
+                border.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Control.BorderThicknessProperty));
+                border.SetValue(Border.CornerRadiusProperty, new CornerRadius(5));
+                border.SetValue(Border.PaddingProperty, new TemplateBindingExtension(Control.PaddingProperty));
+
+                var contentPresenter = new FrameworkElementFactory(typeof(ContentPresenter));
+                contentPresenter.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Center);
+                contentPresenter.SetValue(VerticalAlignmentProperty, VerticalAlignment.Center);
+                border.AppendChild(contentPresenter);
+
+                template.VisualTree = border;
+
+                var mouseOverTrigger = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
+                mouseOverTrigger.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E0E6F8")), "border"));
+                template.Triggers.Add(mouseOverTrigger);
+
+                var pressedTrigger = new Trigger { Property = Button.IsPressedProperty, Value = true };
+                pressedTrigger.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C0D0F0")), "border"));
+                template.Triggers.Add(pressedTrigger);
+
+                return template;
+            }
+
+            ControlTemplate CreateRoundedTextBoxTemplate()
+            {
+                var template = new ControlTemplate(typeof(TextBox));
+                var border = new FrameworkElementFactory(typeof(Border));
+                border.Name = "Border";
+                border.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
+                border.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Control.BorderBrushProperty));
+                border.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Control.BorderThicknessProperty));
+                border.SetValue(Border.CornerRadiusProperty, new CornerRadius(5));
+
+                var scrollViewer = new FrameworkElementFactory(typeof(ScrollViewer));
+                scrollViewer.Name = "PART_ContentHost";
+                scrollViewer.SetValue(ScrollViewer.MarginProperty, new Thickness(0));
+                border.AppendChild(scrollViewer);
+
+                template.VisualTree = border;
+                return template;
+            }
+
+            // Создаём стиль ListBox с закруглёнными углами
+            Style listBoxStyle = new Style(typeof(ListBox));
+            listBoxStyle.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+            listBoxStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
+            listBoxStyle.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.White));
+
+            ControlTemplate listBoxTemplate = new ControlTemplate(typeof(ListBox));
+            FrameworkElementFactory border = new FrameworkElementFactory(typeof(Border));
+            border.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
+            border.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Control.BorderBrushProperty));
+            border.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Control.BorderThicknessProperty));
+            border.SetValue(Border.CornerRadiusProperty, new CornerRadius(5));
+
+            FrameworkElementFactory scrollViewer = new FrameworkElementFactory(typeof(ScrollViewer));
+            scrollViewer.SetValue(ScrollViewer.VerticalScrollBarVisibilityProperty, ScrollBarVisibility.Auto);
+            scrollViewer.SetValue(ScrollViewer.HorizontalScrollBarVisibilityProperty, ScrollBarVisibility.Disabled);
+            scrollViewer.SetValue(FrameworkElement.MarginProperty, new Thickness(5));
+
+            FrameworkElementFactory itemsPresenter = new FrameworkElementFactory(typeof(ItemsPresenter));
+            scrollViewer.AppendChild(itemsPresenter);
+            border.AppendChild(scrollViewer);
+            listBoxTemplate.VisualTree = border;
+
+            listBoxStyle.Setters.Add(new Setter(Control.TemplateProperty, listBoxTemplate));
+
+            // Стиль для ListBoxItem с подсветкой (обновленный)
+            Style listBoxItemStyle = new Style(typeof(ListBoxItem));
+            listBoxItemStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(5)));
+            listBoxItemStyle.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch));
+            listBoxItemStyle.Setters.Add(new Setter(Control.VerticalContentAlignmentProperty, VerticalAlignment.Center));
+            listBoxItemStyle.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.Transparent));
+            listBoxItemStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0)));
+
+            ControlTemplate listBoxItemTemplate = new ControlTemplate(typeof(ListBoxItem));
+            FrameworkElementFactory itemBorder = new FrameworkElementFactory(typeof(Border));
+            itemBorder.Name = "Bd";
+            itemBorder.SetValue(Border.PaddingProperty, new TemplateBindingExtension(Control.PaddingProperty));
+            itemBorder.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
+            itemBorder.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Control.BorderBrushProperty));
+            itemBorder.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Control.BorderThicknessProperty));
+
+            FrameworkElementFactory contentPresenter = new FrameworkElementFactory(typeof(ContentPresenter));
+            contentPresenter.SetValue(FrameworkElement.HorizontalAlignmentProperty, new TemplateBindingExtension(Control.HorizontalContentAlignmentProperty));
+            contentPresenter.SetValue(FrameworkElement.VerticalAlignmentProperty, new TemplateBindingExtension(Control.VerticalContentAlignmentProperty));
+            itemBorder.AppendChild(contentPresenter);
+
+            listBoxItemTemplate.VisualTree = itemBorder;
+
+            // Обновленные триггеры для выделения и наведения мыши
+            Trigger isSelectedTrigger = new Trigger { Property = ListBoxItem.IsSelectedProperty, Value = true };
+            isSelectedTrigger.Setters.Add(new Setter(Border.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C0D0F0")), "Bd"));
+            isSelectedTrigger.Setters.Add(new Setter(Control.ForegroundProperty, Brushes.Black)); // Черный текст при выделении
+
+            Trigger isMouseOverTrigger = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
+            isMouseOverTrigger.Setters.Add(new Setter(Border.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E0E6F8")), "Bd"));
+
+            listBoxItemTemplate.Triggers.Add(isSelectedTrigger);
+            listBoxItemTemplate.Triggers.Add(isMouseOverTrigger);
+
+            listBoxItemStyle.Setters.Add(new Setter(Control.TemplateProperty, listBoxItemTemplate));
+            listBoxStyle.Setters.Add(new Setter(ListBox.ItemContainerStyleProperty, listBoxItemStyle));
+
+            var stackPanel = new StackPanel { Margin = new Thickness(10) };
 
             var title = new TextBlock
             {
-                Text = "Добавление нового получателя",
-                FontSize = 18,
+                Text = "Добавление нового получателя:",
+                FontSize = 16,
                 FontWeight = FontWeights.Bold,
-                Margin = new Thickness(0, 0, 0, 20),
-                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30"))
+                Margin = new Thickness(0, 0, 0, 10),
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))
             };
             stackPanel.Children.Add(title);
 
-            var nameLabel = new TextBlock { Text = "Имя:", FontSize = 14, Margin = new Thickness(0, 0, 0, 5), Foreground = Brushes.Black };
-            var nameTextBox = new TextBox { Width = 300, Height = 30, FontSize = 14, Margin = new Thickness(0, 0, 0, 15), BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30")), BorderThickness = new Thickness(1), Background = Brushes.White };
+            var nameLabel = new TextBlock
+            {
+                Text = "Имя:",
+                FontSize = 14,
+                Margin = new Thickness(0, 0, 0, 5),
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))
+            };
+            var nameTextBox = new TextBox
+            {
+                Height = 30,
+                FontSize = 14,
+                Margin = new Thickness(0, 0, 0, 10),
+                BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                BorderThickness = new Thickness(1),
+                Background = Brushes.White,
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                Padding = new Thickness(5),
+                Template = CreateRoundedTextBoxTemplate()
+            };
             stackPanel.Children.Add(nameLabel);
             stackPanel.Children.Add(nameTextBox);
 
-            var emailLabel = new TextBlock { Text = "Email:", FontSize = 14, Margin = new Thickness(0, 0, 0, 5), Foreground = Brushes.Black };
-            var emailTextBox = new TextBox { Width = 300, Height = 30, FontSize = 14, Margin = new Thickness(0, 0, 0, 15), BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30")), BorderThickness = new Thickness(1), Background = Brushes.White };
+            var emailLabel = new TextBlock
+            {
+                Text = "Email:",
+                FontSize = 14,
+                Margin = new Thickness(0, 0, 0, 5),
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))
+            };
+            var emailTextBox = new TextBox
+            {
+                Height = 30,
+                FontSize = 14,
+                Margin = new Thickness(0, 0, 0, 10),
+                BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                BorderThickness = new Thickness(1),
+                Background = Brushes.White,
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                Padding = new Thickness(5),
+                Template = CreateRoundedTextBoxTemplate()
+            };
             stackPanel.Children.Add(emailLabel);
             stackPanel.Children.Add(emailTextBox);
 
             var categoryTitle = new TextBlock
             {
-                Text = "Выберите категории:",
+                Text = "Выбор категории:",
                 FontSize = 16,
                 FontWeight = FontWeights.Bold,
                 Margin = new Thickness(0, 0, 0, 10),
-                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30"))
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))
             };
             stackPanel.Children.Add(categoryTitle);
 
@@ -561,11 +715,9 @@ namespace alesya_rassylka
             {
                 SelectionMode = SelectionMode.Multiple,
                 ItemsSource = Categories,
-                Height = 200,
+                Height = 150,
                 Margin = new Thickness(0, 0, 0, 15),
-                BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30")),
-                BorderThickness = new Thickness(1),
-                Background = Brushes.White,
+                Style = listBoxStyle, // применяем стиль с закруглёнными углами
                 FontSize = 14
             };
             stackPanel.Children.Add(categoryListBox);
@@ -574,27 +726,19 @@ namespace alesya_rassylka
 
             var saveButton = new Button
             {
-                Content = "Сохранить",
-                Width = 100,
+                Content = "Применить",
+                Width = 125,
                 Height = 35,
                 Margin = new Thickness(0, 0, 10, 0),
-                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30")),
-                Foreground = Brushes.White,
-                FontSize = 14,
-                FontWeight = FontWeights.Medium,
-                Cursor = Cursors.Hand
+                Style = CreateActionButtonStyle()
             };
 
             var cancelButton = new Button
             {
-                Content = "Отмена",
-                Width = 100,
+                Content = "Отменить",
+                Width = 125,
                 Height = 35,
-                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D3D3D3")),
-                Foreground = Brushes.Black,
-                FontSize = 14,
-                FontWeight = FontWeights.Medium,
-                Cursor = Cursors.Hand
+                Style = CreateActionButtonStyle()
             };
 
             saveButton.Click += (s, args) =>
@@ -622,7 +766,7 @@ namespace alesya_rassylka
                 allRecipients.Add(newRecipient);
                 filteredRecipients.Refresh();
                 SaveCallback();
-                System.Diagnostics.Debug.WriteLine($"Added recipient: {name}, {email}");
+                System.Diagnostics.Debug.WriteLine($"Получатель добавлен: {name}, {email}");
                 addRecipientWindow.Close();
             };
             cancelButton.Click += (s, args) => addRecipientWindow.Close();
@@ -630,21 +774,22 @@ namespace alesya_rassylka
             buttonPanel.Children.Add(saveButton);
             buttonPanel.Children.Add(cancelButton);
             stackPanel.Children.Add(buttonPanel);
+
             addRecipientWindow.Content = stackPanel;
             addRecipientWindow.ShowDialog();
         }
+
+
 
         private void DeleteRecipient_Click(object sender, RoutedEventArgs e)
         {
             var selectedRecipients = RecipientsListBox.SelectedItems.Cast<Recipient>().ToList();
 
-            // Если никто не выделен, но есть rightClickedRecipient, добавляем его в список для удаления
             if (!selectedRecipients.Any() && rightClickedRecipient != null)
             {
                 selectedRecipients = new List<Recipient> { rightClickedRecipient };
             }
 
-            // Если после этого список всё еще пуст, показываем ошибку
             if (!selectedRecipients.Any())
             {
                 System.Windows.MessageBox.Show("Выберите хотя бы одного получателя для удаления.", "Ошибка");
@@ -661,7 +806,7 @@ namespace alesya_rassylka
                 foreach (var recipient in selectedRecipients)
                 {
                     allRecipients.Remove(recipient);
-                    System.Diagnostics.Debug.WriteLine($"Deleted recipient: {recipient.Name}, {recipient.Email}");
+                    System.Diagnostics.Debug.WriteLine($"Получатель(ли) удален(ы): {recipient.Name}, {recipient.Email}");
                 }
                 filteredRecipients.Refresh();
                 SaveCallback();
@@ -681,55 +826,146 @@ namespace alesya_rassylka
             var editRecipientWindow = new MetroWindow
             {
                 Title = "Редактирование получателя",
-                Width = 400,
-                Height = 500,
+                Width = 350,
+                Height = 445,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this,
                 ResizeMode = ResizeMode.NoResize,
-                Background = new LinearGradientBrush
-                {
-                    StartPoint = new Point(0, 0),
-                    EndPoint = new Point(1, 1),
-                    GradientStops = new GradientStopCollection
-                    {
-                        new GradientStop((Color)ColorConverter.ConvertFromString("#F5F6F5"), 0.0),
-                        new GradientStop((Color)ColorConverter.ConvertFromString("#E0E7E9"), 1.0)
-                    }
-                },
-                BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30")),
+                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DFE3EB")),
+                BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
                 BorderThickness = new Thickness(1),
-                Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png"))
+                Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png")),
+                TitleForeground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                TitleCharacterCasing = CharacterCasing.Normal
             };
 
-            var stackPanel = new StackPanel { Margin = new Thickness(20) };
+            // Создаём стиль ListBox с закруглёнными углами
+            Style listBoxStyle = new Style(typeof(ListBox));
+            listBoxStyle.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+            listBoxStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
+            listBoxStyle.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.White));
+
+            ControlTemplate listBoxTemplate = new ControlTemplate(typeof(ListBox));
+            FrameworkElementFactory border = new FrameworkElementFactory(typeof(Border));
+            border.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
+            border.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Control.BorderBrushProperty));
+            border.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Control.BorderThicknessProperty));
+            border.SetValue(Border.CornerRadiusProperty, new CornerRadius(5));
+
+            FrameworkElementFactory scrollViewer = new FrameworkElementFactory(typeof(ScrollViewer));
+            scrollViewer.SetValue(ScrollViewer.VerticalScrollBarVisibilityProperty, ScrollBarVisibility.Auto);
+            scrollViewer.SetValue(ScrollViewer.HorizontalScrollBarVisibilityProperty, ScrollBarVisibility.Disabled);
+            scrollViewer.SetValue(FrameworkElement.MarginProperty, new Thickness(5));
+
+            FrameworkElementFactory itemsPresenter = new FrameworkElementFactory(typeof(ItemsPresenter));
+            scrollViewer.AppendChild(itemsPresenter);
+            border.AppendChild(scrollViewer);
+            listBoxTemplate.VisualTree = border;
+
+            listBoxStyle.Setters.Add(new Setter(Control.TemplateProperty, listBoxTemplate));
+
+            // Стиль для ListBoxItem с подсветкой
+            Style listBoxItemStyle = new Style(typeof(ListBoxItem));
+            listBoxItemStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(5)));
+            listBoxItemStyle.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch));
+            listBoxItemStyle.Setters.Add(new Setter(Control.VerticalContentAlignmentProperty, VerticalAlignment.Center));
+            listBoxItemStyle.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.Transparent));
+            listBoxItemStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0)));
+
+            ControlTemplate listBoxItemTemplate = new ControlTemplate(typeof(ListBoxItem));
+            FrameworkElementFactory itemBorder = new FrameworkElementFactory(typeof(Border));
+            itemBorder.Name = "Bd";
+            itemBorder.SetValue(Border.PaddingProperty, new TemplateBindingExtension(Control.PaddingProperty));
+            itemBorder.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
+            itemBorder.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Control.BorderBrushProperty));
+            itemBorder.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Control.BorderThicknessProperty));
+
+            FrameworkElementFactory contentPresenter = new FrameworkElementFactory(typeof(ContentPresenter));
+            contentPresenter.SetValue(FrameworkElement.HorizontalAlignmentProperty, new TemplateBindingExtension(Control.HorizontalContentAlignmentProperty));
+            contentPresenter.SetValue(FrameworkElement.VerticalAlignmentProperty, new TemplateBindingExtension(Control.VerticalContentAlignmentProperty));
+            itemBorder.AppendChild(contentPresenter);
+
+            listBoxItemTemplate.VisualTree = itemBorder;
+
+            // Триггеры для выделения и наведения мыши
+            Trigger isSelectedTrigger = new Trigger { Property = ListBoxItem.IsSelectedProperty, Value = true };
+            isSelectedTrigger.Setters.Add(new Setter(Border.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C0D0F0")), "Bd"));
+            isSelectedTrigger.Setters.Add(new Setter(Control.ForegroundProperty, Brushes.Black));
+
+            Trigger isMouseOverTrigger = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
+            isMouseOverTrigger.Setters.Add(new Setter(Border.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E0E6F8")), "Bd"));
+
+            listBoxItemTemplate.Triggers.Add(isSelectedTrigger);
+            listBoxItemTemplate.Triggers.Add(isMouseOverTrigger);
+
+            listBoxItemStyle.Setters.Add(new Setter(Control.TemplateProperty, listBoxItemTemplate));
+            listBoxStyle.Setters.Add(new Setter(ListBox.ItemContainerStyleProperty, listBoxItemStyle));
+
+            var stackPanel = new StackPanel { Margin = new Thickness(10) };
 
             var title = new TextBlock
             {
-                Text = "Редактирование получателя",
-                FontSize = 18,
+                Text = "Редактирование получателя:",
+                FontSize = 16,
                 FontWeight = FontWeights.Bold,
-                Margin = new Thickness(0, 0, 0, 20),
-                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30"))
+                Margin = new Thickness(0, 0, 0, 10),
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))
             };
             stackPanel.Children.Add(title);
 
-            var nameLabel = new TextBlock { Text = "Имя:", FontSize = 14, Margin = new Thickness(0, 0, 0, 5), Foreground = Brushes.Black };
-            var nameTextBox = new TextBox { Width = 300, Height = 30, FontSize = 14, Text = recipient.Name, Margin = new Thickness(0, 0, 0, 15), BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30")), BorderThickness = new Thickness(1), Background = Brushes.White };
+            var nameLabel = new TextBlock
+            {
+                Text = "Имя:",
+                FontSize = 14,
+                Margin = new Thickness(0, 0, 0, 5),
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))
+            };
+            var nameTextBox = new TextBox
+            {
+                Text = recipient.Name,
+                Height = 30,
+                FontSize = 14,
+                Margin = new Thickness(0, 0, 0, 10),
+                BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                BorderThickness = new Thickness(1),
+                Background = Brushes.White,
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                Padding = new Thickness(5),
+                Template = CreateRoundedTextBoxTemplate()
+            };
             stackPanel.Children.Add(nameLabel);
             stackPanel.Children.Add(nameTextBox);
 
-            var emailLabel = new TextBlock { Text = "Email:", FontSize = 14, Margin = new Thickness(0, 0, 0, 5), Foreground = Brushes.Black };
-            var emailTextBox = new TextBox { Width = 300, Height = 30, FontSize = 14, Text = recipient.Email, Margin = new Thickness(0, 0, 0, 15), BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30")), BorderThickness = new Thickness(1), Background = Brushes.White };
+            var emailLabel = new TextBlock
+            {
+                Text = "Email:",
+                FontSize = 14,
+                Margin = new Thickness(0, 0, 0, 5),
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))
+            };
+            var emailTextBox = new TextBox
+            {
+                Text = recipient.Email,
+                Height = 30,
+                FontSize = 14,
+                Margin = new Thickness(0, 0, 0, 10),
+                BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                BorderThickness = new Thickness(1),
+                Background = Brushes.White,
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                Padding = new Thickness(5),
+                Template = CreateRoundedTextBoxTemplate()
+            };
             stackPanel.Children.Add(emailLabel);
             stackPanel.Children.Add(emailTextBox);
 
             var categoryTitle = new TextBlock
             {
-                Text = "Выберите категории:",
+                Text = "Выбор категории:",
                 FontSize = 16,
                 FontWeight = FontWeights.Bold,
                 Margin = new Thickness(0, 0, 0, 10),
-                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30"))
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))
             };
             stackPanel.Children.Add(categoryTitle);
 
@@ -737,13 +973,13 @@ namespace alesya_rassylka
             {
                 SelectionMode = SelectionMode.Multiple,
                 ItemsSource = Categories,
-                Height = 200,
+                Height = 150,
                 Margin = new Thickness(0, 0, 0, 15),
-                BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30")),
-                BorderThickness = new Thickness(1),
-                Background = Brushes.White,
+                Style = listBoxStyle,
                 FontSize = 14
             };
+
+            // Выделяем категории получателя
             foreach (var category in Categories)
             {
                 if (recipient.Categories.Contains(category))
@@ -757,27 +993,19 @@ namespace alesya_rassylka
 
             var saveButton = new Button
             {
-                Content = "Сохранить",
-                Width = 100,
+                Content = "Применить",
+                Width = 125,
                 Height = 35,
                 Margin = new Thickness(0, 0, 10, 0),
-                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30")),
-                Foreground = Brushes.White,
-                FontSize = 14,
-                FontWeight = FontWeights.Medium,
-                Cursor = Cursors.Hand
+                Style = CreateActionButtonStyle()
             };
 
             var cancelButton = new Button
             {
-                Content = "Отмена",
-                Width = 100,
+                Content = "Отменить",
+                Width = 125,
                 Height = 35,
-                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D3D3D3")),
-                Foreground = Brushes.Black,
-                FontSize = 14,
-                FontWeight = FontWeights.Medium,
-                Cursor = Cursors.Hand
+                Style = CreateActionButtonStyle()
             };
 
             saveButton.Click += (s, args) =>
@@ -814,8 +1042,75 @@ namespace alesya_rassylka
             buttonPanel.Children.Add(saveButton);
             buttonPanel.Children.Add(cancelButton);
             stackPanel.Children.Add(buttonPanel);
+
             editRecipientWindow.Content = stackPanel;
             editRecipientWindow.ShowDialog();
+        }
+
+        // Методы для создания стилей (те же, что и в AddRecipient_Click)
+        Style CreateActionButtonStyle()
+        {
+            var style = new Style(typeof(Button));
+            style.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.White));
+            style.Setters.Add(new Setter(Control.ForegroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+            style.Setters.Add(new Setter(Control.FontSizeProperty, 16.0));
+            style.Setters.Add(new Setter(Control.FontFamilyProperty, new FontFamily("Arial Black")));
+            style.Setters.Add(new Setter(Control.FontWeightProperty, FontWeights.Bold));
+            style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(10, 5, 10, 5)));
+            style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
+            style.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+            style.Setters.Add(new Setter(Control.CursorProperty, Cursors.Hand));
+            style.Setters.Add(new Setter(Control.MinHeightProperty, 30.0));
+            style.Setters.Add(new Setter(Control.TemplateProperty, CreateButtonTemplate()));
+            return style;
+        }
+
+        ControlTemplate CreateButtonTemplate()
+        {
+            var template = new ControlTemplate(typeof(Button));
+            var border = new FrameworkElementFactory(typeof(Border));
+            border.Name = "border";
+            border.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
+            border.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Control.BorderBrushProperty));
+            border.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Control.BorderThicknessProperty));
+            border.SetValue(Border.CornerRadiusProperty, new CornerRadius(5));
+            border.SetValue(Border.PaddingProperty, new TemplateBindingExtension(Control.PaddingProperty));
+
+            var contentPresenter = new FrameworkElementFactory(typeof(ContentPresenter));
+            contentPresenter.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Center);
+            contentPresenter.SetValue(VerticalAlignmentProperty, VerticalAlignment.Center);
+            border.AppendChild(contentPresenter);
+
+            template.VisualTree = border;
+
+            var mouseOverTrigger = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
+            mouseOverTrigger.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E0E6F8")), "border"));
+            template.Triggers.Add(mouseOverTrigger);
+
+            var pressedTrigger = new Trigger { Property = Button.IsPressedProperty, Value = true };
+            pressedTrigger.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C0D0F0")), "border"));
+            template.Triggers.Add(pressedTrigger);
+
+            return template;
+        }
+
+        ControlTemplate CreateRoundedTextBoxTemplate()
+        {
+            var template = new ControlTemplate(typeof(TextBox));
+            var border = new FrameworkElementFactory(typeof(Border));
+            border.Name = "Border";
+            border.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
+            border.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Control.BorderBrushProperty));
+            border.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Control.BorderThicknessProperty));
+            border.SetValue(Border.CornerRadiusProperty, new CornerRadius(5));
+
+            var scrollViewer = new FrameworkElementFactory(typeof(ScrollViewer));
+            scrollViewer.Name = "PART_ContentHost";
+            scrollViewer.SetValue(ScrollViewer.MarginProperty, new Thickness(0));
+            border.AppendChild(scrollViewer);
+
+            template.VisualTree = border;
+            return template;
         }
 
         private void ToggleSelection_Click(object sender, RoutedEventArgs e)

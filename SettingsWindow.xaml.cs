@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,23 +12,24 @@ using Microsoft.VisualBasic;
 
 namespace alesya_rassylka
 {
-    public partial class SettingsWindow : MetroWindow
-    {
-        private DataStore dataStore;
-        private Action saveCallback;
-        private MainWindow mainWindow;
-        private List<Sender> tempSenders; // Временная копия списка отправителей
+  public partial class SettingsWindow : MetroWindow
+{
+    private DataStore dataStore;
+    private Action saveCallback;
+    private MainWindow mainWindow;
+    private List<Sender> tempSenders; // Временная копия списка отправителей
+
+        SolidColorBrush originalBackgroundBrush = null;
+        SolidColorBrush originalLeftBorderBrush = null;
 
         public SettingsWindow(DataStore dataStore, Action saveCallback, MainWindow mainWindow)
         {
-            System.Diagnostics.Debug.WriteLine("Starting SettingsWindow initialization");
             InitializeComponent();
-            System.Diagnostics.Debug.WriteLine("InitializeComponent completed");
             this.dataStore = dataStore;
             this.saveCallback = saveCallback;
             this.mainWindow = mainWindow;
 
-            // Создаём глубокую копию списка отправителей
+            // Инициализация отправителей
             tempSenders = dataStore.Senders.Select(s => new Sender
             {
                 Email = s.Email,
@@ -35,15 +37,22 @@ namespace alesya_rassylka
                 IsDefault = s.IsDefault
             }).ToList();
 
-            // Заполняем UI временной копией
             SendersListBox.ItemsSource = tempSenders;
             DefaultSenderComboBox.ItemsSource = tempSenders;
             DefaultSenderComboBox.DisplayMemberPath = "Email";
             DefaultSenderComboBox.SelectedItem = tempSenders.Find(s => s.IsDefault);
 
-            // Устанавливаем текущий цвет приложения
+
             if (mainWindow.Background is SolidColorBrush backgroundBrush)
             {
+                originalBackgroundBrush = backgroundBrush.Clone();
+
+                var leftBorder = FindVisualChild<Border>(mainWindow, "LeftBorder");
+                if (leftBorder != null && leftBorder.Background is SolidColorBrush leftBrush)
+                {
+                    originalLeftBorderBrush = leftBrush.Clone();
+                }
+
                 string currentColorHex = backgroundBrush.Color.ToString();
                 foreach (ComboBoxItem item in ColorComboBox.Items)
                 {
@@ -55,7 +64,73 @@ namespace alesya_rassylka
                     }
                 }
             }
+
+
+
+            ColorComboBox.SelectionChanged += (sender, e) =>
+            {
+                if (ColorComboBox.SelectedItem is ComboBoxItem selectedItem && selectedItem.Tag is string colorHex)
+                {
+                    var color = (Color)ColorConverter.ConvertFromString(colorHex);
+                    mainWindow.Background = new SolidColorBrush(color);
+
+                    var leftBorder = FindVisualChild<Border>(mainWindow, "LeftBorder");
+                    if (leftBorder != null)
+                    {
+                        if (colorHex != "#DFE3EB" && colorHex != "#FFFFFF")
+                        {
+                            leftBorder.Background = new SolidColorBrush(DarkenColor(color, 0.5));
+                        }
+                        else
+                        {
+                            leftBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"));
+                        }
+                    }
+                }
+            };
+            this.Closing += SettingsWindow_Closing;
         }
+        private void SettingsWindow_Closing(object sender, CancelEventArgs e)
+        {
+            if (DialogResult != true) // если не было Save_Click (где DialogResult = true)
+            {
+                if (originalBackgroundBrush != null)
+                    mainWindow.Background = originalBackgroundBrush;
+
+                var leftBorder = FindVisualChild<Border>(mainWindow, "LeftBorder");
+                if (leftBorder != null && originalLeftBorderBrush != null)
+                    leftBorder.Background = originalLeftBorderBrush;
+            }
+        }
+
+        // Метод для поиска элементов в визуальном дереве (особенно важно для MahApps)
+        private static T FindVisualChild<T>(DependencyObject parent, string childName)
+        where T : DependencyObject
+    {
+        if (parent == null) return null;
+
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is T result && (result as FrameworkElement)?.Name == childName)
+                return result;
+
+            var foundChild = FindVisualChild<T>(child, childName);
+            if (foundChild != null)
+                return foundChild;
+        }
+        return null;
+    }
+
+    // Затемнение цвета (умножение RGB на коэффициент)
+    private Color DarkenColor(Color color, double factor = 0.7)
+    {
+        return Color.FromArgb(
+            color.A,
+            (byte)(color.R * factor),
+            (byte)(color.G * factor),
+            (byte)(color.B * factor));
+    }
 
 
         private void AddSender_Click(object sender, RoutedEventArgs e)
@@ -263,48 +338,88 @@ namespace alesya_rassylka
             }
         }        
 
-        private void Save_Click(object s, RoutedEventArgs e)
+    private void Save_Click(object s, RoutedEventArgs e)
+{
+    // Обновляем основной список отправителей временной копией
+    dataStore.Senders.Clear();
+    foreach (var sender in tempSenders)
+    {
+        dataStore.Senders.Add(new Sender
         {
-            // Обновляем основной список отправителей временной копией
-            dataStore.Senders.Clear();
-            foreach (var sender in tempSenders)
+            Email = sender.Email,
+            Password = sender.Password,
+            IsDefault = sender.IsDefault
+        });
+    }
+
+    var selectedSender = DefaultSenderComboBox.SelectedItem as Sender;
+    if (selectedSender != null)
+    {
+        foreach (var sender in dataStore.Senders)
+            sender.IsDefault = false;
+
+        dataStore.Senders.First(sender => sender.Email == selectedSender.Email).IsDefault = true;
+    }
+
+    var selectedColorItem = ColorComboBox.SelectedItem as ComboBoxItem;
+    if (selectedColorItem != null)
+    {
+        string colorHex = selectedColorItem.Tag.ToString();
+        var color = (Color)ColorConverter.ConvertFromString(colorHex);
+
+        // Меняем фон главного окна
+        mainWindow.Background = new SolidColorBrush(color);
+
+        var leftBorder = FindVisualChild<Border>(mainWindow, "LeftBorder");
+        if (leftBorder != null)
+        {
+            if (!colorHex.Equals("#DFE3EB", StringComparison.OrdinalIgnoreCase) &&
+                !colorHex.Equals("#FFFFFF", StringComparison.OrdinalIgnoreCase))
             {
-                dataStore.Senders.Add(new Sender
-                {
-                    Email = sender.Email,
-                    Password = sender.Password,
-                    IsDefault = sender.IsDefault
-                });
+                // Меняем фон панели и бордер
+                Color panelColor = DarkenColor(color, 0.5);
+                leftBorder.Background = new SolidColorBrush(panelColor);
+
+                Color darkerBorder = DarkenColor(color, 0.7);
+                leftBorder.BorderBrush = new SolidColorBrush(darkerBorder);
+                leftBorder.BorderThickness = new Thickness(1);
+            }
+            else
+            {
+                // Для голубого и белого — фиксируем синий фон и бордер из XAML
+                var fixedBlue = (Color)ColorConverter.ConvertFromString("#172A74");
+                leftBorder.Background = new SolidColorBrush(fixedBlue);
+
+                // Сбрасываем бордер к стилю из XAML
+                leftBorder.ClearValue(Border.BorderBrushProperty);
+                leftBorder.ClearValue(Border.BorderThicknessProperty);
             }
 
-            var selectedSender = DefaultSenderComboBox.SelectedItem as Sender;
-            if (selectedSender != null)
-            {
-                foreach (var sender in dataStore.Senders)
-                {
-                    sender.IsDefault = false;
-                }
-                dataStore.Senders.First(sender => sender.Email == selectedSender.Email).IsDefault = true;
-            }
-
-            var selectedColorItem = ColorComboBox.SelectedItem as ComboBoxItem;
-            if (selectedColorItem != null)
-            {
-                string colorHex = selectedColorItem.Tag.ToString();
-                mainWindow.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(colorHex));
-            }
-
-            // Сохраняем изменения в файл
-            saveCallback();
-            DialogResult = true;
-            Close();
+            leftBorder.InvalidateVisual();
         }
+    }
+
+    // Сохраняем изменения в файл
+    saveCallback();
+
+    DialogResult = true;
+    Close();
+}
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
         {
-            // Сбрасываем изменения, не сохраняя
+            // Восстанавливаем исходный цвет фона окна
+            if (originalBackgroundBrush != null)
+                mainWindow.Background = originalBackgroundBrush;
+
+            // Восстанавливаем фон левой панели
+            var leftBorder = FindVisualChild<Border>(mainWindow, "LeftBorder");
+            if (leftBorder != null && originalLeftBorderBrush != null)
+                leftBorder.Background = originalLeftBorderBrush;
+
             DialogResult = false;
             Close();
         }
+
     }
 }
