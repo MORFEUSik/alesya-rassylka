@@ -7,6 +7,15 @@ using MahApps.Metro.Controls;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.Linq;
+using System.Windows.Documents;
+using System.Text;
+
+// Псевдонимы для избежания конфликтов
+using WpfParagraph = System.Windows.Documents.Paragraph;
+using WpfRun = System.Windows.Documents.Run;
+using WordParagraph = DocumentFormat.OpenXml.Wordprocessing.Paragraph;
+using WordRun = DocumentFormat.OpenXml.Wordprocessing.Run;
+using WordStyle = DocumentFormat.OpenXml.Wordprocessing.Style;
 
 namespace alesya_rassylka
 {
@@ -38,14 +47,11 @@ namespace alesya_rassylka
             }
 
             category.Name = newName;
-            saveChanges?.Invoke(); // Сохраняем изменения в JSON
-
-            // Уведомляем MainWindow об обновлении (например, через событие или прямой вызов)
+            saveChanges?.Invoke();
             if (Owner is MainWindow mainWindow)
             {
-                mainWindow.RefreshTemplateCategories(); // Добавим этот метод в MainWindow
+                mainWindow.RefreshTemplateCategories();
             }
-
             MessageBox.Show("Название категории обновлено!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
@@ -55,7 +61,6 @@ namespace alesya_rassylka
             {
                 Owner = this
             };
-
             if (editWindow.ShowDialog() == true)
             {
                 category.Templates.Add(editWindow.Template);
@@ -67,44 +72,199 @@ namespace alesya_rassylka
 
         private void AddTemplateFromWord_Click(object sender, RoutedEventArgs e)
         {
-            var openFileDialog = new Microsoft.Win32.OpenFileDialog
+            var openFileDialog = new OpenFileDialog
             {
                 Filter = "Word Documents (*.docx)|*.docx",
                 Title = "Выберите документ Word"
             };
 
-            if (openFileDialog.ShowDialog() == true)
+            if (openFileDialog.ShowDialog() != true)
+                return;
+
+            try
             {
-                try
+                string filePath = openFileDialog.FileName;
+                StringBuilder htmlContent = new StringBuilder();
+
+                using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(filePath, false))
                 {
-                    if (System.IO.Path.GetExtension(openFileDialog.FileName).ToLower() == ".doc")
+                    var body = wordDoc.MainDocumentPart?.Document?.Body;
+                    if (body == null)
+                        throw new InvalidOperationException("Word document body is missing.");
+
+                    foreach (var element in body.Elements())
                     {
-                        MessageBox.Show("Формат .doc не поддерживается. Пожалуйста, конвертируйте файл в .docx.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return;
+                        if (element is WordParagraph p)
+                        {
+                            // Извлекаем свойства параграфа
+                            string fontFamily = "Arial";
+                            double fontSize = 12;
+                            string textAlignment = "Left";
+                            string fontWeight = "Normal";
+                            string fontStyle = "Normal";
+                            string textDecorations = "";
+
+                            var paraProps = p.ParagraphProperties;
+                            if (paraProps != null)
+                            {
+                                // Выравнивание
+                                if (paraProps.Justification?.Val != null)
+                                {
+                                    var justification = paraProps.Justification.Val.Value;
+                                    if (justification == JustificationValues.Center)
+                                        textAlignment = "Center";
+                                    else if (justification == JustificationValues.Right)
+                                        textAlignment = "Right";
+                                    else if (justification == JustificationValues.Both)
+                                        textAlignment = "Justify";
+                                    else
+                                        textAlignment = "Left";
+                                }
+
+                                // Свойства стиля параграфа
+                                var styleId = paraProps.ParagraphStyleId?.Val?.Value;
+                                if (styleId != null)
+                                {
+                                    var style = wordDoc.MainDocumentPart?.StyleDefinitionsPart?.Styles
+                                        ?.Elements<WordStyle>()
+                                        ?.FirstOrDefault(s => s.StyleId == styleId && s.Type == StyleValues.Paragraph);
+                                    if (style?.StyleRunProperties != null)
+                                    {
+                                        var runProps = style.StyleRunProperties;
+                                        if (runProps.FontSize != null && double.TryParse(runProps.FontSize.Val, out double size))
+                                            fontSize = size / 2; // Word использует half-points
+                                        if (runProps.RunFonts != null)
+                                            fontFamily = runProps.RunFonts.Ascii ?? "Arial";
+                                        if (runProps.Bold != null)
+                                            fontWeight = "Bold";
+                                        if (runProps.Italic != null)
+                                            fontStyle = "Italic";
+                                        if (runProps.Underline != null)
+                                            textDecorations = "Underline";
+                                    }
+                                }
+                            }
+
+                            // Проверяем, является ли параграф частью списка
+                            var numberingProps = paraProps?.NumberingProperties;
+                            bool isListItem = numberingProps != null;
+                            string listStyle = "Disc";
+                            if (isListItem && numberingProps.NumberingLevelReference != null)
+                            {
+                                var numberingId = numberingProps.NumberingId?.Val?.Value;
+                                var level = numberingProps.NumberingLevelReference?.Val?.Value ?? 0;
+                                var numberingPart = wordDoc.MainDocumentPart?.NumberingDefinitionsPart;
+                                if (numberingPart != null && numberingId.HasValue)
+                                {
+                                    var numbering = numberingPart.Numbering.Elements<NumberingInstance>()
+                                        ?.FirstOrDefault(n => n.NumberID?.Value == numberingId);
+                                    var levelFormat = numbering?.Elements<AbstractNum>()
+                                        ?.SelectMany(an => an.Elements<Level>())
+                                        ?.FirstOrDefault(l => l.LevelIndex?.Value == level)?.NumberingFormat?.Val?.Value;
+                                    if (levelFormat == NumberFormatValues.Decimal)
+                                        listStyle = "Decimal";
+                                }
+                            }
+
+                            // Извлекаем текст и форматирование Run
+                            StringBuilder paraText = new StringBuilder();
+                            foreach (var run in p.Elements<WordRun>())
+                            {
+                                string runText = run.InnerText;
+                                if (string.IsNullOrWhiteSpace(runText))
+                                    continue;
+
+                                var runProps = run.RunProperties;
+                                string runFontFamily = fontFamily;
+                                double runFontSize = fontSize;
+                                string runFontWeight = fontWeight;
+                                string runFontStyle = fontStyle;
+                                string runTextDecorations = textDecorations;
+
+                                if (runProps != null)
+                                {
+                                    if (runProps.FontSize != null && double.TryParse(runProps.FontSize.Val, out double size))
+                                        runFontSize = size / 2;
+                                    if (runProps.RunFonts != null)
+                                        runFontFamily = runProps.RunFonts.Ascii ?? fontFamily;
+                                    if (runProps.Bold != null)
+                                        runFontWeight = "Bold";
+                                    if (runProps.Italic != null)
+                                        runFontStyle = "Italic";
+                                    if (runProps.Underline != null)
+                                        runTextDecorations = "Underline";
+                                }
+
+                                string escapedText = System.Security.SecurityElement.Escape(runText);
+                                string runHtml = escapedText;
+                                if (runFontWeight == "Bold")
+                                    runHtml = $"<b>{runHtml}</b>";
+                                if (runFontStyle == "Italic")
+                                    runHtml = $"<i>{runHtml}</i>";
+                                if (runTextDecorations == "Underline")
+                                    runHtml = $"<u>{runHtml}</u>";
+
+                                paraText.Append(runHtml);
+                            }
+
+                            if (paraText.Length == 0)
+                                continue;
+
+                            string paraHtml;
+                            if (isListItem)
+                            {
+                                // Исправленная интерполяция для списков
+                                string listTag = listStyle.ToLower() == "decimal" ? "ol" : "ul";
+                                paraHtml = $"<{listTag}><li>{paraText}</li></{listTag}>";
+                            }
+                            else
+                            {
+                                paraHtml = $"<p data-font-family=\"{fontFamily}\" data-font-size=\"{fontSize}\" data-text-align=\"{textAlignment}\" data-font-weight=\"{fontWeight}\" data-font-style=\"{fontStyle}\" data-text-decorations=\"{textDecorations}\">{paraText}</p>";
+                            }
+
+                            htmlContent.Append(paraHtml);
+                        }
                     }
 
-                    string filePath = openFileDialog.FileName;
-                    string content = "";
+                    if (htmlContent.Length == 0)
+                        throw new InvalidOperationException("No valid content found in Word document.");
 
-                    using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(filePath, false))
+                    string xamlText = HtmlToXamlConverter.ConvertHtmlToXaml(htmlContent.ToString(), false);
+                    System.Diagnostics.Debug.WriteLine($"XAML content: {xamlText}");
+                    if (string.IsNullOrWhiteSpace(xamlText))
+                        throw new InvalidOperationException("XAML content is empty after conversion.");
+
+                    var flowDoc = RichTextSerializationHelper.DeserializeFlowDocument(xamlText);
+                    var flowDocText = new TextRange(flowDoc.ContentStart, flowDoc.ContentEnd).Text;
+                    System.Diagnostics.Debug.WriteLine($"FlowDocument text: {flowDocText}");
+                    if (string.IsNullOrWhiteSpace(flowDocText))
                     {
-                        var body = wordDoc.MainDocumentPart.Document.Body;
-                        content = string.Join("\n", body.Descendants<Paragraph>()
-                            .Select(p => p.InnerText)
-                            .Where(t => !string.IsNullOrEmpty(t)));
+                        System.Diagnostics.Debug.WriteLine($"Failed XAML: {xamlText}");
+                        throw new InvalidOperationException("FlowDocument is empty after deserialization.");
                     }
 
-                    var newTemplate = new Template { Name = "Новый шаблон из Word", Content = content };
+                    string serialized = RichTextSerializationHelper.SerializeFlowDocument(flowDoc);
+                    System.Diagnostics.Debug.WriteLine($"Serialized XAML content: {serialized}");
+                    if (string.IsNullOrWhiteSpace(serialized))
+                        throw new InvalidOperationException("Serialized XAML content is empty.");
+
+                    var newTemplate = new Template
+                    {
+                        Name = "Новый шаблон из Word",
+                        Content = serialized
+                    };
+
                     category.Templates.Add(newTemplate);
                     TemplatesListBox.ItemsSource = null;
                     TemplatesListBox.ItemsSource = category.Templates;
-
                     saveChanges?.Invoke();
+                    System.Diagnostics.Debug.WriteLine($"Template added: {newTemplate.Name}, Content length: {newTemplate.Content.Length}");
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Ошибка при загрузке документа Word: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in AddTemplateFromWord: {ex}");
+                MessageBox.Show($"Ошибка при загрузке документа Word: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -117,7 +277,6 @@ namespace alesya_rassylka
                 {
                     Owner = this
                 };
-
                 if (editWindow.ShowDialog() == true)
                 {
                     TemplatesListBox.ItemsSource = null;
@@ -136,6 +295,7 @@ namespace alesya_rassylka
             System.Diagnostics.Debug.WriteLine($"SelectTemplate_Click called. Sender type: {sender.GetType().Name}");
             if (sender is Button button && button.Tag is Template template)
             {
+                System.Diagnostics.Debug.WriteLine($"Selected template: {template.Name}, Content length: {template.Content?.Length ?? 0}");
                 SelectedTemplate = template;
                 DialogResult = true;
                 Close();
@@ -169,6 +329,5 @@ namespace alesya_rassylka
                 System.Diagnostics.Debug.WriteLine($"Unexpected sender type in DeleteTemplate_Click: {sender.GetType().Name}");
             }
         }
-
     }
 }

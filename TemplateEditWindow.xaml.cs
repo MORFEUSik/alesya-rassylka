@@ -1,6 +1,9 @@
 ﻿using System.Windows;
 using System.Windows.Documents;
 using MahApps.Metro.Controls;
+using System.IO;
+using System.Text;
+
 
 namespace alesya_rassylka
 {
@@ -18,8 +21,15 @@ namespace alesya_rassylka
             // Загрузка содержимого в RichTextBox
             if (!string.IsNullOrEmpty(Template.Content))
             {
-                TemplateContentRichTextBox.Document.Blocks.Clear();
-                TemplateContentRichTextBox.Document.Blocks.Add(new Paragraph(new Run(Template.Content)));
+                if (!string.IsNullOrWhiteSpace(Template.Content))
+                {
+                    TemplateContentRichTextBox.Document = RichTextSerializationHelper.DeserializeFlowDocument(Template.Content);
+                }
+                else
+                {
+                    TemplateContentRichTextBox.Document.Blocks.Clear();
+                }
+
             }
         }
 
@@ -35,12 +45,8 @@ namespace alesya_rassylka
 
             Template.Name = newName;
 
-            // Получение текста из RichTextBox
-            TextRange textRange = new TextRange(
-                TemplateContentRichTextBox.Document.ContentStart,
-                TemplateContentRichTextBox.Document.ContentEnd
-            );
-            Template.Content = textRange.Text;
+            Template.Content = RichTextSerializationHelper.SerializeFlowDocument(TemplateContentRichTextBox.Document);
+            
 
             DialogResult = true;
             Close();

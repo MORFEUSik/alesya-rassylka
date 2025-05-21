@@ -109,6 +109,19 @@
           }
         }
       },
+      "HtmlAgilityPack/1.12.1": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/HtmlAgilityPack.dll": {
+            "related": ".deps.json;.pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/HtmlAgilityPack.dll": {
+            "related": ".deps.json;.pdb;.xml"
+          }
+        }
+      },
       "MahApps.Metro/2.4.10": {
         "type": "package",
         "dependencies": {
@@ -315,6 +328,51 @@
         "tools/install.ps1"
       ]
     },
+    "HtmlAgilityPack/1.12.1": {
+      "sha512": "SP6/2Y26CXtxjXn0Wwsom9Ek35SNWKHEu/IWhNEFejBSSVWWXPRSlpqpBSYWv1SQhYFnwMO01xVbEdK3iRR4hg==",
+      "type": "package",
+      "path": "htmlagilitypack/1.12.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "htmlagilitypack.1.12.1.nupkg.sha512",
+        "htmlagilitypack.nuspec",
+        "lib/Net35/HtmlAgilityPack.dll",
+        "lib/Net35/HtmlAgilityPack.pdb",
+        "lib/Net35/HtmlAgilityPack.xml",
+        "lib/Net40-client/HtmlAgilityPack.dll",
+        "lib/Net40-client/HtmlAgilityPack.pdb",
+        "lib/Net40-client/HtmlAgilityPack.xml",
+        "lib/Net40/HtmlAgilityPack.XML",
+        "lib/Net40/HtmlAgilityPack.dll",
+        "lib/Net40/HtmlAgilityPack.pdb",
+        "lib/Net45/HtmlAgilityPack.XML",
+        "lib/Net45/HtmlAgilityPack.dll",
+        "lib/Net45/HtmlAgilityPack.pdb",
+        "lib/NetCore45/HtmlAgilityPack.XML",
+        "lib/NetCore45/HtmlAgilityPack.dll",
+        "lib/NetCore45/HtmlAgilityPack.pdb",
+        "lib/net8.0/HtmlAgilityPack.deps.json",
+        "lib/net8.0/HtmlAgilityPack.dll",
+        "lib/net8.0/HtmlAgilityPack.pdb",
+        "lib/net8.0/HtmlAgilityPack.xml",
+        "lib/netstandard2.0/HtmlAgilityPack.deps.json",
+        "lib/netstandard2.0/HtmlAgilityPack.dll",
+        "lib/netstandard2.0/HtmlAgilityPack.pdb",
+        "lib/netstandard2.0/HtmlAgilityPack.xml",
+        "lib/portable-net45+netcore45+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.XML",
+        "lib/portable-net45+netcore45+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.dll",
+        "lib/portable-net45+netcore45+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.pdb",
+        "lib/portable-net45+netcore45+wpa81+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.XML",
+        "lib/portable-net45+netcore45+wpa81+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.dll",
+        "lib/portable-net45+netcore45+wpa81+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.pdb",
+        "lib/uap10.0/HtmlAgilityPack.XML",
+        "lib/uap10.0/HtmlAgilityPack.dll",
+        "lib/uap10.0/HtmlAgilityPack.pdb",
+        "lib/uap10.0/HtmlAgilityPack.pri",
+        "readme.md"
+      ]
+    },
     "MahApps.Metro/2.4.10": {
       "sha512": "45exHKJCVYaD1/rNr3ekZPECEBM4uHOt6aYp6yNaJbliFMUo+d3z8Gi1xG+qEkbiHKITX+dlz+BW1FOsjAbl/w==",
       "type": "package",
@@ -454,29 +512,30 @@
       "ControlzEx >= 4.4.0",
       "DocumentFormat.OpenXml >= 3.3.0",
       "Extended.Wpf.Toolkit >= 4.7.25104.5739",
+      "HtmlAgilityPack >= 1.12.1",
       "MahApps.Metro >= 2.4.10",
       "MahApps.Metro.Resources.Standalone >= 0.1.0",
       "Microsoft.Office.Interop.Word >= 15.0.4797.1004"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\alesy\\.nuget\\packages\\": {},
+    "C:\\Users\\morfeus\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\app\\fork\\alesya-rassylka\\alesya-rassylka.csproj",
+      "projectUniqueName": "C:\\Users\\morfeus\\alesya-rassylka\\alesya-rassylka.csproj",
       "projectName": "alesya-rassylka",
-      "projectPath": "D:\\app\\fork\\alesya-rassylka\\alesya-rassylka.csproj",
-      "packagesPath": "C:\\Users\\alesy\\.nuget\\packages\\",
-      "outputPath": "D:\\app\\fork\\alesya-rassylka\\obj\\",
+      "projectPath": "C:\\Users\\morfeus\\alesya-rassylka\\alesya-rassylka.csproj",
+      "packagesPath": "C:\\Users\\morfeus\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\morfeus\\alesya-rassylka\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\alesy\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\morfeus\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -522,6 +581,10 @@
             "target": "Package",
             "version": "[4.7.25104.5739, )"
           },
+          "HtmlAgilityPack": {
+            "target": "Package",
+            "version": "[1.12.1, )"
+          },
           "MahApps.Metro": {
             "target": "Package",
             "version": "[2.4.10, )"
@@ -554,7 +617,7 @@
             "privateAssets": "none"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.200/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.204/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

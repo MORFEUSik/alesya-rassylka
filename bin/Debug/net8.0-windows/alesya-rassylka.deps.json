@@ -11,6 +11,7 @@
           "ControlzEx": "4.4.0",
           "DocumentFormat.OpenXml": "3.3.0",
           "Extended.Wpf.Toolkit": "4.7.25104.5739",
+          "HtmlAgilityPack": "1.12.1",
           "MahApps.Metro": "2.4.10",
           "MahApps.Metro.Resources.Standalone": "0.1.0",
           "Microsoft.Office.Interop.Word": "15.0.4797.1004"
@@ -115,6 +116,14 @@
           }
         }
       },
+      "HtmlAgilityPack/1.12.1": {
+        "runtime": {
+          "lib/net8.0/HtmlAgilityPack.dll": {
+            "assemblyVersion": "1.12.1.0",
+            "fileVersion": "1.12.1.0"
+          }
+        }
+      },
       "MahApps.Metro/2.4.10": {
         "dependencies": {
           "ControlzEx": "4.4.0"
@@ -192,6 +201,13 @@
       "sha512": "sha512-x6fCMLeExVZjyPl6f9/NRITW4uzT3xBZA40CBWA9YlH4/w6rKzsIeTDwYvavdmJLrl43p0LIFSQChISCnTSR6Q==",
       "path": "extended.wpf.toolkit/4.7.25104.5739",
       "hashPath": "extended.wpf.toolkit.4.7.25104.5739.nupkg.sha512"
+    },
+    "HtmlAgilityPack/1.12.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-SP6/2Y26CXtxjXn0Wwsom9Ek35SNWKHEu/IWhNEFejBSSVWWXPRSlpqpBSYWv1SQhYFnwMO01xVbEdK3iRR4hg==",
+      "path": "htmlagilitypack/1.12.1",
+      "hashPath": "htmlagilitypack.1.12.1.nupkg.sha512"
     },
     "MahApps.Metro/2.4.10": {
       "type": "package",
