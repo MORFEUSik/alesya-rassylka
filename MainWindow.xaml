@@ -285,8 +285,8 @@
             <!-- Навигационные кнопки -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,10" Height="38" Grid.Row="0">
                 <Button Content="Настройки" Style="{StaticResource NavButton}" Margin="0,0,20,0" Click="Settings_Click"/>
-                <!--<Button Content="Справка" Style="{StaticResource NavButton}" Margin="0,0,20,0" Click="Help_Click"/>
-                <Button Content="О программе" Style="{StaticResource NavButton}" Click="About_Click"/>-->
+                <Button Content="Справка" Style="{StaticResource NavButton}" Margin="0,0,20,0" Click="Help_Click"/>
+                <Button Content="О программе" Style="{StaticResource NavButton}" Click="About_Click"/>
             </StackPanel>
 
             <!-- RichTextBox с панелью инструментов -->
