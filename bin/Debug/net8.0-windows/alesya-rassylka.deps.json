@@ -14,7 +14,8 @@
           "HtmlAgilityPack": "1.12.1",
           "MahApps.Metro": "2.4.10",
           "MahApps.Metro.Resources.Standalone": "0.1.0",
-          "Microsoft.Office.Interop.Word": "15.0.4797.1004"
+          "Microsoft.Office.Interop.Word": "15.0.4797.1004",
+          "System.Windows.Forms.Ribbon35": "3.5.8"
         },
         "runtime": {
           "alesya-rassylka.dll": {}
@@ -165,7 +166,15 @@
           }
         }
       },
-      "System.Text.Json/4.7.2": {}
+      "System.Text.Json/4.7.2": {},
+      "System.Windows.Forms.Ribbon35/3.5.8": {
+        "runtime": {
+          "lib/net35/System.Windows.Forms.Ribbon35.dll": {
+            "assemblyVersion": "3.5.8.0",
+            "fileVersion": "3.5.8.0"
+          }
+        }
+      }
     }
   },
   "libraries": {
@@ -250,6 +259,13 @@
       "sha512": "sha512-TcMd95wcrubm9nHvJEQs70rC0H/8omiSGGpU4FQ/ZA1URIqD4pjmFJh2Mfv1yH1eHgJDWTi2hMDXwTET+zOOyg==",
       "path": "system.text.json/4.7.2",
       "hashPath": "system.text.json.4.7.2.nupkg.sha512"
+    },
+    "System.Windows.Forms.Ribbon35/3.5.8": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-eCT9IcJyU/NDrDA7Obp40Ata7hvPTVrtKjcofJe4LC/qjx7MNpOR0vNDfc5IDEzZi5bP5wGfJpVOWnnFeL2AUQ==",
+      "path": "system.windows.forms.ribbon35/3.5.8",
+      "hashPath": "system.windows.forms.ribbon35.3.5.8.nupkg.sha512"
     }
   }
 }

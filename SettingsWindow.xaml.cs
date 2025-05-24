@@ -12,15 +12,20 @@ using Microsoft.VisualBasic;
 
 namespace alesya_rassylka
 {
-  public partial class SettingsWindow : MetroWindow
-{
-    private DataStore dataStore;
-    private Action saveCallback;
-    private MainWindow mainWindow;
-    private List<Sender> tempSenders; // Временная копия списка отправителей
-
+    public partial class SettingsWindow : MetroWindow
+    {
+        private DataStore dataStore;
+        private Action saveCallback;
+        private MainWindow mainWindow;
+        private List<Sender> tempSenders;
         SolidColorBrush originalBackgroundBrush = null;
         SolidColorBrush originalLeftBorderBrush = null;
+
+        // Статическое свойство для текущего цвета темы
+        public static Color CurrentThemeColor { get; private set; } = (Color)ColorConverter.ConvertFromString("#DFE3EB");
+
+        // Событие для уведомления об изменении темы
+        public static event Action ThemeChanged;
 
         public SettingsWindow(DataStore dataStore, Action saveCallback, MainWindow mainWindow)
         {
@@ -28,6 +33,12 @@ namespace alesya_rassylka
             this.dataStore = dataStore;
             this.saveCallback = saveCallback;
             this.mainWindow = mainWindow;
+
+            // Применяем текущую тему сразу при создании окна
+            this.Loaded += (s, e) =>
+            {
+                this.Background = new SolidColorBrush(CurrentThemeColor);
+            };
 
             // Инициализация отправителей
             tempSenders = dataStore.Senders.Select(s => new Sender
@@ -42,7 +53,6 @@ namespace alesya_rassylka
             DefaultSenderComboBox.DisplayMemberPath = "Email";
             DefaultSenderComboBox.SelectedItem = tempSenders.Find(s => s.IsDefault);
 
-
             if (mainWindow.Background is SolidColorBrush backgroundBrush)
             {
                 originalBackgroundBrush = backgroundBrush.Clone();
@@ -53,11 +63,12 @@ namespace alesya_rassylka
                     originalLeftBorderBrush = leftBrush.Clone();
                 }
 
-                string currentColorHex = backgroundBrush.Color.ToString();
+                // Загружаем текущую тему и выбираем соответствующий элемент в ComboBox
+                string currentColorHex = CurrentThemeColor.ToString();
                 foreach (ComboBoxItem item in ColorComboBox.Items)
                 {
                     string itemColorHex = item.Tag.ToString();
-                    if (currentColorHex.Replace("#FF", "#") == itemColorHex)
+                    if (currentColorHex.Replace("#FF", "#").Equals(itemColorHex, StringComparison.OrdinalIgnoreCase))
                     {
                         ColorComboBox.SelectedItem = item;
                         break;
@@ -65,73 +76,101 @@ namespace alesya_rassylka
                 }
             }
 
-
-
             ColorComboBox.SelectionChanged += (sender, e) =>
             {
                 if (ColorComboBox.SelectedItem is ComboBoxItem selectedItem && selectedItem.Tag is string colorHex)
                 {
-                    var color = (Color)ColorConverter.ConvertFromString(colorHex);
-                    mainWindow.Background = new SolidColorBrush(color);
+                    CurrentThemeColor = (Color)ColorConverter.ConvertFromString(colorHex);
+                    ApplyThemeToAllWindows(CurrentThemeColor);
+                    ThemeChanged?.Invoke();
 
-                    var leftBorder = FindVisualChild<Border>(mainWindow, "LeftBorder");
-                    if (leftBorder != null)
-                    {
-                        if (colorHex != "#DFE3EB" && colorHex != "#FFFFFF")
-                        {
-                            leftBorder.Background = new SolidColorBrush(DarkenColor(color, 0.5));
-                        }
-                        else
-                        {
-                            leftBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"));
-                        }
-                    }
+                    // Применяем тему к текущему окну
+                    this.Background = new SolidColorBrush(CurrentThemeColor);
                 }
             };
-            this.Closing += SettingsWindow_Closing;
-        }
-        private void SettingsWindow_Closing(object sender, CancelEventArgs e)
-        {
-            if (DialogResult != true) // если не было Save_Click (где DialogResult = true)
-            {
-                if (originalBackgroundBrush != null)
-                    mainWindow.Background = originalBackgroundBrush;
 
-                var leftBorder = FindVisualChild<Border>(mainWindow, "LeftBorder");
-                if (leftBorder != null && originalLeftBorderBrush != null)
-                    leftBorder.Background = originalLeftBorderBrush;
+            this.Closing += SettingsWindow_Closing;
+
+            // Подписываемся на изменения темы
+            ThemeChanged += () =>
+            {
+                this.Dispatcher.Invoke(() =>
+                {
+                    this.Background = new SolidColorBrush(CurrentThemeColor);
+                });
+            };
+        }
+
+        private void ApplyThemeToAllWindows(Color color)
+        {
+            var newBrush = new SolidColorBrush(color);
+
+            // Применяем тему ко всем окнам
+            foreach (Window window in Application.Current.Windows)
+            {
+                window.Background = newBrush;
+
+                // Особые стили для главного окна
+                if (window is MainWindow mainWin)
+                {
+                    var leftBorder = FindVisualChild<Border>(mainWin, "LeftBorder");
+                    if (leftBorder != null)
+                    {
+                        string colorHex = color.ToString();
+                        leftBorder.Background = colorHex != "#FFDFE3EB" && colorHex != "#FFFFFFFF"
+                            ? new SolidColorBrush(DarkenColor(color, 0.5))
+                            : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"));
+                    }
+                }
             }
         }
 
-        // Метод для поиска элементов в визуальном дереве (особенно важно для MahApps)
-        private static T FindVisualChild<T>(DependencyObject parent, string childName)
-        where T : DependencyObject
-    {
-        if (parent == null) return null;
 
-        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        private void SettingsWindow_Closing(object sender, CancelEventArgs e)
         {
-            var child = VisualTreeHelper.GetChild(parent, i);
-            if (child is T result && (result as FrameworkElement)?.Name == childName)
-                return result;
+            if (DialogResult != true)
+            {
+                // Восстанавливаем оригинальные цвета
+                if (originalBackgroundBrush != null)
+                {
+                    CurrentThemeColor = originalBackgroundBrush.Color;
+                    ApplyThemeToAllWindows(CurrentThemeColor);
+                }
 
-            var foundChild = FindVisualChild<T>(child, childName);
-            if (foundChild != null)
-                return foundChild;
+                var leftBorder = FindVisualChild<Border>(mainWindow, "LeftBorder");
+                if (leftBorder != null && originalLeftBorderBrush != null)
+                {
+                    leftBorder.Background = originalLeftBorderBrush;
+                }
+            }
         }
-        return null;
-    }
 
-    // Затемнение цвета (умножение RGB на коэффициент)
-    private Color DarkenColor(Color color, double factor = 0.7)
-    {
-        return Color.FromArgb(
-            color.A,
-            (byte)(color.R * factor),
-            (byte)(color.G * factor),
-            (byte)(color.B * factor));
-    }
+        private static T FindVisualChild<T>(DependencyObject parent, string childName) where T : DependencyObject
+        {
+            if (parent == null) return null;
 
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T result && (result as FrameworkElement)?.Name == childName)
+                    return result;
+
+                var foundChild = FindVisualChild<T>(child, childName);
+                if (foundChild != null)
+                    return foundChild;
+            }
+            return null;
+        }
+       
+        private Color DarkenColor(Color color, double factor = 0.7)
+        {
+            return Color.FromArgb(
+                color.A,
+                (byte)(color.R * factor),
+                (byte)(color.G * factor),
+                (byte)(color.B * factor));
+        }
+    
 
         private void AddSender_Click(object sender, RoutedEventArgs e)
         {
@@ -187,72 +226,177 @@ namespace alesya_rassylka
                 {
                     Title = "Редактирование отправителя",
                     Width = 350,
-                    Height = 290,
+                    Height = 255,
                     WindowStartupLocation = WindowStartupLocation.CenterOwner,
                     Owner = this,
                     ResizeMode = ResizeMode.NoResize,
-                    Background = new LinearGradientBrush
-                    {
-                        StartPoint = new Point(0, 0),
-                        EndPoint = new Point(1, 1),
-                        GradientStops = new GradientStopCollection
-                {
-                    new GradientStop((Color)ColorConverter.ConvertFromString("#F5F6F5"), 0.0),
-                    new GradientStop((Color)ColorConverter.ConvertFromString("#E0E7E9"), 1.0)
-                }
-                    },
-                    BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30")),
+                    Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor),
+                    BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
                     BorderThickness = new Thickness(1),
-                    Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png"))
+                    Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png")),
+                    TitleForeground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                    TitleCharacterCasing = CharacterCasing.Normal
                 };
 
-                var stackPanel = new StackPanel { Margin = new Thickness(20) };
+                // Подписка на изменение темы
+                SettingsWindow.ThemeChanged += UpdateWindowTheme;
+                editSenderWindow.Closed += (s, e) => SettingsWindow.ThemeChanged -= UpdateWindowTheme;
+
+                void UpdateWindowTheme()
+                {
+                    editSenderWindow.Dispatcher.Invoke(() =>
+                    {
+                        editSenderWindow.Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor);
+                    });
+                }
+
+                Style CreateActionButtonStyle()
+                {
+                    var style = new Style(typeof(Button));
+                    style.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.White));
+                    style.Setters.Add(new Setter(Control.ForegroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+                    style.Setters.Add(new Setter(Control.FontSizeProperty, 16.0));
+                    style.Setters.Add(new Setter(Control.FontFamilyProperty, new FontFamily("Arial Black")));
+                    style.Setters.Add(new Setter(Control.FontWeightProperty, FontWeights.Bold));
+                    style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(10, 5, 10, 5)));
+                    style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
+                    style.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+                    style.Setters.Add(new Setter(Control.CursorProperty, Cursors.Hand));
+                    style.Setters.Add(new Setter(Control.MinHeightProperty, 30.0));
+                    style.Setters.Add(new Setter(Control.TemplateProperty, CreateButtonTemplate()));
+                    return style;
+                }
+
+                ControlTemplate CreateButtonTemplate()
+                {
+                    var template = new ControlTemplate(typeof(Button));
+                    var border = new FrameworkElementFactory(typeof(Border));
+                    border.Name = "border";
+                    border.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
+                    border.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Control.BorderBrushProperty));
+                    border.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Control.BorderThicknessProperty));
+                    border.SetValue(Border.CornerRadiusProperty, new CornerRadius(5));
+                    border.SetValue(Border.PaddingProperty, new TemplateBindingExtension(Control.PaddingProperty));
+
+                    var contentPresenter = new FrameworkElementFactory(typeof(ContentPresenter));
+                    contentPresenter.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Center);
+                    contentPresenter.SetValue(VerticalAlignmentProperty, VerticalAlignment.Center);
+                    border.AppendChild(contentPresenter);
+
+                    template.VisualTree = border;
+
+                    var mouseOverTrigger = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
+                    mouseOverTrigger.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E0E6F8")), "border"));
+                    template.Triggers.Add(mouseOverTrigger);
+
+                    var pressedTrigger = new Trigger { Property = Button.IsPressedProperty, Value = true };
+                    pressedTrigger.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C0D0F0")), "border"));
+                    template.Triggers.Add(pressedTrigger);
+
+                    return template;
+                }
+
+                ControlTemplate CreateRoundedTextBoxTemplate()
+                {
+                    var template = new ControlTemplate(typeof(TextBox));
+                    var border = new FrameworkElementFactory(typeof(Border));
+                    border.Name = "Border";
+                    border.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
+                    border.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Control.BorderBrushProperty));
+                    border.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Control.BorderThicknessProperty));
+                    border.SetValue(Border.CornerRadiusProperty, new CornerRadius(5));
+
+                    var scrollViewer = new FrameworkElementFactory(typeof(ScrollViewer));
+                    scrollViewer.Name = "PART_ContentHost";
+                    scrollViewer.SetValue(ScrollViewer.MarginProperty, new Thickness(0));
+                    border.AppendChild(scrollViewer);
+
+                    template.VisualTree = border;
+                    return template;
+                }
+                var stackPanel = new StackPanel { Margin = new Thickness(10) };
 
                 var title = new TextBlock
                 {
-                    Text = "Введите новые данные отправителя:",
+                    Text = "Редактирование отправителя:",
                     FontSize = 16,
                     FontWeight = FontWeights.Bold,
-                    Margin = new Thickness(0, 0, 0, 15),
-                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30"))
+                    Margin = new Thickness(0, 0, 0, 10),
+                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))
                 };
                 stackPanel.Children.Add(title);
 
-                var emailLabel = new TextBlock { Text = "Email:", FontSize = 14, Margin = new Thickness(0, 0, 0, 5), Foreground = Brushes.Black };
-                var emailTextBox = new TextBox { Width = 250, Height = 30, FontSize = 14, Text = senderToEdit.Email, Margin = new Thickness(0, 0, 0, 15), BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30")), BorderThickness = new Thickness(1), Background = Brushes.White };
+                var emailLabel = new TextBlock
+                {
+                    Text = "Email:",
+                    FontSize = 14,
+                    Margin = new Thickness(0, 0, 0, 5),
+                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))
+                };
+
+                var emailTextBox = new TextBox
+                {
+                    
+                    FontSize = 14,
+                    Text = senderToEdit.Email,
+                    Margin = new Thickness(0, 0, 0, 10),
+                    BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                    BorderThickness = new Thickness(1),
+                    Background = Brushes.White,
+                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                    Padding = new Thickness(5),
+                    Template = CreateRoundedTextBoxTemplate()
+                };
+
                 stackPanel.Children.Add(emailLabel);
                 stackPanel.Children.Add(emailTextBox);
 
-                var passwordLabel = new TextBlock { Text = "Пароль:", FontSize = 14, Margin = new Thickness(0, 0, 0, 5), Foreground = Brushes.Black };
-                var passwordTextBox = new TextBox { Width = 250, Height = 30, FontSize = 14, Text = senderToEdit.Password, Margin = new Thickness(0, 0, 0, 15), BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30")), BorderThickness = new Thickness(1), Background = Brushes.White };
+                var passwordLabel = new TextBlock
+                {
+                    Text = "Пароль:",
+                    FontSize = 14,
+                    Margin = new Thickness(0, 0, 0, 5),
+                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))
+                };
+
+                var passwordTextBox = new TextBox
+                {
+                    
+                    FontSize = 14,
+                    Text = senderToEdit.Password,
+                    Margin = new Thickness(0, 0, 0, 15),
+                    BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                    BorderThickness = new Thickness(1),
+                    Background = Brushes.White,
+                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                    Padding = new Thickness(5),
+                    Template = CreateRoundedTextBoxTemplate()
+                };
+
                 stackPanel.Children.Add(passwordLabel);
                 stackPanel.Children.Add(passwordTextBox);
 
-                var buttonPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Center };
+                var buttonPanel = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    HorizontalAlignment = HorizontalAlignment.Center
+                };
 
                 var saveButton = new Button
                 {
-                    Content = "Сохранить",
-                    Width = 100,
+                    Content = "Применить",
+                    Width = 125,
                     Height = 35,
                     Margin = new Thickness(0, 0, 10, 0),
-                    Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D2D30")),
-                    Foreground = Brushes.White,
-                    FontSize = 14,
-                    FontWeight = FontWeights.Medium,
-                    Cursor = Cursors.Hand
+                    Style = CreateActionButtonStyle()
                 };
 
                 var cancelButton = new Button
                 {
-                    Content = "Отмена",
-                    Width = 100,
+                    Content = "Отменить",
+                    Width = 125,
                     Height = 35,
-                    Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D3D3D3")),
-                    Foreground = Brushes.Black,
-                    FontSize = 14,
-                    FontWeight = FontWeights.Medium,
-                    Cursor = Cursors.Hand
+                    Style = CreateActionButtonStyle()
                 };
 
                 saveButton.Click += (s, args) =>
@@ -290,6 +434,7 @@ namespace alesya_rassylka
                     MessageBox.Show("Отправитель успешно отредактирован!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                     editSenderWindow.Close();
                 };
+
                 cancelButton.Click += (s, args) => editSenderWindow.Close();
 
                 buttonPanel.Children.Add(saveButton);
@@ -304,7 +449,6 @@ namespace alesya_rassylka
                 MessageBox.Show("Ошибка: отправитель не выбран.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
-
         private void DeleteSender_Click(object sender, RoutedEventArgs e)
         {
             System.Diagnostics.Debug.WriteLine($"DeleteSender_Click: Sender type={sender.GetType().Name}, Tag={((sender as Button)?.Tag)?.GetType().Name}");

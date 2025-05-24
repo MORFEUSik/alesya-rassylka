@@ -16,6 +16,7 @@ using WpfRun = System.Windows.Documents.Run;
 using WordParagraph = DocumentFormat.OpenXml.Wordprocessing.Paragraph;
 using WordRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 using WordStyle = DocumentFormat.OpenXml.Wordprocessing.Style;
+using System.Windows.Media;
 
 namespace alesya_rassylka
 {
@@ -35,6 +36,19 @@ namespace alesya_rassylka
             CategoryNameTextBox.Text = category.Name;
             TemplatesListBox.ItemsSource = category.Templates;
             System.Diagnostics.Debug.WriteLine("TemplateManagerWindow initialized successfully");
+
+            // Применяем текущую тему
+            this.Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor);
+
+            // Подписываемся на изменения темы
+            SettingsWindow.ThemeChanged += () =>
+            {
+                this.Dispatcher.Invoke(() =>
+                {
+                    this.Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor);
+                });
+            };
+
         }
 
         private void SaveCategoryName_Click(object sender, RoutedEventArgs e)

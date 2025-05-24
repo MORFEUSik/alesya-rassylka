@@ -17,6 +17,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Markup;
 using System.Xml;
 
+
 namespace alesya_rassylka
 {
 
@@ -656,13 +657,26 @@ namespace alesya_rassylka
                 Height = 165,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this,
-                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DFE3EB")),
                 ResizeMode = ResizeMode.NoResize,
                 Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png")),
                 TitleForeground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
                 BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
-                BorderThickness = new Thickness(1)
+                BorderThickness = new Thickness(1),
+                // Устанавливаем текущую тему сразу при создании
+                Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor)
             };
+
+
+            SettingsWindow.ThemeChanged += UpdateWindowTheme;
+            addCategoryWindow.Closed += (s, e) => SettingsWindow.ThemeChanged -= UpdateWindowTheme;
+
+            void UpdateWindowTheme()
+            {
+                addCategoryWindow.Dispatcher.Invoke(() =>
+                {
+                    addCategoryWindow.Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor);
+                });
+            }
 
             var stackPanel = new StackPanel { Margin = new Thickness(10) };
 
@@ -743,7 +757,6 @@ namespace alesya_rassylka
 
             var inputTextBox = new TextBox
             {
-                Height = 30,
                 FontSize = 14,
                 Padding = new Thickness(5),
                 Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
@@ -1124,13 +1137,25 @@ namespace alesya_rassylka
                 Height = 403,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this,
-                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DFE3EB")),
+                Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor),
                 ResizeMode = ResizeMode.NoResize,
                 Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png")),
                 TitleForeground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
                 BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
                 BorderThickness = new Thickness(1)
             };
+
+
+            SettingsWindow.ThemeChanged += UpdateWindowTheme;
+            senderSelectionWindow.Closed += (s, e) => SettingsWindow.ThemeChanged -= UpdateWindowTheme;
+
+            void UpdateWindowTheme()
+            {
+                senderSelectionWindow.Dispatcher.Invoke(() =>
+                {
+                    senderSelectionWindow.Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor);
+                });
+            }
 
             senderSelectionWindow.TitleCharacterCasing = CharacterCasing.Normal;
 
@@ -2099,6 +2124,8 @@ namespace alesya_rassylka
             foreach (var li in tempList)
                 collection.Add(li);
         }
+
+     
 
 
         private void AlignLeft_Click(object sender, RoutedEventArgs e)

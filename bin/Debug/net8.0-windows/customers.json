@@ -52,12 +52,12 @@
     {
       "Email": "kikbika@gmail.com",
       "Password": "zbobujojpchynxwd",
-      "IsDefault": true
+      "IsDefault": false
     },
     {
       "Email": "support@gmail.com",
       "Password": "atlant12345",
-      "IsDefault": false
+      "IsDefault": true
     }
   ]
 }

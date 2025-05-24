@@ -3,6 +3,7 @@ using System.Windows.Documents;
 using MahApps.Metro.Controls;
 using System.IO;
 using System.Text;
+using System.Windows.Media;
 
 
 namespace alesya_rassylka
@@ -14,6 +15,17 @@ namespace alesya_rassylka
         public TemplateEditWindow(Template template)
         {
             InitializeComponent();
+            // Применяем текущую тему
+            this.Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor);
+
+            // Подписываемся на изменения темы
+            SettingsWindow.ThemeChanged += () =>
+            {
+                this.Dispatcher.Invoke(() =>
+                {
+                    this.Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor);
+                });
+            };
             Template = template ?? new Template { Name = "Новый шаблон", Content = "" };
 
             TemplateNameTextBox.Text = Template.Name;

@@ -7,11 +7,9 @@
         Title="Выбор получателей" Height="500" Width="600" 
         Background="#DFE3EB" WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
-       
         BorderBrush="#172A74" BorderThickness="1"
         Icon="/icons8-почта-100.png"
         TitleCharacterCasing="Normal"
-        WindowTitleBrush="#DFE3EB"
         TitleForeground="#172A74">
 
     <Window.Resources>

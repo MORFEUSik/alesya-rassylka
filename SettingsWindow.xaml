@@ -305,8 +305,8 @@
             <ComboBoxItem Content="Голубой" Tag="#DFE3EB"/>
             <ComboBoxItem Content="Белый" Tag="#FFFFFF"/>
             <ComboBoxItem Content="Серый" Tag="#E5E5E5"/>
-            <ComboBoxItem Content="Зеленый" Tag="#e4f0e7"/>
-            <ComboBoxItem Content="Фиолетовый" Tag="#b1a5b8"/>
+            <ComboBoxItem Content="Зеленый" Tag="#E4F0E7"/>
+            <ComboBoxItem Content="Фиолетовый" Tag="#E6E6FA"/>
           
         </ComboBox>
 

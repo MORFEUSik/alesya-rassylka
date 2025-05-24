@@ -30,8 +30,19 @@ namespace alesya_rassylka
         public SelectRecipientWindow(DataStore dataStore, Action saveCallback)
         {
             InitializeComponent();
+            // Применяем текущую тему
+    this.Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor);
+    
+    // Подписываемся на изменения темы
+    SettingsWindow.ThemeChanged += () => 
+    {
+        this.Dispatcher.Invoke(() => 
+        {
+            this.Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor);
+        });
+    };
 
-            SaveCallback = saveCallback;
+           SaveCallback = saveCallback;
             allRecipients = dataStore.Recipients;
             Categories = dataStore.Categories;
             FilteredCategories = new ObservableCollection<string>(Categories);
@@ -41,6 +52,7 @@ namespace alesya_rassylka
             filteredRecipients = CollectionViewSource.GetDefaultView(allRecipients);
             filteredRecipients.Filter = FilterRecipients;
             RecipientsListBox.ItemsSource = filteredRecipients;
+
         }
 
         private bool FilterRecipients(object obj)
@@ -156,13 +168,26 @@ namespace alesya_rassylka
                 Height = 165,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this,
-                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DFE3EB")),
+                Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor),
                 ResizeMode = ResizeMode.NoResize,
                 Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png")),
                 TitleForeground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
                 BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
                 BorderThickness = new Thickness(1)
             };
+
+
+            // Подписка на изменение темы
+            SettingsWindow.ThemeChanged += UpdateWindowTheme;
+            addCategoryWindow.Closed += (s, e) => SettingsWindow.ThemeChanged -= UpdateWindowTheme;
+
+            void UpdateWindowTheme()
+            {
+                addCategoryWindow.Dispatcher.Invoke(() =>
+                {
+                    addCategoryWindow.Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor);
+                });
+            }
 
             var stackPanel = new StackPanel { Margin = new Thickness(10) };
 
@@ -178,8 +203,7 @@ namespace alesya_rassylka
 
             var inputTextBox = new TextBox
             {
-                
-                Height = 30,
+   
                 FontSize = 14,
                 Padding = new Thickness(5),
                 Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
@@ -342,7 +366,7 @@ namespace alesya_rassylka
                 Height = 165,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this,
-                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DFE3EB")),
+                Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor),
                 ResizeMode = ResizeMode.NoResize,
                 Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png")),
                 TitleForeground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
@@ -351,6 +375,18 @@ namespace alesya_rassylka
             };
 
             var stackPanel = new StackPanel { Margin = new Thickness(10) };
+
+            SettingsWindow.ThemeChanged += UpdateWindowTheme;
+            editCategoryWindow.Closed += (s, e) => SettingsWindow.ThemeChanged -= UpdateWindowTheme;
+
+            void UpdateWindowTheme()
+            {
+                editCategoryWindow.Dispatcher.Invoke(() =>
+                {
+                    editCategoryWindow.Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor);
+                });
+            }
+
 
             var title = new TextBlock
             {
@@ -365,7 +401,6 @@ namespace alesya_rassylka
             var inputTextBox = new TextBox
             {
                 Text = rightClickedCategory,
-                Height = 30,
                 FontSize = 14,
                 Padding = new Thickness(5),
                 Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
@@ -510,15 +545,28 @@ namespace alesya_rassylka
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this,
                 ResizeMode = ResizeMode.NoResize,
-                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DFE3EB")),
+                Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor),
                 BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
                 BorderThickness = new Thickness(1),
                 Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png")),
                 TitleForeground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
                 TitleCharacterCasing = CharacterCasing.Normal
             };
+            SettingsWindow.ThemeChanged += UpdateWindowTheme;
+            addRecipientWindow.Closed += (s, e) => SettingsWindow.ThemeChanged -= UpdateWindowTheme;
+
+            void UpdateWindowTheme()
+            {
+                addRecipientWindow.Dispatcher.Invoke(() =>
+                {
+                    addRecipientWindow.Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor);
+                });
+            }
+
 
             Style CreateActionButtonStyle()
+
+
             {
                 var style = new Style(typeof(Button));
                 style.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.White));
@@ -666,7 +714,7 @@ namespace alesya_rassylka
             };
             var nameTextBox = new TextBox
             {
-                Height = 30,
+               
                 FontSize = 14,
                 Margin = new Thickness(0, 0, 0, 10),
                 BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
@@ -688,7 +736,7 @@ namespace alesya_rassylka
             };
             var emailTextBox = new TextBox
             {
-                Height = 30,
+               
                 FontSize = 14,
                 Margin = new Thickness(0, 0, 0, 10),
                 BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
@@ -831,13 +879,24 @@ namespace alesya_rassylka
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this,
                 ResizeMode = ResizeMode.NoResize,
-                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DFE3EB")),
+                Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor),
                 BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
                 BorderThickness = new Thickness(1),
                 Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png")),
                 TitleForeground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
                 TitleCharacterCasing = CharacterCasing.Normal
             };
+
+            SettingsWindow.ThemeChanged += UpdateWindowTheme;
+            editRecipientWindow.Closed += (s, e) => SettingsWindow.ThemeChanged -= UpdateWindowTheme;
+
+            void UpdateWindowTheme()
+            {
+                editRecipientWindow.Dispatcher.Invoke(() =>
+                {
+                    editRecipientWindow.Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor);
+                });
+            }
 
             // Создаём стиль ListBox с закруглёнными углами
             Style listBoxStyle = new Style(typeof(ListBox));
@@ -923,7 +982,6 @@ namespace alesya_rassylka
             var nameTextBox = new TextBox
             {
                 Text = recipient.Name,
-                Height = 30,
                 FontSize = 14,
                 Margin = new Thickness(0, 0, 0, 10),
                 BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
@@ -946,7 +1004,6 @@ namespace alesya_rassylka
             var emailTextBox = new TextBox
             {
                 Text = recipient.Email,
-                Height = 30,
                 FontSize = 14,
                 Margin = new Thickness(0, 0, 0, 10),
                 BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
