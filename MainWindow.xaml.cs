@@ -82,12 +82,12 @@ namespace alesya_rassylka
                     writer.WriteAttributeString("FontStyle", paragraph.FontStyle.ToString());
                 if (paragraph.TextDecorations?.Contains(TextDecorations.Underline[0]) == true)
                     writer.WriteAttributeString("TextDecorations", "Underline");
-
+                if (paragraph.Foreground is SolidColorBrush foreground)
+                    writer.WriteAttributeString("Foreground", foreground.Color.ToString());
                 foreach (Inline inline in paragraph.Inlines)
                 {
                     WriteInline(writer, inline);
                 }
-
                 writer.WriteEndElement();
             }
             else if (block is List list)
@@ -118,6 +118,8 @@ namespace alesya_rassylka
                     writer.WriteAttributeString("FontStyle", run.FontStyle.ToString());
                 if (run.TextDecorations?.Contains(TextDecorations.Underline[0]) == true)
                     writer.WriteAttributeString("TextDecorations", "Underline");
+                if (run.Foreground is SolidColorBrush foreground)
+                    writer.WriteAttributeString("Foreground", foreground.Color.ToString());
                 writer.WriteString(run.Text);
                 writer.WriteEndElement();
             }
@@ -178,18 +180,20 @@ namespace alesya_rassylka
                         loadedDoc.Blocks.Remove(block);
                         doc.Blocks.Add(block);
                     }
-                    // Переносим стили с FlowDocument
                     if (loadedDoc.FontFamily != null) doc.FontFamily = loadedDoc.FontFamily;
                     if (loadedDoc.FontSize > 0) doc.FontSize = loadedDoc.FontSize;
                     if (loadedDoc.TextAlignment != TextAlignment.Left) doc.TextAlignment = loadedDoc.TextAlignment;
+                    if (loadedDoc.Foreground is SolidColorBrush foreground)
+                        doc.Foreground = foreground;
                 }
                 else if (deserializedObject is Section section)
                 {
                     System.Diagnostics.Debug.WriteLine("DeserializeFlowDocument: Deserialized object is a Section, converting to FlowDocument.");
-                    // Переносим стили с Section на FlowDocument
                     if (section.FontFamily != null) doc.FontFamily = section.FontFamily;
                     if (section.FontSize > 0) doc.FontSize = section.FontSize;
                     if (section.TextAlignment != TextAlignment.Left) doc.TextAlignment = section.TextAlignment;
+                    if (section.Foreground is SolidColorBrush foreground)
+                        doc.Foreground = foreground;
 
                     while (section.Blocks.Count > 0)
                     {
@@ -204,7 +208,6 @@ namespace alesya_rassylka
                     throw new InvalidOperationException("Deserialized XAML is not a valid FlowDocument or Section.");
                 }
 
-                // Применяем стили ко всем Paragraph и Run
                 foreach (var block in doc.Blocks)
                 {
                     if (block is Paragraph paragraph)
@@ -215,6 +218,8 @@ namespace alesya_rassylka
                             paragraph.FontSize = doc.FontSize;
                         if (paragraph.TextAlignment == TextAlignment.Left && doc.TextAlignment != TextAlignment.Left)
                             paragraph.TextAlignment = doc.TextAlignment;
+                        if (paragraph.Foreground == null && doc.Foreground != null)
+                            paragraph.Foreground = doc.Foreground;
 
                         foreach (var inline in paragraph.Inlines)
                         {
@@ -224,6 +229,8 @@ namespace alesya_rassylka
                                     run.FontFamily = paragraph.FontFamily;
                                 if (run.FontSize == 0 && paragraph.FontSize > 0)
                                     run.FontSize = paragraph.FontSize;
+                                if (run.Foreground == null && paragraph.Foreground != null)
+                                    run.Foreground = paragraph.Foreground;
                             }
                         }
                     }
@@ -241,6 +248,8 @@ namespace alesya_rassylka
                                         listPara.FontSize = doc.FontSize;
                                     if (listPara.TextAlignment == TextAlignment.Left && doc.TextAlignment != TextAlignment.Left)
                                         listPara.TextAlignment = doc.TextAlignment;
+                                    if (listPara.Foreground == null && doc.Foreground != null)
+                                        listPara.Foreground = doc.Foreground;
 
                                     foreach (var inline in listPara.Inlines)
                                     {
@@ -250,6 +259,8 @@ namespace alesya_rassylka
                                                 run.FontFamily = listPara.FontFamily;
                                             if (run.FontSize == 0 && listPara.FontSize > 0)
                                                 run.FontSize = listPara.FontSize;
+                                            if (run.Foreground == null && listPara.Foreground != null)
+                                                run.Foreground = listPara.Foreground;
                                         }
                                     }
                                 }
@@ -336,6 +347,7 @@ namespace alesya_rassylka
 
         private FontFamily currentFontFamily = new FontFamily("Times New Roman");
         private double currentFontSize = 12;
+        private Brush currentForeground = Brushes.Black; // Текущий цвет текста
         public MainWindow()
         {
             InitializeComponent();
@@ -406,9 +418,11 @@ namespace alesya_rassylka
                 {
                     if (block is Paragraph paragraph)
                     {
-                        // Добавляем стиль выравнивания для абзаца
                         string alignStyle = GetTextAlignmentStyle(paragraph.TextAlignment);
-                        htmlBody.Append($"<p style=\"{alignStyle}\">");
+                        string fontFamily = paragraph.FontFamily?.Source ?? "Times New Roman";
+                        double fontSize = paragraph.FontSize > 0 ? paragraph.FontSize : 12;
+                        string color = paragraph.Foreground is SolidColorBrush brush ? ColorToHex(brush.Color) : "#000000";
+                        htmlBody.Append($"<p style=\"font-family: {fontFamily}; font-size: {fontSize}pt; {alignStyle} color: {color};\">");
 
                         foreach (Inline inline in paragraph.Inlines)
                         {
@@ -436,8 +450,9 @@ namespace alesya_rassylka
                     bool isUnderlined = run.TextDecorations != null && run.TextDecorations.Contains(TextDecorations.Underline[0]);
                     string fontFamily = run.FontFamily?.Source ?? "Times New Roman";
                     double fontSize = run.FontSize > 0 ? run.FontSize : 12;
+                    string color = run.Foreground is SolidColorBrush brush ? ColorToHex(brush.Color) : "#000000";
 
-                    htmlBody.Append($"<span style=\"font-family: {fontFamily}; font-size: {fontSize}pt;");
+                    htmlBody.Append($"<span style=\"font-family: {fontFamily}; font-size: {fontSize}pt; color: {color};");
                     if (isBold) htmlBody.Append(" font-weight: bold;");
                     if (isItalic) htmlBody.Append(" font-style: italic;");
                     if (isUnderlined) htmlBody.Append(" text-decoration: underline;");
@@ -467,13 +482,13 @@ namespace alesya_rassylka
                 switch (list.MarkerStyle)
                 {
                     case TextMarkerStyle.Disc:
-                        tag = "ul style=\"list-style-type: disc;\"";  // ●
+                        tag = "ul style=\"list-style-type: disc;\"";
                         break;
                     case TextMarkerStyle.Circle:
-                        tag = "ul style=\"list-style-type: circle;\""; // ○
+                        tag = "ul style=\"list-style-type: circle;\"";
                         break;
                     case TextMarkerStyle.Square:
-                        tag = "ul style=\"list-style-type: square;\""; // ■
+                        tag = "ul style=\"list-style-type: square;\"";
                         break;
                     case TextMarkerStyle.Decimal:
                         tag = "ol";
@@ -483,7 +498,6 @@ namespace alesya_rassylka
                         break;
                 }
 
-                // Добавляем стиль выравнивания для списка
                 string alignStyle = GetTextAlignmentStyle(list.ListItems.FirstOrDefault()?.Blocks.FirstOrDefault()?.TextAlignment ?? TextAlignment.Left);
                 htmlBody.Append($"<{tag} style=\"{alignStyle}\">");
 
@@ -491,29 +505,34 @@ namespace alesya_rassylka
                 {
                     htmlBody.Append("<li>");
 
-                    // В ListItem может быть как Paragraph, так и вложенный List (рекурсивно)
                     foreach (Block itemBlock in listItem.Blocks)
                     {
                         if (itemBlock is Paragraph para)
                         {
+                            string fontFamily = para.FontFamily?.Source ?? "Times New Roman";
+                            double fontSize = para.FontSize > 0 ? para.FontSize : 12;
+                            string color = para.Foreground is SolidColorBrush brush ? ColorToHex(brush.Color) : "#000000";
+                            htmlBody.Append($"<span style=\"font-family: {fontFamily}; font-size: {fontSize}pt; color: {color};\">");
+
                             foreach (Inline inline in para.Inlines)
                             {
                                 ProcessInline(inline);
                             }
+
+                            htmlBody.Append("</span>");
                         }
                         else if (itemBlock is List nestedList)
                         {
-                            ProcessList(nestedList);  // рекурсивно для вложенного списка
+                            ProcessList(nestedList);
                         }
                     }
 
                     htmlBody.Append("</li>");
                 }
 
-                htmlBody.Append($"</{tag.Split(' ')[0]}>"); // Закрываем тег, например, ul или ol
+                htmlBody.Append($"</{tag.Split(' ')[0]}>");
             }
 
-            // Метод для получения стиля выравнивания
             string GetTextAlignmentStyle(TextAlignment alignment)
             {
                 return alignment switch
@@ -521,8 +540,13 @@ namespace alesya_rassylka
                     TextAlignment.Center => "text-align: center;",
                     TextAlignment.Right => "text-align: right;",
                     TextAlignment.Justify => "text-align: justify;",
-                    _ => "text-align: left;" // По умолчанию
+                    _ => "text-align: left;"
                 };
+            }
+
+            string ColorToHex(Color color)
+            {
+                return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
             }
 
             ProcessBlocks(richTextBox.Document.Blocks);
@@ -874,32 +898,35 @@ namespace alesya_rassylka
                 {
                     System.Diagnostics.Debug.WriteLine($"Selected template: {templateWindow.SelectedTemplate.Name}, Content length: {templateWindow.SelectedTemplate.Content?.Length ?? 0}");
 
-                    // Очищаем текущий документ
                     MessageRichTextBox.Document.Blocks.Clear();
 
                     if (!string.IsNullOrWhiteSpace(templateWindow.SelectedTemplate.Content))
                     {
-                        // Десериализуем шаблон
                         var flowDoc = RichTextSerializationHelper.DeserializeFlowDocument(templateWindow.SelectedTemplate.Content);
-
-                        // Применяем FlowDocument к RichTextBox
                         MessageRichTextBox.Document = flowDoc;
 
-                        // Явно применяем стили из FlowDocument, чтобы перезаписать дефолтные
                         if (flowDoc.FontFamily != null)
                         {
                             MessageRichTextBox.Document.FontFamily = flowDoc.FontFamily;
+                            currentFontFamily = flowDoc.FontFamily;
                             System.Diagnostics.Debug.WriteLine($"Applied FontFamily: {flowDoc.FontFamily}");
                         }
                         if (flowDoc.FontSize > 0)
                         {
                             MessageRichTextBox.Document.FontSize = flowDoc.FontSize;
+                            currentFontSize = flowDoc.FontSize;
                             System.Diagnostics.Debug.WriteLine($"Applied FontSize: {flowDoc.FontSize}");
                         }
                         if (flowDoc.TextAlignment != TextAlignment.Left)
                         {
                             MessageRichTextBox.Document.TextAlignment = flowDoc.TextAlignment;
                             System.Diagnostics.Debug.WriteLine($"Applied TextAlignment: {flowDoc.TextAlignment}");
+                        }
+                        if (flowDoc.Foreground is SolidColorBrush foreground)
+                        {
+                            MessageRichTextBox.Document.Foreground = foreground;
+                            currentForeground = foreground;
+                            System.Diagnostics.Debug.WriteLine($"Applied Foreground: {foreground.Color}");
                         }
 
                         var flowDocText = new TextRange(flowDoc.ContentStart, flowDoc.ContentEnd).Text;
@@ -908,10 +935,10 @@ namespace alesya_rassylka
                         if (string.IsNullOrWhiteSpace(flowDocText))
                         {
                             MessageBox.Show("Шаблон пустой или содержит некорректный XAML.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                            // Восстанавливаем дефолтный параграф, если шаблон пустой
                             var paragraph = new Paragraph(new Run(""));
                             paragraph.FontFamily = new FontFamily("Times New Roman");
                             paragraph.FontSize = 12;
+                            paragraph.Foreground = Brushes.Black;
                             MessageRichTextBox.Document.Blocks.Add(paragraph);
                         }
                     }
@@ -919,10 +946,10 @@ namespace alesya_rassylka
                     {
                         System.Diagnostics.Debug.WriteLine("Template content is empty or whitespace.");
                         MessageBox.Show("Выбранный шаблон пустой.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        // Восстанавливаем дефолтный параграф
                         var paragraph = new Paragraph(new Run(""));
                         paragraph.FontFamily = new FontFamily("Times New Roman");
                         paragraph.FontSize = 12;
+                        paragraph.Foreground = Brushes.Black;
                         MessageRichTextBox.Document.Blocks.Add(paragraph);
                     }
                 }
@@ -1727,9 +1754,9 @@ namespace alesya_rassylka
 
             var selection = MessageRichTextBox.Selection;
 
-            // Получаем текущие значения из выделенного текста
             object fontFamilyObj = selection.GetPropertyValue(TextElement.FontFamilyProperty);
             object fontSizeObj = selection.GetPropertyValue(TextElement.FontSizeProperty);
+            object foregroundObj = selection.GetPropertyValue(TextElement.ForegroundProperty);
 
             if (fontFamilyObj != DependencyProperty.UnsetValue && fontFamilyObj is FontFamily fontFamily)
             {
@@ -1742,8 +1769,6 @@ namespace alesya_rassylka
                     FontFamilyComboBox.SelectedItem = matchingFontItem;
                     FontFamilyComboBox.SelectionChanged += FontFamilyComboBox_SelectionChanged;
                 }
-
-                // ⚠ Не обновляем currentFontFamily — он меняется только при ручной смене!
             }
 
             if (fontSizeObj != DependencyProperty.UnsetValue && fontSizeObj is double fontSize)
@@ -1757,8 +1782,11 @@ namespace alesya_rassylka
                     FontSizeComboBox.SelectedItem = matchingSizeItem;
                     FontSizeComboBox.SelectionChanged += FontSizeComboBox_SelectionChanged;
                 }
+            }
 
-                // ⚠ Не обновляем currentFontSize — он меняется только при ручной смене!
+            if (foregroundObj != DependencyProperty.UnsetValue && foregroundObj is SolidColorBrush brush)
+            {
+                currentForeground = brush;
             }
         }
 
@@ -2146,6 +2174,183 @@ namespace alesya_rassylka
         private void AlignJustify_Click(object sender, RoutedEventArgs e)
         {
             SetTextAlignment(TextAlignment.Justify);
+        }
+
+        private void ColorButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Создаём новое окно для выбора цвета
+            var colorPickerWindow = new MetroWindow
+            {
+                Title = "Выбрать цвет текста",
+                TitleCharacterCasing = CharacterCasing.Normal,
+                Width = 350,
+                Height = 250,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = this,
+                ResizeMode = ResizeMode.NoResize,
+                Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor),
+                BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                BorderThickness = new Thickness(1),
+                Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png")),
+                TitleForeground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))
+            };
+
+            // Подписываемся на изменение темы
+            SettingsWindow.ThemeChanged += UpdateWindowTheme;
+            colorPickerWindow.Closed += (s, args) => SettingsWindow.ThemeChanged -= UpdateWindowTheme;
+
+            void UpdateWindowTheme()
+            {
+                colorPickerWindow.Dispatcher.Invoke(() =>
+                {
+                    colorPickerWindow.Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor);
+                });
+            }
+
+            var stackPanel = new StackPanel { Margin = new Thickness(10) };
+
+            // Создаём ColorPicker
+            var colorPicker = new Xceed.Wpf.Toolkit.ColorPicker
+            {
+                SelectedColor = (currentForeground as SolidColorBrush)?.Color ?? Colors.Black,
+                Width = 300,
+                Height = 100,
+                Margin = new Thickness(0, 0, 0, 10)
+            };
+
+            // Создаём стиль для кнопок (аналогично твоим стилям в других окнах)
+            Style CreateActionButtonStyle()
+            {
+                var style = new Style(typeof(Button));
+                style.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.White));
+                style.Setters.Add(new Setter(Control.ForegroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+                style.Setters.Add(new Setter(Control.FontSizeProperty, 16.0));
+                style.Setters.Add(new Setter(Control.FontFamilyProperty, new FontFamily("Arial Black")));
+                style.Setters.Add(new Setter(Control.FontWeightProperty, FontWeights.Bold));
+                style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(10, 5, 10, 5)));
+                style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
+                style.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+                style.Setters.Add(new Setter(Control.CursorProperty, Cursors.Hand));
+                style.Setters.Add(new Setter(Control.MinHeightProperty, 30.0));
+
+                var template = new ControlTemplate(typeof(Button));
+                var border = new FrameworkElementFactory(typeof(Border));
+                border.Name = "border";
+                border.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
+                border.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Control.BorderBrushProperty));
+                border.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Control.BorderThicknessProperty));
+                border.SetValue(Border.CornerRadiusProperty, new CornerRadius(5));
+                border.SetValue(Border.PaddingProperty, new TemplateBindingExtension(Control.PaddingProperty));
+
+                var contentPresenter = new FrameworkElementFactory(typeof(ContentPresenter));
+                contentPresenter.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Center);
+                contentPresenter.SetValue(VerticalAlignmentProperty, VerticalAlignment.Center);
+                border.AppendChild(contentPresenter);
+
+                template.VisualTree = border;
+
+                var mouseOverTrigger = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
+                mouseOverTrigger.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E0E6F8")), "border"));
+                template.Triggers.Add(mouseOverTrigger);
+
+                var pressedTrigger = new Trigger { Property = Button.IsPressedProperty, Value = true };
+                pressedTrigger.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C0D0F0")), "border"));
+                template.Triggers.Add(pressedTrigger);
+
+                style.Setters.Add(new Setter(Control.TemplateProperty, template));
+                return style;
+            }
+
+            // Панель для кнопок
+            var buttonPanel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(0, 10, 0, 0)
+            };
+
+            // Кнопка "Применить"
+            var applyButton = new Button
+            {
+                Content = "Применить",
+                Width = 125,
+                Height = 35,
+                Margin = new Thickness(0, 0, 15, 0),
+                Style = CreateActionButtonStyle()
+            };
+
+            // Кнопка "Отменить"
+            var cancelButton = new Button
+            {
+                Content = "Отменить",
+                Width = 125,
+                Height = 35,
+                Style = CreateActionButtonStyle()
+            };
+
+            // Обработчики кнопок
+            applyButton.Click += (s, args) =>
+            {
+                if (colorPicker.SelectedColor.HasValue)
+                {
+                    currentForeground = new SolidColorBrush(colorPicker.SelectedColor.Value);
+                    ApplyFormattingToSelection();
+                    colorPickerWindow.Close();
+                }
+            };
+
+            cancelButton.Click += (s, args) =>
+            {
+                colorPickerWindow.Close();
+            };
+
+            // Собираем UI
+            stackPanel.Children.Add(new TextBlock
+            {
+                Text = "Выберите цвет текста:",
+                FontSize = 16,
+                FontWeight = FontWeights.Bold,
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                Margin = new Thickness(0, 0, 0, 10)
+            });
+            stackPanel.Children.Add(colorPicker);
+            buttonPanel.Children.Add(applyButton);
+            buttonPanel.Children.Add(cancelButton);
+            stackPanel.Children.Add(buttonPanel);
+
+            colorPickerWindow.Content = stackPanel;
+            colorPickerWindow.ShowDialog();
+        }
+
+        private void ApplyFormattingToSelection()
+        {
+            var selection = MessageRichTextBox.Selection;
+            if (!selection.IsEmpty)
+            {
+                if (currentFontFamily != null)
+                    selection.ApplyPropertyValue(TextElement.FontFamilyProperty, currentFontFamily);
+                if (currentFontSize > 0)
+                    selection.ApplyPropertyValue(TextElement.FontSizeProperty, currentFontSize);
+                if (currentForeground != null)
+                    selection.ApplyPropertyValue(TextElement.ForegroundProperty, currentForeground);
+            }
+            else
+            {
+                var paragraph = MessageRichTextBox.CaretPosition.Paragraph ?? new Paragraph();
+                paragraph.FontFamily = currentFontFamily;
+                paragraph.FontSize = currentFontSize;
+                paragraph.Foreground = currentForeground;
+                if (!MessageRichTextBox.Document.Blocks.Contains(paragraph))
+                    MessageRichTextBox.Document.Blocks.Add(paragraph);
+                var run = new Run
+                {
+                    FontFamily = currentFontFamily,
+                    FontSize = currentFontSize,
+                    Foreground = currentForeground
+                };
+                MessageRichTextBox.CaretPosition.InsertTextInRun("");
+                MessageRichTextBox.CaretPosition.Paragraph.Inlines.Add(run);
+            }
         }
 
         private void SetTextAlignment(TextAlignment alignment)

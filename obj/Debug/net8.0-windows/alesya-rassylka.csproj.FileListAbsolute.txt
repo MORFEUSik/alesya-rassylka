@@ -104,6 +104,8 @@ D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\TemplateEditWindow.baml
 D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\TemplateManagerWindow.baml
 D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\TemplateEditWindow.g.cs
 D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\TemplateManagerWindow.g.cs
+D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\HtmlAgilityPack.dll
+D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\System.Windows.Forms.Ribbon35.dll
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\alesya-rassylka.csproj.AssemblyReference.cache
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\MainWindow.baml
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\SettingsWindow.baml
@@ -135,6 +137,7 @@ C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\MahApps.Metro.dll
 C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\Microsoft.Office.Interop.Word.dll
 C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\Microsoft.Xaml.Behaviors.dll
 C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\System.IO.Packaging.dll
+C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\System.Windows.Forms.Ribbon35.dll
 C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\cs-CZ\Xceed.Wpf.AvalonDock.resources.dll
 C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\de\Xceed.Wpf.AvalonDock.resources.dll
 C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\es\Xceed.Wpf.AvalonDock.resources.dll
@@ -162,5 +165,3 @@ C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\refint\alesya-rassylka
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\alesya-rassylka.pdb
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\alesya-rassylka.genruntimeconfig.cache
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\ref\alesya-rassylka.dll
-D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\HtmlAgilityPack.dll
-D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\System.Windows.Forms.Ribbon35.dll

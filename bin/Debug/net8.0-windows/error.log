@@ -13,3 +13,5 @@ StackTrace:    at alesya_rassylka.MainWindow.SendEmail(String recipientEmail, St
 09.04.2025 19:42:26: [Ошибка отправки письма] The client or server is only configured for E-mail addresses with ASCII local-parts: ывфпафы@sdgf.
 16.05.2025 16:51:35: [Ошибка при отправке email] Failure sending mail.
 16.05.2025 16:51:35: [Ошибка отправки письма] Failure sending mail.
+25.05.2025 8:10:29: [Ошибка при отправке email] The client or server is only configured for E-mail addresses with ASCII local-parts: акепнерн@hgyhj.
+25.05.2025 8:10:29: [Ошибка отправки письма] The client or server is only configured for E-mail addresses with ASCII local-parts: акепнерн@hgyhj.

@@ -24,6 +24,7 @@
     <PackageReference Include="System.Windows.Forms.Ribbon35" Version="3.5.8" />
   </ItemGroup>
 
+
   <ItemGroup>
     <Resource Include="icons8-почта-100.png" />
   </ItemGroup>

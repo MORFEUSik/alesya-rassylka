@@ -220,6 +220,7 @@
                             <ComboBoxItem Content="20"/>
                         </ComboBox>
 
+
                         <!-- Форматирование текста -->
                         <Button Content="B" Style="{StaticResource FormatButton}" Width="32" Height="32"
                 FontWeight="Bold" ToolTip="Жирный" FontSize="14"/>
