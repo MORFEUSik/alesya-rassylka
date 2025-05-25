@@ -53,7 +53,6 @@
               Data="M 0 0 L 4 4 L 8 0 Z"/>
                                     </ToggleButton>
                                 </DockPanel>
-
                             </Border>
                             <Popup IsOpen="{TemplateBinding IsDropDownOpen}"
                            Placement="Bottom"
@@ -71,8 +70,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
-
 
         <Style x:Key="FileItemStyle" TargetType="StackPanel">
             <Setter Property="Background" Value="Transparent"/>
@@ -230,8 +227,8 @@
 
         <!-- Левая панель -->
         <Border x:Name="LeftBorder" Background="#172A74" Grid.Column="0"
-        BorderBrush="Transparent" BorderThickness="0,0,1,1"
-        CornerRadius="0,15,15,0">
+                BorderBrush="Transparent" BorderThickness="0,0,1,1"
+                CornerRadius="0,15,15,0">
             <DockPanel>
                 <StackPanel>
                     <Border Background="White" CornerRadius="15" Margin="10" Padding="10" Height="53">
@@ -266,256 +263,256 @@
         <!-- Основное содержимое -->
         <Grid Margin="0,10,22,20" Grid.Column="2">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <!-- Навигационные кнопки -->
-                <RowDefinition Height="Auto"/>
-                <!-- Текстовое поле -->
-                <RowDefinition Height="Auto"/>
-                <!-- Отправитель -->
-                <RowDefinition Height="Auto"/>
-                <!-- Получатель -->
-                <RowDefinition Height="Auto"/>
-                <!-- Прикрепленные файлы -->
                 <RowDefinition Height="*"/>
-                <!-- Пространство для выравнивания -->
                 <RowDefinition Height="Auto"/>
-                <!-- Кнопки "Отправить" и "Отменить" -->
             </Grid.RowDefinitions>
 
-            <!-- Навигационные кнопки -->
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,10" Height="38" Grid.Row="0">
-                <Button Content="Настройки" Style="{StaticResource NavButton}" Margin="0,0,20,0" Click="Settings_Click"/>
-                <Button Content="Справка" Style="{StaticResource NavButton}" Margin="0,0,20,0" Click="Help_Click"/>
-                <Button Content="О программе" Style="{StaticResource NavButton}" Click="About_Click"/>
-            </StackPanel>
+            <!-- Контейнер для обычного интерфейса -->
+            <Grid x:Name="RegularInterfacePanel" Grid.Row="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-            <!-- RichTextBox с панелью инструментов -->
-            <Border Grid.Row="1" BorderBrush="#172A74" BorderThickness="1" CornerRadius="5" Background="White" Margin="0,0,0,0">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <!-- Для TextBox с темой -->
-                        <RowDefinition Height="*"/>
-                        <!-- Для RichTextBox -->
-                        <RowDefinition Height="40"/>
-                        <!-- Для панели инструментов -->
-                    </Grid.RowDefinitions>
+                <!-- Навигационные кнопки -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,10" Height="38" Grid.Row="0">
+                    <Button Content="Настройки" Style="{StaticResource NavButton}" Margin="0,0,20,0" Click="Settings_Click"/>
+                    <Button Content="Справка" Style="{StaticResource NavButton}" Margin="0,0,20,0" Click="Help_Click"/>
+                    <Button Content="О программе" Style="{StaticResource NavButton}" Click="About_Click"/>
+                </StackPanel>
 
-                    <!-- Поле для ввода темы -->
-                    <TextBox x:Name="SubjectTextBox" Grid.Row="0" Margin="10,5,10,0" 
-         Text="Тема:"
-         BorderThickness="0,0,0,1" BorderBrush="#172A74" Background="Transparent"
-         FontSize="14" Padding="0,5" GotFocus="SubjectTextBox_GotFocus" 
-         TextChanged="SubjectTextBox_TextChanged"/>
+                <!-- RichTextBox с панелью инструментов -->
+                <Border Grid.Row="1" BorderBrush="#172A74" BorderThickness="1" CornerRadius="5" Background="White" Margin="0,0,0,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="40"/>
+                        </Grid.RowDefinitions>
 
-                    <!-- Основное текстовое поле -->
-                    <RichTextBox x:Name="MessageRichTextBox" Grid.Row="1" Height="250"
-             Background="White" BorderThickness="0" Margin="6,10,0,0"
-             FontFamily="Times New Roman" FontSize="12"
-             PreviewKeyDown="MessageRichTextBox_PreviewKeyDown"
-             PreviewMouseRightButtonDown="MessageRichTextBox_PreviewMouseRightButtonDown"
-             SelectionChanged="MessageRichTextBox_SelectionChanged">
-                        <RichTextBox.Resources>
-                            <Style TargetType="{x:Type Paragraph}">
-                                <Setter Property="Margin" Value="0"/>
-                                <Setter Property="FontFamily" Value="Times New Roman"/>
-                                <Setter Property="FontSize" Value="12"/>
-                            </Style>
-                        </RichTextBox.Resources>
-                        <RichTextBox.Template>
-                            <ControlTemplate TargetType="RichTextBox">
-                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
-                                    <ScrollViewer x:Name="PART_ContentHost"/>
-                                </Border>
-                            </ControlTemplate>
-                        </RichTextBox.Template>
-                    </RichTextBox>
+                        <!-- Поле для ввода темы -->
+                        <TextBox x:Name="SubjectTextBox" Grid.Row="0" Margin="10,5,10,0" 
+                                 Text="Тема:"
+                                 BorderThickness="0,0,0,1" BorderBrush="#172A74" Background="Transparent"
+                                 FontSize="14" Padding="0,5" GotFocus="SubjectTextBox_GotFocus" 
+                                 TextChanged="SubjectTextBox_TextChanged"/>
 
-                    <!-- Панель инструментов -->
-                    <Border Grid.Row="2" Background="#F5F7FA" BorderBrush="#E0E3E8" BorderThickness="0,1,0,0" CornerRadius="0,0,5,5">
-                        <StackPanel Orientation="Horizontal" Margin="10,0" VerticalAlignment="Center">
-                            <!-- Выбор шрифта -->
-                            <ComboBox x:Name="FontFamilyComboBox"
-                  Style="{StaticResource PrettyComboBox}"
-                  Width="150" Margin="0,0,5,0" SelectionChanged="FontFamilyComboBox_SelectionChanged">
-                                <ComboBoxItem Content="Arial"/>
-                                <ComboBoxItem Content="Times New Roman" IsSelected="True"/>
-                                <ComboBoxItem Content="Calibri"/>
-                                <ComboBoxItem Content="Segoe UI"/>
-                                <ComboBoxItem Content="Verdana"/>
-                            </ComboBox>
+                        <!-- Основное текстовое поле -->
+                        <RichTextBox x:Name="MessageRichTextBox" Grid.Row="1" Height="250"
+                                     Background="White" BorderThickness="0" Margin="6,10,0,0"
+                                     FontFamily="Times New Roman" FontSize="12"
+                                     PreviewKeyDown="MessageRichTextBox_PreviewKeyDown"
+                                     PreviewMouseRightButtonDown="MessageRichTextBox_PreviewMouseRightButtonDown"
+                                     SelectionChanged="MessageRichTextBox_SelectionChanged">
+                            <RichTextBox.Resources>
+                                <Style TargetType="{x:Type Paragraph}">
+                                    <Setter Property="Margin" Value="0"/>
+                                    <Setter Property="FontFamily" Value="Times New Roman"/>
+                                    <Setter Property="FontSize" Value="12"/>
+                                </Style>
+                            </RichTextBox.Resources>
+                            <RichTextBox.Template>
+                                <ControlTemplate TargetType="RichTextBox">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
+                                        <ScrollViewer x:Name="PART_ContentHost"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </RichTextBox.Template>
+                        </RichTextBox>
 
-                            <!-- Выбор размера шрифта -->
-                            <ComboBox x:Name="FontSizeComboBox"
-                  Style="{StaticResource PrettyComboBox}"
-                  Width="60" Margin="0,0,5,0" SelectionChanged="FontSizeComboBox_SelectionChanged">
-                                <ComboBoxItem Content="10"/>
-                                <ComboBoxItem Content="12"/>
-                                <ComboBoxItem Content="14"/>
-                                <ComboBoxItem Content="16"/>
-                                <ComboBoxItem Content="18"/>
-                                <ComboBoxItem Content="20"/>
-                            </ComboBox>
+                        <!-- Панель инструментов -->
+                        <Border Grid.Row="2" Background="#F5F7FA" BorderBrush="#E0E3E8" BorderThickness="0,1,0,0" CornerRadius="0,0,5,5">
+                            <StackPanel Orientation="Horizontal" Margin="10,0" VerticalAlignment="Center">
+                                <!-- Выбор шрифта -->
+                                <ComboBox x:Name="FontFamilyComboBox"
+                                          Style="{StaticResource PrettyComboBox}"
+                                          Width="150" Margin="0,0,5,0" SelectionChanged="FontFamilyComboBox_SelectionChanged">
+                                    <ComboBoxItem Content="Arial"/>
+                                    <ComboBoxItem Content="Times New Roman" IsSelected="True"/>
+                                    <ComboBoxItem Content="Calibri"/>
+                                    <ComboBoxItem Content="Segoe UI"/>
+                                    <ComboBoxItem Content="Verdana"/>
+                                </ComboBox>
 
+                                <!-- Выбор размера шрифта -->
+                                <ComboBox x:Name="FontSizeComboBox"
+                                          Style="{StaticResource PrettyComboBox}"
+                                          Width="60" Margin="0,0,5,0" SelectionChanged="FontSizeComboBox_SelectionChanged">
+                                    <ComboBoxItem Content="10"/>
+                                    <ComboBoxItem Content="12"/>
+                                    <ComboBoxItem Content="14"/>
+                                    <ComboBoxItem Content="16"/>
+                                    <ComboBoxItem Content="18"/>
+                                    <ComboBoxItem Content="20"/>
+                                </ComboBox>
 
-                            <!-- Форматирование текста -->
-                            <Button Content="B" Click="FormatBold_Click"
-                Style="{StaticResource FormatButton}" Width="32" Height="32"
-                FontWeight="Bold" ToolTip="Жирный" FontSize="14"/>
-                            <Button Content="I" Click="FormatItalic_Click"
-                Style="{StaticResource FormatButton}" Width="32" Height="32"
-                FontStyle="Italic" ToolTip="Курсив" FontSize="14" Margin="5,0,0,0"/>
-                            <Button Click="FormatUnderline_Click"
-                Style="{StaticResource FormatButton}" Width="32" Height="32"
-                ToolTip="Подчеркнутый" FontSize="14" Margin="5,0,0,0">
-                                <TextBlock Text="U" TextDecorations="Underline"/>
-                            </Button>
+                                <!-- Форматирование текста -->
+                                <Button Content="B" Click="FormatBold_Click"
+                                        Style="{StaticResource FormatButton}" Width="32" Height="32"
+                                        FontWeight="Bold" ToolTip="Жирный" FontSize="14"/>
+                                <Button Content="I" Click="FormatItalic_Click"
+                                        Style="{StaticResource FormatButton}" Width="32" Height="32"
+                                        FontStyle="Italic" ToolTip="Курсив" FontSize="14" Margin="5,0,0,0"/>
+                                <Button Click="FormatUnderline_Click"
+                                        Style="{StaticResource FormatButton}" Width="32" Height="32"
+                                        ToolTip="Подчеркнутый" FontSize="14" Margin="5,0,0,0">
+                                    <TextBlock Text="U" TextDecorations="Underline"/>
+                                </Button>
 
-                            <Button Content="🎨" Click="ColorButton_Click" Style="{StaticResource FormatButton}" Margin="5,0,0,0" ToolTip="Выбрать цвет текста" />
+                                <Button Content="🎨" Click="ColorButton_Click" Style="{StaticResource FormatButton}" Margin="5,0,0,0" ToolTip="Выбрать цвет текста" />
 
+                                <!-- Разделитель -->
+                                <Rectangle Width="1" Height="20" Fill="#172A74" Margin="10,0,10,0"/>
 
-                            <!-- Разделитель -->
-                            <Rectangle Width="1" Height="20" Fill="#172A74" Margin="10,0,10,0"/>
+                                <!-- Кнопки выравнивания -->
+                                <Button Click="AlignLeft_Click"
+                                        Style="{StaticResource FormatButton}" Width="32" Height="32"
+                                        ToolTip="Выровнять по левому краю">
+                                    <TextBlock FontSize="14">⬅</TextBlock>
+                                </Button>
+                                <Button Click="AlignCenter_Click"
+                                        Style="{StaticResource FormatButton}" Width="32" Height="32"
+                                        ToolTip="Выровнять по центру" Margin="5,0,0,0">
+                                    <TextBlock FontSize="14">⬌</TextBlock>
+                                </Button>
+                                <Button Click="AlignRight_Click"
+                                        Style="{StaticResource FormatButton}" Width="32" Height="32"
+                                        ToolTip="Выровнять по правому краю" Margin="5,0,0,0">
+                                    <TextBlock FontSize="14">⮕</TextBlock>
+                                </Button>
+                                <Button Click="AlignJustify_Click"
+                                        Style="{StaticResource FormatButton}" Width="32" Height="32"
+                                        ToolTip="Выровнять по ширине" Margin="5,0,0,0">
+                                    <TextBlock FontSize="14">☰</TextBlock>
+                                </Button>
 
-                            <!-- Кнопки выравнивания -->
-                            <Button Click="AlignLeft_Click"
-Style="{StaticResource FormatButton}" Width="32" Height="32"
-ToolTip="Выровнять по левому краю">
-                                <TextBlock FontSize="14">⬅</TextBlock>
-                            </Button>
-                            <Button Click="AlignCenter_Click"
-Style="{StaticResource FormatButton}" Width="32" Height="32"
-ToolTip="Выровнять по центру" Margin="5,0,0,0">
-                                <TextBlock FontSize="14">⬌</TextBlock>
-                            </Button>
-                            <Button Click="AlignRight_Click"
-Style="{StaticResource FormatButton}" Width="32" Height="32"
-ToolTip="Выровнять по правому краю" Margin="5,0,0,0">
-                                <TextBlock FontSize="14">⮕</TextBlock>
-                            </Button>
-                            <Button Click="AlignJustify_Click"
-Style="{StaticResource FormatButton}" Width="32" Height="32"
-ToolTip="Выровнять по ширине" Margin="5,0,0,0">
-                                <TextBlock FontSize="14">☰</TextBlock>
-                            </Button>
-                            
-                            <!-- Разделитель -->
-                            <Rectangle Width="1" Height="20" Fill="#172A74" Margin="10,0,10,0"/>
+                                <!-- Разделитель -->
+                                <Rectangle Width="1" Height="20" Fill="#172A74" Margin="10,0,10,0"/>
 
-                            <!-- Кнопка вставки картинки -->
-                            <Button Click="InsertImage_Click"
-                Style="{StaticResource FormatButton}" Width="32" Height="32"
-                ToolTip="Вставить картинку">
-                                <TextBlock FontSize="14">🖼</TextBlock>
-                            </Button>
+                                <!-- Кнопка вставки картинки -->
+                                <Button Click="InsertImage_Click"
+                                        Style="{StaticResource FormatButton}" Width="32" Height="32"
+                                        ToolTip="Вставить картинку">
+                                    <TextBlock FontSize="14">🖼</TextBlock>
+                                </Button>
 
-                            <Button Name="ListButton" Width="32" Height="32" Margin="5,0,0,0"
-                ToolTip="Списки" Style="{StaticResource FormatButton}" Click="ListButton_Click">
-                                <TextBlock FontSize="14">📋</TextBlock>
-                                <Button.ContextMenu>
-                                    <ContextMenu x:Name="ListContextMenu">
-                                        <MenuItem Header="Маркированный список">
-                                            <MenuItem Header="● Точка" Click="CreateDiscList_Click"/>
-                                            <MenuItem Header="○ Кружочек" Click="CreateCircleList_Click"/>
-                                            <MenuItem Header="■ Квадрат" Click="CreateSquareList_Click"/>
-                                        </MenuItem>
-                                        <MenuItem Header="Нумерованный список" Click="CreateNumberedList_Click"/>
-                                    </ContextMenu>
-                                </Button.ContextMenu>
-                            </Button>
+                                <Button Name="ListButton" Width="32" Height="32" Margin="5,0,0,0"
+                                        ToolTip="Списки" Style="{StaticResource FormatButton}" Click="ListButton_Click">
+                                    <TextBlock FontSize="14">📋</TextBlock>
+                                    <Button.ContextMenu>
+                                        <ContextMenu x:Name="ListContextMenu">
+                                            <MenuItem Header="Маркированный список">
+                                                <MenuItem Header="● Точка" Click="CreateDiscList_Click"/>
+                                                <MenuItem Header="○ Кружочек" Click="CreateCircleList_Click"/>
+                                                <MenuItem Header="■ Квадрат" Click="CreateSquareList_Click"/>
+                                            </MenuItem>
+                                            <MenuItem Header="Нумерованный список" Click="CreateNumberedList_Click"/>
+                                        </ContextMenu>
+                                    </Button.ContextMenu>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
 
-                           
-                        </StackPanel>
+                <!-- Прикрепленные файлы -->
+                <Grid Margin="0,25,0,0" Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Кнопка для прикрепления файла -->
+                    <Button Content="Прикрепить файл" Style="{StaticResource SmallNavButton}"
+                            HorizontalAlignment="Left" Margin="0,0,0,0" Click="AttachFile_Click"/>
+
+                    <!-- Список прикрепленных файлов -->
+                    <Border Background="White" BorderBrush="#172A74" BorderThickness="1" 
+                            CornerRadius="5" Padding="5"
+                            HorizontalAlignment="Stretch" Grid.Column="1" Margin="10,0,0,0">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      Height="Auto" MaxHeight="50" >
+                            <ItemsControl x:Name="AttachedFilesList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" 
+                                                    ContextMenu="{StaticResource FileContextMenu}"
+                                                    Style="{StaticResource FileItemStyle}">
+                                            <TextBlock Text="{Binding FileName}" Padding="5" Foreground="#172A74"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
                     </Border>
                 </Grid>
-            </Border>
 
-            <!-- Прикрепленные файлы -->
-            <Grid Margin="0,25,0,0" Grid.Row="2">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+                <!-- Отправитель -->
+                <Grid Margin="0,25,0,0" Grid.Row="3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="104.775"/>
+                        <ColumnDefinition Width="117.419"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-                <!-- Кнопка для прикрепления файла -->
-                <Button Content="Прикрепить файл" Style="{StaticResource SmallNavButton}"
-                        HorizontalAlignment="Left" Margin="0,0,0,0" Click="AttachFile_Click"/>
+                    <!-- Кнопка для выбора отправителя -->
+                    <Button Content="Отправитель" Style="{StaticResource SmallNavButton}"
+                            HorizontalAlignment="Left" Click="SelectSender_Click" Grid.ColumnSpan="2"/>
 
-                <!-- Список прикрепленных файлов -->
-                <Border Background="White" BorderBrush="#172A74" BorderThickness="1" 
-                        CornerRadius="5" Padding="5"
-                        HorizontalAlignment="Stretch" Grid.Column="1" Margin="10,0,0,0">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" 
-                                  HorizontalScrollBarVisibility="Disabled"
-                                  Height="Auto" MaxHeight="50" >
-                        <ItemsControl x:Name="AttachedFilesList">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" 
-                                                ContextMenu="{StaticResource FileContextMenu}"
-                                                Style="{StaticResource FileItemStyle}">
-                                        <TextBlock Text="{Binding FileName}" Padding="5" Foreground="#172A74"/>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </Border>
+                    <!-- Поле для отображения выбранного отправителя -->
+                    <Border Background="White" BorderBrush="#172A74" BorderThickness="1" 
+                            CornerRadius="5" Padding="2"
+                            Grid.Column="2" Margin="30,0,0,0">
+                        <TextBox x:Name="SenderTextBox" Background="Transparent" BorderThickness="0" Padding="5" Foreground="#172A74"
+                                 VerticalContentAlignment="Center" HorizontalAlignment="Stretch" IsReadOnly="True"/>
+                    </Border>
+                </Grid>
+
+                <!-- Получатель -->
+                <Grid Margin="0,25,0,0" Grid.Row="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Content="Получатель(ли)" Style="{StaticResource SmallNavButton}"
+                            HorizontalAlignment="Left" Margin="0,0,10,0" Click="SelectRecipient_Click"/>
+
+                    <Border Background="White" BorderBrush="#172A74" BorderThickness="1" 
+                            CornerRadius="5" Padding="5"
+                            HorizontalAlignment="Stretch" Grid.Column="1" Margin="30,0,0,0">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      Height="Auto" MaxHeight="60">
+                            <ItemsControl x:Name="RecipientList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock FontFamily="Segoe UI" Text="{Binding}" Padding="5" Foreground="#172A74"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
+
+                <!-- Кнопки "Отправить письмо" и "Отменить" -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,10,0,0" Grid.Row="6">
+                    <Button Content="Отправить письмо" Style="{StaticResource ActionButton}" Click="SendButton_Click"/>
+                    <Button Content="Отменить" Style="{StaticResource ActionButton}" Margin="20,0,0,0" Click="CancelButton_Click"/>
+                </StackPanel>
             </Grid>
 
-            <!-- Отправитель -->
-            <Grid Margin="0,25,0,0" Grid.Row="3">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="104.775"/>
-                    <ColumnDefinition Width="117.419"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <!-- Кнопка для выбора отправителя -->
-                <Button Content="Отправитель" Style="{StaticResource SmallNavButton}"
-                        HorizontalAlignment="Left" Click="SelectSender_Click" Grid.ColumnSpan="2"/>
-
-                <!-- Поле для отображения выбранного отправителя -->
-                <Border Background="White" BorderBrush="#172A74" BorderThickness="1" 
-                        CornerRadius="5" Padding="2"
-                        Grid.Column="2" Margin="30,0,0,0">
-                    <TextBox x:Name="SenderTextBox" Background="Transparent" BorderThickness="0" Padding="5" Foreground="#172A74"
-                             VerticalContentAlignment="Center" HorizontalAlignment="Stretch" IsReadOnly="True"/>
-                </Border>
-            </Grid>
-
-            <!-- Получатель -->
-            <Grid Margin="0,25,0,0" Grid.Row="4">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <Button Content="Получатель(ли)" Style="{StaticResource SmallNavButton}"
-                        HorizontalAlignment="Left" Margin="0,0,10,0" Click="SelectRecipient_Click"/>
-
-                <Border Background="White" BorderBrush="#172A74" BorderThickness="1" 
-                        CornerRadius="5" Padding="5"
-                        HorizontalAlignment="Stretch" Grid.Column="1" Margin="30,0,0,0">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" 
-                                  HorizontalScrollBarVisibility="Disabled"
-                                  Height="Auto" MaxHeight="60">
-                        <ItemsControl x:Name="RecipientList">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock FontFamily="Segoe UI" Text="{Binding}" Padding="5" Foreground="#172A74"/>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </Border>
-            </Grid>
-
-            <!-- Кнопки "Отправить письмо" и "Отменить" -->
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,10,0,0" Grid.Row="6">
-                <Button Content="Отправить письмо" Style="{StaticResource ActionButton}" Click="SendButton_Click"/>
-                <Button Content="Отменить" Style="{StaticResource ActionButton}" Margin="20,0,0,0" Click="CancelButton_Click"/>
+            <!-- Кнопки редактирования шаблона -->
+            <StackPanel x:Name="TemplateEditButtonsPanel" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,10,0,0" Grid.Row="1" Visibility="Collapsed">
+                <Button x:Name="SaveTemplateButton" Content="💾 Сохранить" Style="{StaticResource ActionButton}" Click="SaveTemplate_Click"/>
+                <Button x:Name="CancelTemplateButton" Content="❌ Отменить" Style="{StaticResource ActionButton}" Margin="20,0,0,0" Click="CancelTemplateButton_Click"/>
             </StackPanel>
         </Grid>
     </Grid>

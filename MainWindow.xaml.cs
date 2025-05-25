@@ -25,37 +25,28 @@ namespace alesya_rassylka
     {
         public static string SerializeFlowDocument(FlowDocument doc)
         {
-            if (doc == null || doc.Blocks.Count == 0)
+            if (doc == null)
             {
-                System.Diagnostics.Debug.WriteLine("SerializeFlowDocument: Document is null or empty.");
+                System.Diagnostics.Debug.WriteLine("SerializeFlowDocument: Document is null.");
                 return "<FlowDocument xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" />";
             }
 
             try
             {
-                StringBuilder xamlBuilder = new StringBuilder();
-                XmlWriterSettings settings = new XmlWriterSettings
+                // Сериализуем FlowDocument с помощью XamlWriter
+                string xamlContent = XamlWriter.Save(doc);
+                System.Diagnostics.Debug.WriteLine($"SerializeFlowDocument: Serialized length: {xamlContent.Length}");
+                System.Diagnostics.Debug.WriteLine($"SerializeFlowDocument: XAML: {xamlContent}");
+
+                // Проверяем, содержит ли документ текст
+                var text = new TextRange(doc.ContentStart, doc.ContentEnd).Text;
+                System.Diagnostics.Debug.WriteLine($"SerializeFlowDocument: Document text: {text}");
+
+                if (string.IsNullOrWhiteSpace(text) && doc.Blocks.Count == 0)
                 {
-                    Indent = true,
-                    OmitXmlDeclaration = true
-                };
-
-                using (XmlWriter writer = XmlWriter.Create(xamlBuilder, settings))
-                {
-                    writer.WriteStartElement("FlowDocument", "http://schemas.microsoft.com/winfx/2006/xaml/presentation");
-                    writer.WriteStartElement("Section");
-
-                    foreach (Block block in doc.Blocks)
-                    {
-                        WriteBlock(writer, block);
-                    }
-
-                    writer.WriteEndElement(); // Section
-                    writer.WriteEndElement(); // FlowDocument
+                    System.Diagnostics.Debug.WriteLine("SerializeFlowDocument: Warning: Document is empty.");
                 }
 
-                string xamlContent = xamlBuilder.ToString();
-                System.Diagnostics.Debug.WriteLine($"SerializeFlowDocument: Serialized length: {xamlContent.Length}");
                 return xamlContent;
             }
             catch (Exception ex)
@@ -65,213 +56,33 @@ namespace alesya_rassylka
             }
         }
 
-        private static void WriteBlock(XmlWriter writer, Block block)
-        {
-            if (block is Paragraph paragraph)
-            {
-                writer.WriteStartElement("Paragraph");
-                if (paragraph.FontFamily != null)
-                    writer.WriteAttributeString("FontFamily", paragraph.FontFamily.ToString());
-                if (paragraph.FontSize > 0)
-                    writer.WriteAttributeString("FontSize", paragraph.FontSize.ToString());
-                if (paragraph.TextAlignment != TextAlignment.Left)
-                    writer.WriteAttributeString("TextAlignment", paragraph.TextAlignment.ToString());
-                if (paragraph.FontWeight != FontWeights.Normal)
-                    writer.WriteAttributeString("FontWeight", paragraph.FontWeight.ToString());
-                if (paragraph.FontStyle != FontStyles.Normal)
-                    writer.WriteAttributeString("FontStyle", paragraph.FontStyle.ToString());
-                if (paragraph.TextDecorations?.Contains(TextDecorations.Underline[0]) == true)
-                    writer.WriteAttributeString("TextDecorations", "Underline");
-                if (paragraph.Foreground is SolidColorBrush foreground)
-                    writer.WriteAttributeString("Foreground", foreground.Color.ToString());
-                foreach (Inline inline in paragraph.Inlines)
-                {
-                    WriteInline(writer, inline);
-                }
-                writer.WriteEndElement();
-            }
-            else if (block is List list)
-            {
-                writer.WriteStartElement("List");
-                writer.WriteAttributeString("MarkerStyle", list.MarkerStyle.ToString());
-                foreach (ListItem listItem in list.ListItems)
-                {
-                    writer.WriteStartElement("ListItem");
-                    foreach (Block itemBlock in listItem.Blocks)
-                    {
-                        WriteBlock(writer, itemBlock);
-                    }
-                    writer.WriteEndElement();
-                }
-                writer.WriteEndElement();
-            }
-        }
-
-        private static void WriteInline(XmlWriter writer, Inline inline)
-        {
-            if (inline is Run run)
-            {
-                writer.WriteStartElement("Run");
-                if (run.FontWeight != FontWeights.Normal)
-                    writer.WriteAttributeString("FontWeight", run.FontWeight.ToString());
-                if (run.FontStyle != FontStyles.Normal)
-                    writer.WriteAttributeString("FontStyle", run.FontStyle.ToString());
-                if (run.TextDecorations?.Contains(TextDecorations.Underline[0]) == true)
-                    writer.WriteAttributeString("TextDecorations", "Underline");
-                if (run.Foreground is SolidColorBrush foreground)
-                    writer.WriteAttributeString("Foreground", foreground.Color.ToString());
-                writer.WriteString(run.Text);
-                writer.WriteEndElement();
-            }
-            else if (inline is Bold bold)
-            {
-                writer.WriteStartElement("Bold");
-                foreach (Inline child in bold.Inlines)
-                {
-                    WriteInline(writer, child);
-                }
-                writer.WriteEndElement();
-            }
-            else if (inline is Italic italic)
-            {
-                writer.WriteStartElement("Italic");
-                foreach (Inline child in italic.Inlines)
-                {
-                    WriteInline(writer, child);
-                }
-                writer.WriteEndElement();
-            }
-            else if (inline is System.Windows.Documents.Underline underline)
-            {
-                writer.WriteStartElement("Underline");
-                foreach (Inline child in underline.Inlines)
-                {
-                    WriteInline(writer, child);
-                }
-                writer.WriteEndElement();
-            }
-            else if (inline is LineBreak)
-            {
-                writer.WriteStartElement("LineBreak");
-                writer.WriteEndElement();
-            }
-        }
-
         public static FlowDocument DeserializeFlowDocument(string xamlContent)
         {
             var doc = new FlowDocument();
+            if (string.IsNullOrWhiteSpace(xamlContent))
+            {
+                System.Diagnostics.Debug.WriteLine("DeserializeFlowDocument: XAML content is empty or whitespace.");
+                return doc;
+            }
+
             try
             {
-                if (string.IsNullOrWhiteSpace(xamlContent))
-                {
-                    System.Diagnostics.Debug.WriteLine("DeserializeFlowDocument: XAML content is empty or whitespace.");
-                    return doc;
-                }
-
                 using var stringReader = new StringReader(xamlContent);
                 using var xmlReader = XmlReader.Create(stringReader);
                 var deserializedObject = XamlReader.Load(xmlReader);
 
                 if (deserializedObject is FlowDocument loadedDoc)
                 {
-                    while (loadedDoc.Blocks.Count > 0)
-                    {
-                        var block = loadedDoc.Blocks.FirstBlock;
-                        loadedDoc.Blocks.Remove(block);
-                        doc.Blocks.Add(block);
-                    }
-                    if (loadedDoc.FontFamily != null) doc.FontFamily = loadedDoc.FontFamily;
-                    if (loadedDoc.FontSize > 0) doc.FontSize = loadedDoc.FontSize;
-                    if (loadedDoc.TextAlignment != TextAlignment.Left) doc.TextAlignment = loadedDoc.TextAlignment;
-                    if (loadedDoc.Foreground is SolidColorBrush foreground)
-                        doc.Foreground = foreground;
-                }
-                else if (deserializedObject is Section section)
-                {
-                    System.Diagnostics.Debug.WriteLine("DeserializeFlowDocument: Deserialized object is a Section, converting to FlowDocument.");
-                    if (section.FontFamily != null) doc.FontFamily = section.FontFamily;
-                    if (section.FontSize > 0) doc.FontSize = section.FontSize;
-                    if (section.TextAlignment != TextAlignment.Left) doc.TextAlignment = section.TextAlignment;
-                    if (section.Foreground is SolidColorBrush foreground)
-                        doc.Foreground = foreground;
-
-                    while (section.Blocks.Count > 0)
-                    {
-                        var block = section.Blocks.FirstBlock;
-                        section.Blocks.Remove(block);
-                        doc.Blocks.Add(block);
-                    }
+                    doc = loadedDoc;
                 }
                 else
                 {
                     System.Diagnostics.Debug.WriteLine($"DeserializeFlowDocument: Deserialized object is of unexpected type {deserializedObject?.GetType().Name}.");
-                    throw new InvalidOperationException("Deserialized XAML is not a valid FlowDocument or Section.");
+                    throw new InvalidOperationException("Deserialized XAML is not a valid FlowDocument.");
                 }
 
-                foreach (var block in doc.Blocks)
-                {
-                    if (block is Paragraph paragraph)
-                    {
-                        if (paragraph.FontFamily == null && doc.FontFamily != null)
-                            paragraph.FontFamily = doc.FontFamily;
-                        if (paragraph.FontSize == 0 && doc.FontSize > 0)
-                            paragraph.FontSize = doc.FontSize;
-                        if (paragraph.TextAlignment == TextAlignment.Left && doc.TextAlignment != TextAlignment.Left)
-                            paragraph.TextAlignment = doc.TextAlignment;
-                        if (paragraph.Foreground == null && doc.Foreground != null)
-                            paragraph.Foreground = doc.Foreground;
-
-                        foreach (var inline in paragraph.Inlines)
-                        {
-                            if (inline is Run run)
-                            {
-                                if (run.FontFamily == null && paragraph.FontFamily != null)
-                                    run.FontFamily = paragraph.FontFamily;
-                                if (run.FontSize == 0 && paragraph.FontSize > 0)
-                                    run.FontSize = paragraph.FontSize;
-                                if (run.Foreground == null && paragraph.Foreground != null)
-                                    run.Foreground = paragraph.Foreground;
-                            }
-                        }
-                    }
-                    else if (block is List list)
-                    {
-                        foreach (var listItem in list.ListItems)
-                        {
-                            foreach (var itemBlock in listItem.Blocks)
-                            {
-                                if (itemBlock is Paragraph listPara)
-                                {
-                                    if (listPara.FontFamily == null && doc.FontFamily != null)
-                                        listPara.FontFamily = doc.FontFamily;
-                                    if (listPara.FontSize == 0 && doc.FontSize > 0)
-                                        listPara.FontSize = doc.FontSize;
-                                    if (listPara.TextAlignment == TextAlignment.Left && doc.TextAlignment != TextAlignment.Left)
-                                        listPara.TextAlignment = doc.TextAlignment;
-                                    if (listPara.Foreground == null && doc.Foreground != null)
-                                        listPara.Foreground = doc.Foreground;
-
-                                    foreach (var inline in listPara.Inlines)
-                                    {
-                                        if (inline is Run run)
-                                        {
-                                            if (run.FontFamily == null && listPara.FontFamily != null)
-                                                run.FontFamily = listPara.FontFamily;
-                                            if (run.FontSize == 0 && listPara.FontSize > 0)
-                                                run.FontSize = listPara.FontSize;
-                                            if (run.Foreground == null && listPara.Foreground != null)
-                                                run.Foreground = listPara.Foreground;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                System.Diagnostics.Debug.WriteLine($"DeserializeFlowDocument: Loaded document with {doc.Blocks.Count} blocks.");
                 var docText = new TextRange(doc.ContentStart, doc.ContentEnd).Text;
-                System.Diagnostics.Debug.WriteLine($"DeserializeFlowDocument: Loaded text: {docText}");
+                System.Diagnostics.Debug.WriteLine($"DeserializeFlowDocument: Loaded text: {docText}, Blocks: {doc.Blocks.Count}");
             }
             catch (Exception ex)
             {
@@ -279,6 +90,7 @@ namespace alesya_rassylka
                 var paragraph = new Paragraph(new Run($"Ошибка десериализации XAML: {ex.Message}"));
                 doc.Blocks.Add(paragraph);
             }
+
             return doc;
         }
     }
@@ -348,6 +160,9 @@ namespace alesya_rassylka
         private FontFamily currentFontFamily = new FontFamily("Times New Roman");
         private double currentFontSize = 12;
         private Brush currentForeground = Brushes.Black; // Текущий цвет текста
+        private bool isTemplateEditMode;
+        private Template editingTemplate;
+        private TemplateManagerWindow templateManagerWindow;
         public MainWindow()
         {
             InitializeComponent();
@@ -661,8 +476,9 @@ namespace alesya_rassylka
                     WriteIndented = true,
                     Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
                 };
-                string json = JsonSerializer.Serialize(templateCategories, options);
+                string json = JsonSerializer.Serialize(TemplateCategories, options);
                 File.WriteAllText(TemplatesFilePath, json, System.Text.Encoding.UTF8);
+                System.Diagnostics.Debug.WriteLine($"Templates saved to {TemplatesFilePath}");
             }
             catch (Exception ex)
             {
@@ -2423,6 +2239,192 @@ namespace alesya_rassylka
 
             richTextBox.Focus();
         }
+
+        #region редактирование
+
+        public void EnterTemplateEditMode(Template template, TemplateManagerWindow managerWindow)
+        {
+            isTemplateEditMode = true;
+            editingTemplate = template;
+            templateManagerWindow = managerWindow;
+
+            // Скрываем обычный интерфейс
+            RegularInterfacePanel.Children.OfType<UIElement>().ToList().ForEach(child =>
+            {
+                if (child != RegularInterfacePanel.Children.OfType<Border>().FirstOrDefault(b => b.Child is Grid grid && grid.Children.Contains(MessageRichTextBox)))
+                {
+                    child.Visibility = Visibility.Collapsed;
+                }
+            });
+
+            // Показываем кнопки редактирования
+            TemplateEditButtonsPanel.Visibility = Visibility.Visible;
+
+            // Загружаем содержимое шаблона
+            MessageRichTextBox.Document.Blocks.Clear();
+            if (!string.IsNullOrWhiteSpace(template.Content))
+            {
+                var flowDoc = RichTextSerializationHelper.DeserializeFlowDocument(template.Content);
+                MessageRichTextBox.Document = flowDoc;
+
+                if (flowDoc.FontFamily != null)
+                {
+                    currentFontFamily = flowDoc.FontFamily;
+                    FontFamilyComboBox.SelectedItem = FontFamilyComboBox.Items
+                        .Cast<ComboBoxItem>()
+                        .FirstOrDefault(item => item.Content.ToString() == currentFontFamily.Source);
+                }
+                if (flowDoc.FontSize > 0)
+                {
+                    currentFontSize = flowDoc.FontSize;
+                    FontSizeComboBox.SelectedItem = FontSizeComboBox.Items
+                        .Cast<ComboBoxItem>()
+                        .FirstOrDefault(item => item.Content.ToString() == currentFontSize.ToString());
+                }
+                if (flowDoc.Foreground is SolidColorBrush foreground)
+                {
+                    currentForeground = foreground;
+                }
+            }
+            else
+            {
+                var paragraph = new Paragraph(new Run(""));
+                paragraph.FontFamily = currentFontFamily;
+                paragraph.FontSize = currentFontSize;
+                paragraph.Foreground = currentForeground;
+                MessageRichTextBox.Document.Blocks.Add(paragraph);
+            }
+
+            // Закрываем TemplateManagerWindow как диалог
+            templateManagerWindow.DialogResult = false; // Завершаем диалог без выбора шаблона
+        }
+
+        private void ExitTemplateEditMode(bool saveChanges)
+        {
+            if (saveChanges && editingTemplate != null)
+            {
+                // Сериализуем документ с форматированием
+                editingTemplate.Content = RichTextSerializationHelper.SerializeFlowDocument(MessageRichTextBox.Document);
+                SaveTemplates(); // Сохраняем в templates.json
+            }
+
+            // Сбрасываем состояние
+            isTemplateEditMode = false;
+            var category = templateManagerWindow?.Category; // Используем свойство Category
+            editingTemplate = null;
+
+            // Восстанавливаем обычный интерфейс
+            RegularInterfacePanel.Children.OfType<UIElement>().ToList().ForEach(child =>
+            {
+                child.Visibility = Visibility.Visible;
+            });
+
+            // Скрываем кнопки редактирования
+            TemplateEditButtonsPanel.Visibility = Visibility.Collapsed;
+
+            // Очищаем RichTextBox
+            MessageRichTextBox.Document.Blocks.Clear();
+            var paragraph = new Paragraph(new Run(""));
+            paragraph.FontFamily = currentFontFamily;
+            paragraph.FontSize = currentFontSize;
+            paragraph.Foreground = currentForeground;
+            MessageRichTextBox.Document.Blocks.Add(paragraph);
+
+            // Открываем новое окно TemplateManagerWindow
+            if (category != null)
+            {
+                templateManagerWindow = new TemplateManagerWindow(category, SaveTemplates)
+                {
+                    Owner = this
+                };
+                if (templateManagerWindow.ShowDialog() == true && templateManagerWindow.SelectedTemplate != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Selected template: {templateManagerWindow.SelectedTemplate.Name}, Content length: {templateManagerWindow.SelectedTemplate.Content?.Length ?? 0}");
+                    LoadSelectedTemplate(templateManagerWindow.SelectedTemplate);
+                }
+            }
+        }
+
+        // Вспомогательный метод для загрузки шаблона
+        private void LoadSelectedTemplate(Template template)
+        {
+            MessageRichTextBox.Document.Blocks.Clear();
+            if (!string.IsNullOrWhiteSpace(template.Content))
+            {
+                var flowDoc = RichTextSerializationHelper.DeserializeFlowDocument(template.Content);
+                MessageRichTextBox.Document = flowDoc;
+
+                if (flowDoc.FontFamily != null)
+                {
+                    MessageRichTextBox.Document.FontFamily = flowDoc.FontFamily;
+                    currentFontFamily = flowDoc.FontFamily;
+                }
+                if (flowDoc.FontSize > 0)
+                {
+                    MessageRichTextBox.Document.FontSize = flowDoc.FontSize;
+                    currentFontSize = flowDoc.FontSize;
+                }
+                if (flowDoc.TextAlignment != TextAlignment.Left)
+                {
+                    MessageRichTextBox.Document.TextAlignment = flowDoc.TextAlignment;
+                }
+                if (flowDoc.Foreground is SolidColorBrush foreground)
+                {
+                    MessageRichTextBox.Document.Foreground = foreground;
+                    currentForeground = foreground;
+                }
+
+                var flowDocText = new TextRange(flowDoc.ContentStart, flowDoc.ContentEnd).Text;
+                if (string.IsNullOrWhiteSpace(flowDocText))
+                {
+                    MessageBox.Show("Шаблон пустой или содержит некорректный XAML.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    ResetRichTextBox();
+                }
+            }
+            else
+            {
+                MessageBox.Show("Выбранный шаблон пустой.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                ResetRichTextBox();
+            }
+        }
+
+        private void ResetRichTextBox()
+        {
+            var paragraph = new Paragraph(new Run(""));
+            paragraph.FontFamily = new FontFamily("Times New Roman");
+            paragraph.FontSize = 12;
+            paragraph.Foreground = Brushes.Black;
+            MessageRichTextBox.Document.Blocks.Add(paragraph);
+        }
+
+
+        private void SaveTemplate_Click(object sender, RoutedEventArgs e)
+        {
+            if (isTemplateEditMode && editingTemplate != null)
+            {
+                var text = new TextRange(MessageRichTextBox.Document.ContentStart, MessageRichTextBox.Document.ContentEnd).Text;
+                System.Diagnostics.Debug.WriteLine($"SaveTemplate_Click: Document text before save: {text}");
+                if (string.IsNullOrWhiteSpace(text) && MessageRichTextBox.Document.Blocks.Count == 0)
+                {
+                    MessageBox.Show("Документ пустой. Введите содержимое шаблона.", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                var content = RichTextSerializationHelper.SerializeFlowDocument(MessageRichTextBox.Document);
+                System.Diagnostics.Debug.WriteLine($"SaveTemplate_Click: Saving template '{editingTemplate.Name}' with content length: {content.Length}");
+                editingTemplate.Content = content;
+                ExitTemplateEditMode(saveChanges: true);
+            }
+        }
+
+        private void CancelTemplateButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (isTemplateEditMode)
+            {
+                ExitTemplateEditMode(saveChanges: false);
+            }
+        }
+
+        #endregion
 
     }
 }
