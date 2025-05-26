@@ -393,5 +393,12 @@ namespace alesya_rassylka
                 System.Diagnostics.Debug.WriteLine($"Unexpected sender type in DeleteTemplate_Click: {sender.GetType().Name}");
             }
         }
+
+        public void RefreshTemplateList()
+        {
+            TemplatesListBox.ItemsSource = null;
+            TemplatesListBox.ItemsSource = Category.Templates;
+        }
+
     }
 }

@@ -2543,6 +2543,8 @@ namespace alesya_rassylka
                 child.Visibility = Visibility.Visible;
             });
 
+            SubjectTextBox.Visibility = Visibility.Visible;
+            TemplateNameTextBox.Visibility = Visibility.Collapsed;
             // Скрываем кнопки редактирования
             TemplateEditButtonsPanel.Visibility = Visibility.Collapsed;
 
@@ -2624,21 +2626,82 @@ namespace alesya_rassylka
 
         private void SaveTemplate_Click(object sender, RoutedEventArgs e)
         {
+            var text = new TextRange(MessageRichTextBox.Document.ContentStart, MessageRichTextBox.Document.ContentEnd).Text;
+            if (string.IsNullOrWhiteSpace(text) && MessageRichTextBox.Document.Blocks.Count == 0)
+            {
+                MessageBox.Show("Документ пустой. Введите содержимое шаблона.", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var content = RichTextSerializationHelper.SerializeFlowDocument(MessageRichTextBox.Document);
+
+            // 🔁 Если редактируем существующий шаблон
             if (isTemplateEditMode && editingTemplate != null)
             {
-                var text = new TextRange(MessageRichTextBox.Document.ContentStart, MessageRichTextBox.Document.ContentEnd).Text;
-                System.Diagnostics.Debug.WriteLine($"SaveTemplate_Click: Document text before save: {text}");
-                if (string.IsNullOrWhiteSpace(text) && MessageRichTextBox.Document.Blocks.Count == 0)
-                {
-                    MessageBox.Show("Документ пустой. Введите содержимое шаблона.", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-                var content = RichTextSerializationHelper.SerializeFlowDocument(MessageRichTextBox.Document);
-                System.Diagnostics.Debug.WriteLine($"SaveTemplate_Click: Saving template '{editingTemplate.Name}' with content length: {content.Length}");
                 editingTemplate.Content = content;
                 ExitTemplateEditMode(saveChanges: true);
             }
+            else // ➕ Добавляем новый шаблон
+            {
+                string templateName = TemplateNameTextBox.Text.Trim();
+                if (string.IsNullOrWhiteSpace(templateName) || templateName == "Название шаблона")
+                {
+                    MessageBox.Show("Введите корректное название шаблона.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                // ⛳️ Берём категорию из TemplateCategories по имени текущей
+                var selectedCategory = TemplateCategories.FirstOrDefault(c => c.Name == templateManagerWindow?.Category?.Name);
+                if (selectedCategory == null)
+                {
+                    MessageBox.Show("Категория шаблона не найдена.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                if (selectedCategory.Templates.Any(t => t.Name.Equals(templateName, StringComparison.OrdinalIgnoreCase)))
+                {
+                    MessageBox.Show("Шаблон с таким названием уже существует.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                var newTemplate = new Template
+                {
+                    Name = templateName,
+                    Content = content
+                };
+
+                selectedCategory.Templates.Add(newTemplate);
+
+                LogToFile($"Добавляется шаблон '{templateName}' в категорию: {selectedCategory.Name}");
+                LogToFile("Проверка всех категорий:");
+                foreach (var cat in TemplateCategories)
+                {
+                    LogToFile($"- {cat.Name}: {cat.Templates.Count} шаблонов");
+                }
+
+
+                SaveTemplates();
+
+                LogToFile("После SaveTemplates:");
+                string path = System.IO.Path.GetFullPath(TemplatesFilePath);
+                LogToFile($"Файл должен быть: {path}");
+
+
+                MessageBox.Show("Новый шаблон успешно добавлен!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+
+            // 🔄 Сброс полей
+            TemplateNameTextBox.Text = "Название шаблона";
+            TemplateNameTextBox.Visibility = Visibility.Collapsed;
+            TemplateEditButtonsPanel.Visibility = Visibility.Collapsed;
+            SubjectTextBox.Visibility = Visibility.Visible;
+            MessageRichTextBox.Document.Blocks.Clear();
+            MessageRichTextBox.Document.Blocks.Add(new Paragraph(new Run("")));
+
+            templateManagerWindow?.RefreshTemplateList();
         }
+
+
 
         private void CancelTemplateButton_Click(object sender, RoutedEventArgs e)
         {
@@ -2668,6 +2731,22 @@ namespace alesya_rassylka
 
 
         #endregion
+
+
+        private void LogToFile(string message)
+        {
+            try
+            {
+                string logPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log.txt");
+
+                string logEntry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}{Environment.NewLine}";
+                File.AppendAllText(logPath, logEntry);
+            }
+            catch
+            {
+                // Если логирование не удалось, игнорируем — чтобы не мешать работе приложения
+            }
+        }
 
     }
 }
