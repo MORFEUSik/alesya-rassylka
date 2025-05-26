@@ -109,11 +109,9 @@ D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\System.Windows.Forms.Ribbon
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\alesya-rassylka.csproj.AssemblyReference.cache
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\MainWindow.baml
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\SettingsWindow.baml
-C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\TemplateEditWindow.baml
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\MainWindow.g.cs
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\SelectRecipientWindow.g.cs
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\SettingsWindow.g.cs
-C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\TemplateEditWindow.g.cs
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\TemplateManagerWindow.g.cs
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\App.g.cs
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\GeneratedInternalTypeHelper.g.cs

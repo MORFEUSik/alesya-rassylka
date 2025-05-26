@@ -16,6 +16,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Markup;
 using System.Xml;
+using System.Windows.Controls.Primitives;
+using System.Collections.ObjectModel;
+using System.Windows.Shapes;
 
 
 namespace alesya_rassylka
@@ -163,6 +166,10 @@ namespace alesya_rassylka
         private bool isTemplateEditMode;
         private Template editingTemplate;
         private TemplateManagerWindow templateManagerWindow;
+
+        private ObservableCollection<SolidColorBrush> customColors = new ObservableCollection<SolidColorBrush>(); // Храним пользовательские цвета
+        private const string CustomColorsFilePath = "custom_colors.json"; // Путь к файлу пользовательских цветов
+        private SolidColorBrush selectedColor; // Временное хранение выбранного цвета до нажатия "Применить"
         public MainWindow()
         {
             InitializeComponent();
@@ -1992,15 +1999,138 @@ namespace alesya_rassylka
             SetTextAlignment(TextAlignment.Justify);
         }
 
+        #region Цвет текста
+
+        private string ColorToHex(Color color)
+        {
+            return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+        }
+
+        private Style CreateTabControlStyle()
+        {
+            var style = new Style(typeof(TabControl));
+
+            // Основные свойства TabControl
+            style.Setters.Add(new Setter(TabControl.BackgroundProperty, Brushes.White));
+            style.Setters.Add(new Setter(TabControl.BorderBrushProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+            style.Setters.Add(new Setter(TabControl.BorderThicknessProperty, new Thickness(1)));
+
+            // Шаблон TabControl
+            var template = new ControlTemplate(typeof(TabControl));
+            var grid = new FrameworkElementFactory(typeof(Grid));
+
+            var contentPresenter = new FrameworkElementFactory(typeof(ContentPresenter));
+            contentPresenter.SetValue(ContentPresenter.ContentProperty, new TemplateBindingExtension(TabControl.SelectedContentProperty));
+            contentPresenter.SetValue(ContentPresenter.HorizontalAlignmentProperty, HorizontalAlignment.Stretch);
+            contentPresenter.SetValue(ContentPresenter.VerticalAlignmentProperty, VerticalAlignment.Stretch);
+
+            var tabPanel = new FrameworkElementFactory(typeof(TabPanel));
+            tabPanel.SetValue(TabPanel.BackgroundProperty, Brushes.White);
+            tabPanel.SetValue(TabPanel.HorizontalAlignmentProperty, HorizontalAlignment.Left);
+            tabPanel.SetValue(TabPanel.IsItemsHostProperty, true);
+
+            grid.AppendChild(tabPanel);
+            grid.AppendChild(contentPresenter);
+
+            template.VisualTree = grid;
+            style.Setters.Add(new Setter(TabControl.TemplateProperty, template));
+
+            // Стиль для TabItem
+            var tabItemStyle = new Style(typeof(TabItem));
+            tabItemStyle.Setters.Add(new Setter(TabItem.BackgroundProperty, Brushes.White));
+            tabItemStyle.Setters.Add(new Setter(TabItem.ForegroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+            tabItemStyle.Setters.Add(new Setter(TabItem.FontSizeProperty, 14.0));
+            tabItemStyle.Setters.Add(new Setter(TabItem.PaddingProperty, new Thickness(10, 5, 10, 5)));
+            tabItemStyle.Setters.Add(new Setter(TabItem.BorderBrushProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+            tabItemStyle.Setters.Add(new Setter(TabItem.BorderThicknessProperty, new Thickness(1)));
+
+            var tabItemTemplate = new ControlTemplate(typeof(TabItem));
+            var border = new FrameworkElementFactory(typeof(Border));
+            border.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(TabItem.BackgroundProperty));
+            border.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(TabItem.BorderBrushProperty));
+            border.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(TabItem.BorderThicknessProperty));
+
+            var contentPresenterTab = new FrameworkElementFactory(typeof(ContentPresenter));
+            contentPresenterTab.SetValue(ContentPresenter.ContentProperty, new TemplateBindingExtension(HeaderedContentControl.HeaderProperty));
+            contentPresenterTab.SetValue(ContentPresenter.HorizontalAlignmentProperty, HorizontalAlignment.Center);
+            contentPresenterTab.SetValue(ContentPresenter.VerticalAlignmentProperty, VerticalAlignment.Center);
+
+            border.AppendChild(contentPresenterTab);
+            tabItemTemplate.VisualTree = border;
+
+            var selectedTrigger = new Trigger { Property = TabItem.IsSelectedProperty, Value = true };
+            selectedTrigger.Setters.Add(new Setter(TabItem.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E0E6F8"))));
+            tabItemTemplate.Triggers.Add(selectedTrigger);
+
+            tabItemStyle.Setters.Add(new Setter(TabItem.TemplateProperty, tabItemTemplate));
+            style.Resources.Add(typeof(TabItem), tabItemStyle);
+
+            return style;
+        }
+        private void LoadCustomColors()
+        {
+            try
+            {
+                if (File.Exists(CustomColorsFilePath))
+                {
+                    string json = File.ReadAllText(CustomColorsFilePath, Encoding.UTF8);
+                    var colorList = JsonSerializer.Deserialize<List<string>>(json);
+                    if (colorList != null)
+                    {
+                        customColors.Clear();
+                        foreach (var hex in colorList)
+                        {
+                            customColors.Add(new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex)));
+                        }
+                        System.Diagnostics.Debug.WriteLine($"Loaded {customColors.Count} custom colors.");
+                    }
+                }
+                else
+                {
+                    customColors.Clear();
+                    customColors.Add(new SolidColorBrush(Color.FromRgb(100, 150, 200)));
+                    customColors.Add(new SolidColorBrush(Color.FromRgb(200, 100, 150)));
+                    SaveCustomColors();
+                    System.Diagnostics.Debug.WriteLine("Created default custom colors.");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogError("Ошибка при загрузке пользовательских цветов", ex);
+                customColors.Clear();
+                System.Diagnostics.Debug.WriteLine("Custom colors reset to empty due to error.");
+            }
+        }
+
+        private void SaveCustomColors()
+        {
+            try
+            {
+                var colorList = customColors
+                    .Select(brush => ColorToHex(brush.Color))
+                    .ToList();
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                string json = JsonSerializer.Serialize(colorList, options);
+                File.WriteAllText(CustomColorsFilePath, json, Encoding.UTF8);
+                System.Diagnostics.Debug.WriteLine($"Saved {colorList.Count} custom colors to {CustomColorsFilePath}");
+            }
+            catch (Exception ex)
+            {
+                LogError("Ошибка при сохранении пользовательских цветов", ex);
+            }
+        }
+
+        // Полная переработанная версия ColorButton_Click с улучшениями: больше цветов, центрированные кнопки, автообновление, сортировка по оттенкам, удаление, скролл, прижатие кнопок
         private void ColorButton_Click(object sender, RoutedEventArgs e)
         {
-            // Создаём новое окно для выбора цвета
+            LoadCustomColors();
+
             var colorPickerWindow = new MetroWindow
             {
                 Title = "Выбрать цвет текста",
                 TitleCharacterCasing = CharacterCasing.Normal,
-                Width = 350,
-                Height = 250,
+                Width = 650,
+                Height = 660,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this,
                 ResizeMode = ResizeMode.NoResize,
@@ -2008,10 +2138,11 @@ namespace alesya_rassylka
                 BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
                 BorderThickness = new Thickness(1),
                 Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png")),
-                TitleForeground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))
+                TitleForeground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                GlowBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                ShowTitleBar = true
             };
 
-            // Подписываемся на изменение темы
             SettingsWindow.ThemeChanged += UpdateWindowTheme;
             colorPickerWindow.Closed += (s, args) => SettingsWindow.ThemeChanged -= UpdateWindowTheme;
 
@@ -2023,120 +2154,209 @@ namespace alesya_rassylka
                 });
             }
 
-            var stackPanel = new StackPanel { Margin = new Thickness(10) };
+            var rootGrid = new Grid();
+            rootGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            rootGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-            // Создаём ColorPicker
-            var colorPicker = new Xceed.Wpf.Toolkit.ColorPicker
+            var scrollViewer = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+            var mainStackPanel = new StackPanel { Margin = new Thickness(10) };
+            scrollViewer.Content = mainStackPanel;
+            Grid.SetRow(scrollViewer, 0);
+
+            var titleTextBlock = new TextBlock
             {
-                SelectedColor = (currentForeground as SolidColorBrush)?.Color ?? Colors.Black,
-                Width = 300,
-                Height = 100,
-                Margin = new Thickness(0, 0, 0, 10)
-            };
-
-            // Создаём стиль для кнопок (аналогично твоим стилям в других окнах)
-            Style CreateActionButtonStyle()
-            {
-                var style = new Style(typeof(Button));
-                style.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.White));
-                style.Setters.Add(new Setter(Control.ForegroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
-                style.Setters.Add(new Setter(Control.FontSizeProperty, 16.0));
-                style.Setters.Add(new Setter(Control.FontFamilyProperty, new FontFamily("Arial Black")));
-                style.Setters.Add(new Setter(Control.FontWeightProperty, FontWeights.Bold));
-                style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(10, 5, 10, 5)));
-                style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
-                style.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
-                style.Setters.Add(new Setter(Control.CursorProperty, Cursors.Hand));
-                style.Setters.Add(new Setter(Control.MinHeightProperty, 30.0));
-
-                var template = new ControlTemplate(typeof(Button));
-                var border = new FrameworkElementFactory(typeof(Border));
-                border.Name = "border";
-                border.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
-                border.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Control.BorderBrushProperty));
-                border.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Control.BorderThicknessProperty));
-                border.SetValue(Border.CornerRadiusProperty, new CornerRadius(5));
-                border.SetValue(Border.PaddingProperty, new TemplateBindingExtension(Control.PaddingProperty));
-
-                var contentPresenter = new FrameworkElementFactory(typeof(ContentPresenter));
-                contentPresenter.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Center);
-                contentPresenter.SetValue(VerticalAlignmentProperty, VerticalAlignment.Center);
-                border.AppendChild(contentPresenter);
-
-                template.VisualTree = border;
-
-                var mouseOverTrigger = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
-                mouseOverTrigger.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E0E6F8")), "border"));
-                template.Triggers.Add(mouseOverTrigger);
-
-                var pressedTrigger = new Trigger { Property = Button.IsPressedProperty, Value = true };
-                pressedTrigger.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C0D0F0")), "border"));
-                template.Triggers.Add(pressedTrigger);
-
-                style.Setters.Add(new Setter(Control.TemplateProperty, template));
-                return style;
-            }
-
-            // Панель для кнопок
-            var buttonPanel = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(0, 10, 0, 0)
-            };
-
-            // Кнопка "Применить"
-            var applyButton = new Button
-            {
-                Content = "Применить",
-                Width = 125,
-                Height = 35,
-                Margin = new Thickness(0, 0, 15, 0),
-                Style = CreateActionButtonStyle()
-            };
-
-            // Кнопка "Отменить"
-            var cancelButton = new Button
-            {
-                Content = "Отменить",
-                Width = 125,
-                Height = 35,
-                Style = CreateActionButtonStyle()
-            };
-
-            // Обработчики кнопок
-            applyButton.Click += (s, args) =>
-            {
-                if (colorPicker.SelectedColor.HasValue)
-                {
-                    currentForeground = new SolidColorBrush(colorPicker.SelectedColor.Value);
-                    ApplyFormattingToSelection();
-                    colorPickerWindow.Close();
-                }
-            };
-
-            cancelButton.Click += (s, args) =>
-            {
-                colorPickerWindow.Close();
-            };
-
-            // Собираем UI
-            stackPanel.Children.Add(new TextBlock
-            {
-                Text = "Выберите цвет текста:",
+                Text = "Выберите цвет текста",
                 FontSize = 16,
                 FontWeight = FontWeights.Bold,
                 Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
                 Margin = new Thickness(0, 0, 0, 10)
-            });
-            stackPanel.Children.Add(colorPicker);
-            buttonPanel.Children.Add(applyButton);
-            buttonPanel.Children.Add(cancelButton);
-            stackPanel.Children.Add(buttonPanel);
+            };
+            mainStackPanel.Children.Add(titleTextBlock);
 
-            colorPickerWindow.Content = stackPanel;
+            var tabControl = new TabControl { Margin = new Thickness(0, 0, 0, 10) };
+
+            // Вкладка "Стандартные цвета"
+            var standardTab = new TabItem { Header = "Стандартные цвета" };
+            var standardWrap = new WrapPanel { Margin = new Thickness(5) };
+            var standardColors = new List<Color>
+    {
+        Colors.White, Colors.Silver, Colors.Gray, Colors.Black,
+        Colors.LightCoral, Colors.IndianRed, Colors.Red, Colors.Firebrick, Colors.DarkRed,
+        Colors.OrangeRed, Colors.Tomato, Colors.Orange, Colors.DarkOrange, Colors.Gold,
+        Colors.LightYellow, Colors.Yellow, Colors.Khaki, Colors.Goldenrod,
+        Colors.LawnGreen, Colors.GreenYellow, Colors.YellowGreen, Colors.Green, Colors.ForestGreen,
+        Colors.Teal, Colors.CadetBlue, Colors.Cyan, Colors.Aqua, Colors.LightBlue,
+        Colors.SkyBlue, Colors.DeepSkyBlue, Colors.DodgerBlue, Colors.Blue, Colors.Navy,
+        Colors.MediumPurple, Colors.Indigo, Colors.Violet, Colors.MediumVioletRed,
+        Colors.Magenta, Colors.Pink, Colors.HotPink, Colors.DeepPink,
+        Colors.Brown, Colors.Sienna, Colors.Chocolate
+    };
+            foreach (var col in standardColors)
+            {
+                var rect = new Rectangle
+                {
+                    Width = 30,
+                    Height = 30,
+                    Fill = new SolidColorBrush(col),
+                    Stroke = Brushes.DarkSlateBlue,
+                    StrokeThickness = 1,
+                    Margin = new Thickness(4),
+                    Cursor = Cursors.Hand
+                };
+                rect.MouseDown += (s, args) => selectedColor = (SolidColorBrush)rect.Fill;
+                standardWrap.Children.Add(rect);
+            }
+            standardTab.Content = new ScrollViewer { Content = standardWrap, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+            tabControl.Items.Add(standardTab);
+
+            // Вкладка "Пользовательские цвета"
+            var customTab = new TabItem { Header = "Пользовательские цвета" };
+            var customStack = new StackPanel { Margin = new Thickness(5) };
+
+            var canvas = new Xceed.Wpf.Toolkit.ColorCanvas
+            {
+                Width = 550,
+                Height = 280,
+                Margin = new Thickness(0, 0, 0, 10),
+                SelectedColor = Colors.Black
+            };
+            customStack.Children.Add(canvas);
+
+            var btnWrap = new WrapPanel { HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 0, 0, 10) };
+
+            var addBtn = new Button
+            {
+                Content = "Добавить выбранный цвет",
+                Width = 200,
+                Height = 35,
+                Style = CreateActionButtonStyle(),
+                Margin = new Thickness(10, 0, 10, 0)
+            };
+
+            var removeBtn = new Button
+            {
+                Content = "Удалить выбранный цвет",
+                Width = 200,
+                Height = 35,
+                Style = CreateActionButtonStyle(),
+                Margin = new Thickness(10, 0, 10, 0)
+            };
+
+            btnWrap.Children.Add(addBtn);
+            btnWrap.Children.Add(removeBtn);
+            customStack.Children.Add(btnWrap);
+
+            var customColorPanel = new WrapPanel();
+
+            void RefreshCustomColorPanel()
+            {
+                customColorPanel.Children.Clear();
+                foreach (var brush in customColors.ToList())
+                {
+                    var rect = new Rectangle
+                    {
+                        Width = 30,
+                        Height = 30,
+                        Fill = brush,
+                        Stroke = Brushes.DarkSlateBlue,
+                        StrokeThickness = 1,
+                        Margin = new Thickness(4),
+                        Cursor = Cursors.Hand
+                    };
+                    rect.MouseDown += (s, args) =>
+                    {
+                        selectedColor = (SolidColorBrush)rect.Fill;
+                        canvas.SelectedColor = selectedColor.Color;
+                    };
+                    customColorPanel.Children.Add(rect);
+                }
+            }
+
+            RefreshCustomColorPanel();
+
+            addBtn.Click += (s, args) =>
+            {
+                if (canvas.SelectedColor.HasValue)
+                {
+                    var newBrush = new SolidColorBrush(canvas.SelectedColor.Value);
+                    if (!customColors.Any(c => c.Color == newBrush.Color))
+                    {
+                        customColors.Add(newBrush);
+                        SaveCustomColors();
+                        RefreshCustomColorPanel();
+                    }
+                }
+            };
+
+            removeBtn.Click += (s, args) =>
+            {
+                if (selectedColor != null && customColors.Contains(selectedColor))
+                {
+                    customColors.Remove(selectedColor);
+                    SaveCustomColors();
+                    RefreshCustomColorPanel();
+                    selectedColor = null;
+                }
+            };
+
+            var customScroll = new ScrollViewer { Content = customColorPanel, Height = 120, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+            customStack.Children.Add(customScroll);
+            customTab.Content = customStack;
+            tabControl.Items.Add(customTab);
+            mainStackPanel.Children.Add(tabControl);
+
+            // Кнопки Применить и Отменить (всегда прижаты к низу)
+            var btnPanel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(0, 10, 0, 10)
+            };
+            var apply = new Button { Content = "Применить", Width = 160, Height = 40, Margin = new Thickness(10, 0, 10, 0), Style = CreateActionButtonStyle() };
+            var cancel = new Button { Content = "Отменить", Width = 160, Height = 40, Margin = new Thickness(10, 0, 10, 0), Style = CreateActionButtonStyle() };
+            apply.Click += (s, args) =>
+            {
+                if (selectedColor != null)
+                {
+                    currentForeground = selectedColor;
+                    ApplyFormattingToSelection();
+                    colorPickerWindow.Close();
+                }
+                else
+                {
+                    MessageBox.Show("Выберите цвет!", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            };
+            cancel.Click += (s, args) => colorPickerWindow.Close();
+
+            btnPanel.Children.Add(apply);
+            btnPanel.Children.Add(cancel);
+            Grid.SetRow(btnPanel, 1);
+
+            rootGrid.Children.Add(scrollViewer);
+            rootGrid.Children.Add(btnPanel);
+            colorPickerWindow.Content = rootGrid;
             colorPickerWindow.ShowDialog();
         }
+
+        private Style CreateActionButtonStyle()
+        {
+            var style = new Style(typeof(Button));
+            style.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.White));
+            style.Setters.Add(new Setter(Control.ForegroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+            style.Setters.Add(new Setter(Control.FontSizeProperty, 16.0));
+            style.Setters.Add(new Setter(Control.FontFamilyProperty, new FontFamily("Arial Black")));
+            style.Setters.Add(new Setter(Control.FontWeightProperty, FontWeights.Bold));
+            style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(10, 5, 10, 5)));
+            style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
+            style.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+            style.Setters.Add(new Setter(Control.CursorProperty, Cursors.Hand));
+            style.Setters.Add(new Setter(Control.MinHeightProperty, 30.0));
+            //style.Setters.Add(new Setter(Control.TemplateProperty, CreateButtonTemplate()));
+            return style;
+        }
+
+        #endregion
 
         private void ApplyFormattingToSelection()
         {
@@ -2256,6 +2476,10 @@ namespace alesya_rassylka
                     child.Visibility = Visibility.Collapsed;
                 }
             });
+
+            // Скрываем SubjectTextBox и показываем TemplateNameTextBox
+            SubjectTextBox.Visibility = Visibility.Collapsed;
+            TemplateNameTextBox.Visibility = Visibility.Visible;
 
             // Показываем кнопки редактирования
             TemplateEditButtonsPanel.Visibility = Visibility.Visible;
@@ -2423,6 +2647,25 @@ namespace alesya_rassylka
                 ExitTemplateEditMode(saveChanges: false);
             }
         }
+
+        private void TemplateNameTextBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (TemplateNameTextBox.Text == "Название шаблона")
+            {
+                TemplateNameTextBox.Text = "";
+                TemplateNameTextBox.Foreground = Brushes.Black;
+            }
+        }
+
+        private void TemplateNameTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(TemplateNameTextBox.Text))
+            {
+                TemplateNameTextBox.Text = "Название шаблона";
+                TemplateNameTextBox.Foreground = Brushes.Gray;
+            }
+        }
+
 
         #endregion
 

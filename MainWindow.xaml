@@ -302,6 +302,16 @@
                                  FontSize="14" Padding="0,5" GotFocus="SubjectTextBox_GotFocus" 
                                  TextChanged="SubjectTextBox_TextChanged"/>
 
+                        <TextBox x:Name="TemplateNameTextBox" Grid.Row="0" Margin="10,5,10,0"
+         Visibility="Collapsed"
+         Text="Название шаблона"
+         Foreground="Gray"
+         GotFocus="TemplateNameTextBox_GotFocus"
+         LostFocus="TemplateNameTextBox_LostFocus"
+         BorderThickness="0,0,0,1" BorderBrush="#172A74"
+         Background="Transparent" FontSize="14" Padding="0,5"/>
+
+
                         <!-- Основное текстовое поле -->
                         <RichTextBox x:Name="MessageRichTextBox" Grid.Row="1" Height="250"
                                      Background="White" BorderThickness="0" Margin="6,10,0,0"
