@@ -2462,6 +2462,8 @@ namespace alesya_rassylka
 
         #region редактирование
 
+        
+
         public void EnterTemplateEditMode(Template template, TemplateManagerWindow managerWindow)
         {
             isTemplateEditMode = true;
@@ -2480,6 +2482,10 @@ namespace alesya_rassylka
             // Скрываем SubjectTextBox и показываем TemplateNameTextBox
             SubjectTextBox.Visibility = Visibility.Collapsed;
             TemplateNameTextBox.Visibility = Visibility.Visible;
+
+            // Устанавливаем название шаблона
+            TemplateNameTextBox.Text = template.Name; // Устанавливаем имя шаблона
+            TemplateNameTextBox.Foreground = Brushes.Black; // Устанавливаем чёрный цвет текста
 
             // Показываем кнопки редактирования
             TemplateEditButtonsPanel.Visibility = Visibility.Visible;
@@ -2512,15 +2518,16 @@ namespace alesya_rassylka
             }
             else
             {
-                var paragraph = new Paragraph(new Run(""));
-                paragraph.FontFamily = currentFontFamily;
-                paragraph.FontSize = currentFontSize;
-                paragraph.Foreground = currentForeground;
+                var paragraph = new Paragraph(new Run(""))
+                {
+                    FontFamily = currentFontFamily,
+                    FontSize = currentFontSize,
+                    Foreground = currentForeground
+                };
                 MessageRichTextBox.Document.Blocks.Add(paragraph);
             }
 
-            // Закрываем TemplateManagerWindow как диалог
-            templateManagerWindow.DialogResult = false; // Завершаем диалог без выбора шаблона
+            templateManagerWindow.DialogResult = false;
         }
 
         private void ExitTemplateEditMode(bool saveChanges)
@@ -2534,7 +2541,6 @@ namespace alesya_rassylka
 
             // Сбрасываем состояние
             isTemplateEditMode = false;
-            var category = templateManagerWindow?.Category; // Используем свойство Category
             editingTemplate = null;
 
             // Восстанавливаем обычный интерфейс
@@ -2545,30 +2551,20 @@ namespace alesya_rassylka
 
             SubjectTextBox.Visibility = Visibility.Visible;
             TemplateNameTextBox.Visibility = Visibility.Collapsed;
-            // Скрываем кнопки редактирования
             TemplateEditButtonsPanel.Visibility = Visibility.Collapsed;
 
             // Очищаем RichTextBox
             MessageRichTextBox.Document.Blocks.Clear();
-            var paragraph = new Paragraph(new Run(""));
-            paragraph.FontFamily = currentFontFamily;
-            paragraph.FontSize = currentFontSize;
-            paragraph.Foreground = currentForeground;
+            var paragraph = new Paragraph(new Run(""))
+            {
+                FontFamily = currentFontFamily,
+                FontSize = currentFontSize,
+                Foreground = currentForeground
+            };
             MessageRichTextBox.Document.Blocks.Add(paragraph);
 
-            // Открываем новое окно TemplateManagerWindow
-            if (category != null)
-            {
-                templateManagerWindow = new TemplateManagerWindow(category, SaveTemplates)
-                {
-                    Owner = this
-                };
-                if (templateManagerWindow.ShowDialog() == true && templateManagerWindow.SelectedTemplate != null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Selected template: {templateManagerWindow.SelectedTemplate.Name}, Content length: {templateManagerWindow.SelectedTemplate.Content?.Length ?? 0}");
-                    LoadSelectedTemplate(templateManagerWindow.SelectedTemplate);
-                }
-            }
+            // НЕ открываем TemplateManagerWindow автоматически
+            templateManagerWindow = null; // Сбрасываем ссылку
         }
 
         // Вспомогательный метод для загрузки шаблона
@@ -2638,9 +2634,40 @@ namespace alesya_rassylka
             // 🔁 Если редактируем существующий шаблон
             if (isTemplateEditMode && editingTemplate != null)
             {
+                string newTemplateName = TemplateNameTextBox.Text.Trim();
+                if (string.IsNullOrWhiteSpace(newTemplateName) || newTemplateName == "Название шаблона")
+                {
+                    MessageBox.Show("Введите корректное название шаблона.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                // Находим категорию текущего шаблона
+                var selectedCategory = TemplateCategories.FirstOrDefault(c => c.Templates.Contains(editingTemplate));
+                if (selectedCategory == null)
+                {
+                    LogToFile("❌ Категория для редактируемого шаблона не найдена");
+                    MessageBox.Show("Категория шаблона не найдена.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // Проверяем, изменилось ли название и уникально ли новое название
+                if (newTemplateName != editingTemplate.Name)
+                {
+                    if (selectedCategory.Templates.Any(t => t.Name.Equals(newTemplateName, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        LogToFile($"❗️ Шаблон с названием '{newTemplateName}' уже существует в категории '{selectedCategory.Name}'");
+                        MessageBox.Show("Шаблон с таким названием уже существует.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+                    LogToFile($"🔄 Изменяем название шаблона с '{editingTemplate.Name}' на '{newTemplateName}'");
+                    editingTemplate.Name = newTemplateName; // Обновляем название шаблона
+                }
+
                 System.Diagnostics.Debug.WriteLine("Шаблон редактирован (Успех)");
                 Console.WriteLine("Шаблон редактирован");
                 editingTemplate.Content = content;
+                SaveTemplates();
+                MessageBox.Show("Шаблон успешно отредактирован!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                 ExitTemplateEditMode(saveChanges: true);
             }
             else // ➕ Добавляем новый шаблон
@@ -2654,7 +2681,7 @@ namespace alesya_rassylka
 
                 // ⛳️ Берём категорию из TemplateCategories по имени текущей
                 var selectedCategory = TemplateCategories.FirstOrDefault(c => c.Name == templateManagerWindow?.Category?.Name);
-                LogToFile($"🧪 Проверка: добавляем шаблон '{templateName}' в категорию '{selectedCategory.Name}', всего шаблонов: {selectedCategory.Templates.Count}");
+                LogToFile($"🧪 Проверка: добавляем шаблон '{templateName}' в категорию '{selectedCategory?.Name}', всего шаблонов: {selectedCategory?.Templates.Count ?? 0}");
 
                 if (selectedCategory == null)
                 {
@@ -2685,29 +2712,21 @@ namespace alesya_rassylka
                     LogToFile($"- {cat.Name}: {cat.Templates.Count} шаблонов");
                 }
 
-
                 SaveTemplates();
-
-                LogToFile("После SaveTemplates:");
-                string path = System.IO.Path.GetFullPath(TemplatesFilePath);
-                LogToFile($"Файл должен быть: {path}");
-               
-                ExitTemplateAddMode();
-               
-
-
                 MessageBox.Show("Новый шаблон успешно добавлен!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                if (templateManagerWindow != null && !templateManagerWindow.IsVisible)
+                {
+                    templateManagerWindow.RefreshTemplateList();
+                }
+                ExitTemplateAddMode();
             }
 
             // 🔄 Сброс полей
             TemplateNameTextBox.Text = "Название шаблона";
+            TemplateNameTextBox.Foreground = Brushes.Gray; // Возвращаем серый цвет для placeholder'а
             TemplateNameTextBox.Visibility = Visibility.Collapsed;
             TemplateEditButtonsPanel.Visibility = Visibility.Collapsed;
             SubjectTextBox.Visibility = Visibility.Visible;
-            MessageRichTextBox.Document.Blocks.Clear();
-            MessageRichTextBox.Document.Blocks.Add(new Paragraph(new Run("")));
-
-            templateManagerWindow?.RefreshTemplateList();
         }
 
 
@@ -2779,9 +2798,6 @@ namespace alesya_rassylka
         private void ExitTemplateAddMode()
         {
             isTemplateEditMode = false;
-            var category = templateManagerWindow?.Category;
-
-            // Сбрасываем состояние
             editingTemplate = null;
 
             // Восстанавливаем обычный интерфейс
@@ -2804,18 +2820,8 @@ namespace alesya_rassylka
             };
             MessageRichTextBox.Document.Blocks.Add(paragraph);
 
-            // Открываем TemplateManagerWindow по категории
-            if (category != null)
-            {
-                templateManagerWindow = new TemplateManagerWindow(category, SaveTemplates)
-                {
-                    Owner = this
-                };
-                if (templateManagerWindow.ShowDialog() == true && templateManagerWindow.SelectedTemplate != null)
-                {
-                    LoadSelectedTemplate(templateManagerWindow.SelectedTemplate);
-                }
-            }
+            // НЕ открываем TemplateManagerWindow автоматически
+            templateManagerWindow = null; // Сбрасываем ссылку
         }
 
 
