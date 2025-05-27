@@ -2638,6 +2638,8 @@ namespace alesya_rassylka
             // 🔁 Если редактируем существующий шаблон
             if (isTemplateEditMode && editingTemplate != null)
             {
+                System.Diagnostics.Debug.WriteLine("Шаблон редактирован (Успех)");
+                Console.WriteLine("Шаблон редактирован");
                 editingTemplate.Content = content;
                 ExitTemplateEditMode(saveChanges: true);
             }
@@ -2652,14 +2654,18 @@ namespace alesya_rassylka
 
                 // ⛳️ Берём категорию из TemplateCategories по имени текущей
                 var selectedCategory = TemplateCategories.FirstOrDefault(c => c.Name == templateManagerWindow?.Category?.Name);
+                LogToFile($"🧪 Проверка: добавляем шаблон '{templateName}' в категорию '{selectedCategory.Name}', всего шаблонов: {selectedCategory.Templates.Count}");
+
                 if (selectedCategory == null)
                 {
+                    LogToFile("❌ selectedCategory оказался null");
                     MessageBox.Show("Категория шаблона не найдена.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
                 if (selectedCategory.Templates.Any(t => t.Name.Equals(templateName, StringComparison.OrdinalIgnoreCase)))
                 {
+                    LogToFile($"❗️ Шаблон с названием '{templateName}' уже существует в категории '{selectedCategory.Name}'");
                     MessageBox.Show("Шаблон с таким названием уже существует.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
@@ -2685,6 +2691,9 @@ namespace alesya_rassylka
                 LogToFile("После SaveTemplates:");
                 string path = System.IO.Path.GetFullPath(TemplatesFilePath);
                 LogToFile($"Файл должен быть: {path}");
+               
+                ExitTemplateAddMode();
+               
 
 
                 MessageBox.Show("Новый шаблон успешно добавлен!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -2726,6 +2735,86 @@ namespace alesya_rassylka
             {
                 TemplateNameTextBox.Text = "Название шаблона";
                 TemplateNameTextBox.Foreground = Brushes.Gray;
+            }
+        }
+
+        public void EnterTemplateAddMode(TemplateManagerWindow managerWindow, TemplateCategory category)
+        {
+            isTemplateEditMode = false;
+            editingTemplate = null;
+            templateManagerWindow = managerWindow;
+
+            // Скрываем обычный интерфейс (как в редактировании)
+            RegularInterfacePanel.Children.OfType<UIElement>().ToList().ForEach(child =>
+            {
+                if (child != RegularInterfacePanel.Children.OfType<Border>().FirstOrDefault(b => b.Child is Grid grid && grid.Children.Contains(MessageRichTextBox)))
+                {
+                    child.Visibility = Visibility.Collapsed;
+                }
+            });
+
+            SubjectTextBox.Visibility = Visibility.Collapsed;
+            TemplateNameTextBox.Visibility = Visibility.Visible;
+            TemplateEditButtonsPanel.Visibility = Visibility.Visible;
+
+            // Очищаем редактор
+            MessageRichTextBox.Document.Blocks.Clear();
+            var paragraph = new Paragraph(new Run(""))
+            {
+                FontFamily = currentFontFamily,
+                FontSize = currentFontSize,
+                Foreground = currentForeground
+            };
+            MessageRichTextBox.Document.Blocks.Add(paragraph);
+
+            // Устанавливаем категорию через метод
+            templateManagerWindow.SetCategory(category);
+
+            // ⬅️ Закрываем TemplateManagerWindow
+            templateManagerWindow.DialogResult = false;
+        }
+
+
+
+        private void ExitTemplateAddMode()
+        {
+            isTemplateEditMode = false;
+            var category = templateManagerWindow?.Category;
+
+            // Сбрасываем состояние
+            editingTemplate = null;
+
+            // Восстанавливаем обычный интерфейс
+            RegularInterfacePanel.Children.OfType<UIElement>().ToList().ForEach(child =>
+            {
+                child.Visibility = Visibility.Visible;
+            });
+
+            SubjectTextBox.Visibility = Visibility.Visible;
+            TemplateNameTextBox.Visibility = Visibility.Collapsed;
+            TemplateEditButtonsPanel.Visibility = Visibility.Collapsed;
+
+            // Очищаем редактор
+            MessageRichTextBox.Document.Blocks.Clear();
+            var paragraph = new Paragraph(new Run(""))
+            {
+                FontFamily = currentFontFamily,
+                FontSize = currentFontSize,
+                Foreground = currentForeground
+            };
+            MessageRichTextBox.Document.Blocks.Add(paragraph);
+
+            // Открываем TemplateManagerWindow по категории
+            if (category != null)
+            {
+                templateManagerWindow = new TemplateManagerWindow(category, SaveTemplates)
+                {
+                    Owner = this
+                };
+                if (templateManagerWindow.ShowDialog() == true && templateManagerWindow.SelectedTemplate != null)
+                {
+                    LoadSelectedTemplate(templateManagerWindow.SelectedTemplate);
+                }
             }
         }
 

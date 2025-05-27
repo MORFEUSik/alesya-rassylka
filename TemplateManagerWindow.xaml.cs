@@ -25,7 +25,7 @@ namespace alesya_rassylka
     {
         private TemplateCategory category;
         private Action saveChanges;
-        public Template SelectedTemplate { get; private set; }
+        public Template SelectedTemplate { get; set; }
 
         public TemplateCategory Category => category;
 
@@ -54,6 +54,11 @@ namespace alesya_rassylka
 
         }
 
+        public void SetCategory(TemplateCategory newCategory)
+        {
+            category = newCategory;
+        }
+
         private void SaveCategoryName_Click(object sender, RoutedEventArgs e)
         {
             string newName = CategoryNameTextBox.Text.Trim();
@@ -74,18 +79,10 @@ namespace alesya_rassylka
 
         private void AddTemplate_Click(object sender, RoutedEventArgs e)
         {
-            var newTemplate = new Template { Name = "Новый шаблон", Content = "" };
             if (Owner is MainWindow mainWindow)
             {
-                mainWindow.EnterTemplateEditMode(newTemplate, this);
-                // После редактирования шаблон добавляется, если сохранён
-                if (!string.IsNullOrWhiteSpace(newTemplate.Content))
-                {
-                    category.Templates.Add(newTemplate);
-                    TemplatesListBox.ItemsSource = null;
-                    TemplatesListBox.ItemsSource = category.Templates;
-                    saveChanges?.Invoke();
-                }
+                // ❗ Передаём null вместо шаблона
+                mainWindow.EnterTemplateAddMode(this, category);
             }
             else
             {
@@ -93,6 +90,7 @@ namespace alesya_rassylka
                 MessageBox.Show("Ошибка: главное окно не найдено.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
 
         private void EditTemplate_Click(object sender, RoutedEventArgs e)
         {
