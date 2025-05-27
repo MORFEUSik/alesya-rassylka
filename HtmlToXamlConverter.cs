@@ -1,185 +1,81 @@
-п»їusing System;
-using System.IO;
-using System.Text;
-using System.Windows.Documents;
-using System.Xml;
+// Простая реализация HtmlToXamlConverter для преобразования базового HTML в FlowDocument-compatible XAML
+// Поддерживаются: <p>, <b>, <i>, <u>, <br>, <span style="color:"> и <body>
 
-namespace alesya_rassylka
+using System.Security;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Web;
+
+namespace HTMLConverter
 {
     public static class HtmlToXamlConverter
     {
         public static string ConvertHtmlToXaml(string htmlString, bool asFlowDocument)
         {
             if (string.IsNullOrWhiteSpace(htmlString))
+                return "<FlowDocument xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"><Paragraph /></FlowDocument>";
+
+            // Декодируем HTML
+            htmlString = HttpUtility.HtmlDecode(htmlString);
+
+            // Обрезаем до <body>
+            Match bodyMatch = Regex.Match(htmlString, "<body[^>]*>(.*?)</body>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            string bodyContent = bodyMatch.Success ? bodyMatch.Groups[1].Value : htmlString;
+
+            // Преобразуем <p>...</p> в XAML-параграфы
+            var paragraphs = Regex.Split(bodyContent, "</p>", RegexOptions.IgnoreCase);
+            var xamlBuilder = new StringBuilder();
+
+            string containerOpen = asFlowDocument
+                ? "<FlowDocument xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\">"
+                : "<Section xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\">";
+            xamlBuilder.Append(containerOpen);
+
+            foreach (var para in paragraphs)
             {
-                System.Diagnostics.Debug.WriteLine("ConvertHtmlToXaml: Input HTML is empty.");
-                return asFlowDocument
-                    ? "<FlowDocument xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" />"
-                    : "<Section xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" FontFamily=\"Arial\" FontSize=\"12\" />";
+                string trimmed = para.Trim();
+                if (string.IsNullOrEmpty(trimmed)) continue;
+
+                // Удаляем <p> открывающий тег
+                trimmed = Regex.Replace(trimmed, "<p[^>]*>", "", RegexOptions.IgnoreCase);
+
+                string xamlParagraph = ConvertInlineHtmlToXaml(trimmed);
+                xamlBuilder.Append($"<Paragraph>{xamlParagraph}</Paragraph>");
             }
 
-            string xamlString = string.Empty;
+            string containerClose = asFlowDocument ? "</FlowDocument>" : "</Section>";
+            xamlBuilder.Append(containerClose);
 
-            try
-            {
-                // РћР±РѕСЂР°С‡РёРІР°РµРј HTML РІ XHTML
-                string xhtml = "<?xml version=\"1.0\"?><html xmlns=\"http://www.w3.org/1999/xhtml\"><body>" + htmlString + "</body></html>";
-                System.Diagnostics.Debug.WriteLine($"XHTML input: {xhtml}");
-
-                // Р—Р°РіСЂСѓР¶Р°РµРј РІ XmlDocument
-                XmlDocument xmlDoc = new XmlDocument();
-                xmlDoc.LoadXml(xhtml);
-
-                // РќР°СЃС‚СЂР°РёРІР°РµРј РїСЂРѕСЃС‚СЂР°РЅСЃС‚РІРѕ РёРјС‘РЅ
-                XmlNamespaceManager nsMgr = new XmlNamespaceManager(xmlDoc.NameTable);
-                nsMgr.AddNamespace("xhtml", "http://www.w3.org/1999/xhtml");
-
-                var bodyNode = xmlDoc.SelectSingleNode("//xhtml:body", nsMgr);
-                if (bodyNode == null)
-                    throw new Exception("HTML does not contain a <body> tag.");
-
-                // РЎРѕР·РґР°С‘Рј XAML
-                StringBuilder xamlBuilder = new StringBuilder();
-                XmlWriterSettings settings = new XmlWriterSettings
-                {
-                    Indent = true,
-                    OmitXmlDeclaration = true
-                };
-
-                using (XmlWriter writer = XmlWriter.Create(xamlBuilder, settings))
-                {
-                    string wpfNamespace = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
-                    writer.WriteStartElement(asFlowDocument ? "FlowDocument" : "Section", wpfNamespace);
-
-                    foreach (XmlNode node in bodyNode.ChildNodes)
-                    {
-                        WriteNodeRecursive(writer, node);
-                    }
-
-                    writer.WriteEndElement();
-                }
-
-                xamlString = xamlBuilder.ToString();
-                System.Diagnostics.Debug.WriteLine($"Generated XAML: {xamlString}");
-
-                if (string.IsNullOrWhiteSpace(xamlString))
-                {
-                    throw new InvalidOperationException("Generated XAML is empty.");
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"ConvertHtmlToXaml error: {ex.Message}");
-                xamlString = $"<FlowDocument xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"><Paragraph>РћС€РёР±РєР° РєРѕРЅРІРµСЂС‚Р°С†РёРё: {System.Security.SecurityElement.Escape(ex.Message)}</Paragraph></FlowDocument>";
-            }
-
-            return xamlString;
+            return xamlBuilder.ToString();
         }
 
-        private static void WriteNodeRecursive(XmlWriter writer, XmlNode node)
+        private static string ConvertInlineHtmlToXaml(string html)
         {
-            if (node is XmlText textNode)
-            {
-                string text = textNode.Value?.Trim();
-                if (!string.IsNullOrEmpty(text))
-                {
-                    writer.WriteStartElement("Run");
-                    writer.WriteString(text);
-                    writer.WriteEndElement();
-                }
-                return;
-            }
+            // Жирный
+            html = Regex.Replace(html, "<b[^>]*>", "<Bold>", RegexOptions.IgnoreCase);
+            html = Regex.Replace(html, "</b>", "</Bold>", RegexOptions.IgnoreCase);
 
-            if (node is XmlElement element)
-            {
-                switch (element.Name.ToLower())
-                {
-                    case "p":
-                        writer.WriteStartElement("Paragraph");
-                        // РР·РІР»РµРєР°РµРј СЃС‚РёР»Рё РёР· Р°С‚СЂРёР±СѓС‚РѕРІ HTML
-                        string fontFamily = element.GetAttribute("data-font-family") ?? "Arial";
-                        string fontSize = element.GetAttribute("data-font-size") ?? "12";
-                        string textAlignment = element.GetAttribute("data-text-align") ?? "Left";
-                        string fontWeight = element.GetAttribute("data-font-weight") ?? "Normal";
-                        string fontStyle = element.GetAttribute("data-font-style") ?? "Normal";
-                        string textDecorations = element.GetAttribute("data-text-decorations") ?? "";
+            // Курсив
+            html = Regex.Replace(html, "<i[^>]*>", "<Italic>", RegexOptions.IgnoreCase);
+            html = Regex.Replace(html, "</i>", "</Italic>", RegexOptions.IgnoreCase);
 
-                        writer.WriteAttributeString("FontFamily", fontFamily);
-                        writer.WriteAttributeString("FontSize", fontSize);
-                        if (textAlignment != "Left")
-                            writer.WriteAttributeString("TextAlignment", textAlignment);
-                        if (fontWeight != "Normal")
-                            writer.WriteAttributeString("FontWeight", fontWeight);
-                        if (fontStyle != "Normal")
-                            writer.WriteAttributeString("FontStyle", fontStyle);
-                        if (!string.IsNullOrEmpty(textDecorations))
-                            writer.WriteAttributeString("TextDecorations", textDecorations);
+            // Подчёркивание
+            html = Regex.Replace(html, "<u[^>]*>", "<Underline>", RegexOptions.IgnoreCase);
+            html = Regex.Replace(html, "</u>", "</Underline>", RegexOptions.IgnoreCase);
 
-                        foreach (XmlNode child in element.ChildNodes)
-                        {
-                            WriteNodeRecursive(writer, child);
-                        }
-                        writer.WriteEndElement();
-                        break;
-                    case "b":
-                    case "strong":
-                        writer.WriteStartElement("Bold");
-                        foreach (XmlNode child in element.ChildNodes)
-                        {
-                            WriteNodeRecursive(writer, child);
-                        }
-                        writer.WriteEndElement();
-                        break;
-                    case "i":
-                    case "em":
-                        writer.WriteStartElement("Italic");
-                        foreach (XmlNode child in element.ChildNodes)
-                        {
-                            WriteNodeRecursive(writer, child);
-                        }
-                        writer.WriteEndElement();
-                        break;
-                    case "u":
-                        writer.WriteStartElement("Underline");
-                        foreach (XmlNode child in element.ChildNodes)
-                        {
-                            WriteNodeRecursive(writer, child);
-                        }
-                        writer.WriteEndElement();
-                        break;
-                    case "br":
-                        writer.WriteStartElement("LineBreak");
-                        writer.WriteEndElement();
-                        break;
-                    case "ul":
-                    case "ol":
-                        writer.WriteStartElement("List");
-                        string markerStyle = element.Name.ToLower() == "ol" ? "Decimal" : "Disc";
-                        writer.WriteAttributeString("MarkerStyle", markerStyle);
-                        foreach (XmlNode child in element.ChildNodes)
-                        {
-                            if (child.Name.ToLower() == "li")
-                            {
-                                writer.WriteStartElement("ListItem");
-                                writer.WriteStartElement("Paragraph");
-                                foreach (XmlNode liChild in child.ChildNodes)
-                                {
-                                    WriteNodeRecursive(writer, liChild);
-                                }
-                                writer.WriteEndElement(); // Paragraph
-                                writer.WriteEndElement(); // ListItem
-                            }
-                        }
-                        writer.WriteEndElement(); // List
-                        break;
-                    default:
-                        foreach (XmlNode child in element.ChildNodes)
-                        {
-                            WriteNodeRecursive(writer, child);
-                        }
-                        break;
-                }
-            }
+            // Цвет
+            html = Regex.Replace(html, "<span style=\"color:([#a-zA-Z0-9]+)\">", "<Span Foreground=\"$1\">", RegexOptions.IgnoreCase);
+            html = Regex.Replace(html, "</span>", "</Span>", RegexOptions.IgnoreCase);
+
+            // <br> как LineBreak
+            html = Regex.Replace(html, "<br ?/?>", "<LineBreak />", RegexOptions.IgnoreCase);
+
+            // Удаляем неизвестные HTML-теги
+            html = Regex.Replace(html, "<[^>]+>", "", RegexOptions.IgnoreCase);
+
+            // Экранируем оставшийся текст
+            return SecurityElement.Escape(html);
         }
     }
+
 }

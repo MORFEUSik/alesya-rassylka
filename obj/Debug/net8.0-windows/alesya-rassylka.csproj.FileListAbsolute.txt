@@ -163,3 +163,12 @@ C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\refint\alesya-rassylka
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\alesya-rassylka.pdb
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\alesya-rassylka.genruntimeconfig.cache
 C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\ref\alesya-rassylka.dll
+C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\SkiaSharp.dll
+C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\Xceed.Document.NET.dll
+C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\Xceed.Drawing.NET.dll
+C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\Xceed.PDF.NET.dll
+C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\Xceed.Words.NET.dll
+C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\runtimes\osx\native\libSkiaSharp.dylib
+C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\runtimes\win-arm64\native\libSkiaSharp.dll
+C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\runtimes\win-x64\native\libSkiaSharp.dll
+C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\runtimes\win-x86\native\libSkiaSharp.dll

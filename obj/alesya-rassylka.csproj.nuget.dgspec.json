@@ -82,6 +82,10 @@
             "System.Windows.Forms.Ribbon35": {
               "target": "Package",
               "version": "[3.5.8, )"
+            },
+            "Xceed.Words.NET": {
+              "target": "Package",
+              "version": "[5.0.25228.6154, )"
             }
           },
           "imports": [

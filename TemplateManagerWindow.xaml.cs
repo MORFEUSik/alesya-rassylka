@@ -4,11 +4,15 @@ using System.Windows.Controls;
 using Microsoft.Win32;
 using System.IO;
 using MahApps.Metro.Controls;
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.Linq;
 using System.Windows.Documents;
 using System.Text;
+using Xceed.Words.NET;
+using Paragraph = System.Windows.Documents.Paragraph; // Псевдоним для ясности
+using Run = System.Windows.Documents.Run; // Псевдоним для ясности
 
 // Псевдонимы для избежания конфликтов
 using WpfParagraph = System.Windows.Documents.Paragraph;
@@ -18,6 +22,7 @@ using WordRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 using WordStyle = DocumentFormat.OpenXml.Wordprocessing.Style;
 using System.Windows.Media;
 using DocumentFormat.OpenXml.Spreadsheet;
+using HTMLConverter;
 
 namespace alesya_rassylka
 {
@@ -113,244 +118,101 @@ namespace alesya_rassylka
             }
         }
 
+
         private void AddTemplateFromWord_Click(object sender, RoutedEventArgs e)
         {
-            var openFileDialog = new OpenFileDialog
+            var openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = "Word Documents (*.docx)|*.docx",
                 Title = "Выберите документ Word"
             };
 
-            if (openFileDialog.ShowDialog() != true)
-                return;
+            if (openFileDialog.ShowDialog() != true) return;
 
             try
             {
-                string filePath = openFileDialog.FileName;
-                StringBuilder htmlContent = new StringBuilder("<body>");
+                var flowDoc = new System.Windows.Documents.FlowDocument();
 
-                using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(filePath, false))
+                using (WordprocessingDocument doc = WordprocessingDocument.Open(openFileDialog.FileName, false))
                 {
-                    var body = wordDoc.MainDocumentPart?.Document?.Body;
-                    if (body == null)
-                        throw new InvalidOperationException("Тело документа Word отсутствует.");
+                    var body = doc.MainDocumentPart?.Document.Body;
+                    if (body == null) return;
 
-                    bool isListOpen = false;
-                    string currentListTag = null;
-                    string currentListStyle = null;
-
-                    foreach (var element in body.Elements())
+                    // Используем WordParagraph для работы с OpenXML
+                    foreach (var paragraph in body.Descendants<DocumentFormat.OpenXml.Wordprocessing.Paragraph>())
                     {
-                        if (element is WordParagraph p)
+                        var wpfParagraph = new System.Windows.Documents.Paragraph();
+
+                        foreach (var run in paragraph.Descendants<DocumentFormat.OpenXml.Wordprocessing.Run>())
                         {
-                            // Извлекаем свойства параграфа
-                            string fontFamily = "Arial";
-                            double fontSize = 12;
-                            string textAlignment = "left";
-                            string fontWeight = "normal";
-                            string fontStyle = "normal";
-                            string textDecorations = "";
-                            string textColor = "#000000"; // По умолчанию чёрный
+                            var wpfRun = new System.Windows.Documents.Run(run.InnerText);
 
-                            var paraProps = p.ParagraphProperties;
-                            if (paraProps != null)
+                            if (run.RunProperties != null)
                             {
-                                // Выравнивание
-                                if (paraProps.Justification?.Val != null)
-                                {
-                                    string justification = paraProps.Justification.Val.Value.ToString().ToLower();
-                                    if (justification == "center")
-                                        textAlignment = "center";
-                                    else if (justification == "right")
-                                        textAlignment = "right";
-                                    else if (justification == "both")
-                                        textAlignment = "justify";
-                                    else
-                                        textAlignment = "left";
-                                }
+                                // Жирный текст
+                                if (run.RunProperties.Bold != null)
+                                    wpfRun.FontWeight = FontWeights.Bold;
 
-                                // Свойства стиля параграфа
-                                var styleId = paraProps.ParagraphStyleId?.Val?.Value;
-                                if (!string.IsNullOrEmpty(styleId))
+                                // Курсив
+                                if (run.RunProperties.Italic != null)
+                                    wpfRun.FontStyle = FontStyles.Italic;
+
+                                // Размер шрифта
+                                if (run.RunProperties.FontSize != null && !string.IsNullOrEmpty(run.RunProperties.FontSize.Val))
                                 {
-                                    var style = wordDoc.MainDocumentPart?.StyleDefinitionsPart?.Styles
-                                        ?.Elements<WordStyle>()
-                                        ?.FirstOrDefault(s => s.StyleId == styleId && s.Type == StyleValues.Paragraph);
-                                    if (style?.StyleRunProperties != null)
+                                    if (double.TryParse(run.RunProperties.FontSize.Val, out double fontSize))
                                     {
-                                        var runProps = style.StyleRunProperties;
-                                        if (runProps.FontSize != null && double.TryParse(runProps.FontSize.Val?.Value, out double size))
-                                            fontSize = size / 2; // Word использует half-points
-                                        if (runProps.RunFonts?.Ascii != null)
-                                            fontFamily = runProps.RunFonts.Ascii;
-                                        if (runProps.Bold != null)
-                                            fontWeight = "bold";
-                                        if (runProps.Italic != null)
-                                            fontStyle = "italic";
-                                        if (runProps.Underline != null)
-                                            textDecorations = "underline";
-                                        if (runProps.Color != null && !string.IsNullOrEmpty(runProps.Color.Val?.Value))
-                                            textColor = "#" + runProps.Color.Val;
+                                        wpfRun.FontSize = fontSize / 2; // OpenXML использует половинные единицы
                                     }
                                 }
-                            }
 
-                            // Проверяем, является ли параграф частью списка
-                            var numberingProps = paraProps?.NumberingProperties;
-                            bool isListItem = numberingProps != null && numberingProps.NumberingLevelReference != null;
-                            string listStyle = "disc";
-                            if (isListItem)
-                            {
-                                var numberingId = numberingProps.NumberingId?.Val?.Value;
-                                var level = numberingProps.NumberingLevelReference?.Val?.Value ?? 0;
-                                var numberingPart = wordDoc.MainDocumentPart?.NumberingDefinitionsPart;
-                                if (numberingPart != null && numberingId.HasValue)
+                                // Цвет текста
+                                if (run.RunProperties.Color != null && run.RunProperties.Color.Val != null)
                                 {
-                                    var numbering = numberingPart.Numbering?.Elements<NumberingInstance>()
-                                        ?.FirstOrDefault(n => n.NumberID?.Value == numberingId);
-                                    var levelFormat = numbering?.AbstractNumId?.Val != null
-                                        ? wordDoc.MainDocumentPart?.NumberingDefinitionsPart?.Numbering
-                                            ?.Elements<AbstractNum>()
-                                            ?.FirstOrDefault(an => an.AbstractNumberId?.Value == numbering.AbstractNumId?.Val?.Value)
-                                            ?.Elements<Level>()
-                                            ?.FirstOrDefault(l => l.LevelIndex?.Value == level)?.NumberingFormat?.Val?.Value
-                                        : null;
-                                    if (levelFormat == NumberFormatValues.Decimal)
-                                        listStyle = "decimal";
-                                }
-                            }
-
-                            // Закрываем предыдущий список, если текущий параграф не является элементом списка
-                            if (!isListItem && isListOpen)
-                            {
-                                htmlContent.Append($"</{currentListTag}>");
-                                isListOpen = false;
-                                currentListTag = null;
-                                currentListStyle = null;
-                            }
-
-                            // Извлекаем текст и форматирование
-                            StringBuilder paraText = new StringBuilder();
-                            foreach (var run in p.Elements<WordRun>())
-                            {
-                                string runText = run.InnerText;
-                                if (string.IsNullOrWhiteSpace(runText))
-                                    continue;
-
-                                var runProps = run.RunProperties;
-                                string runFontFamily = fontFamily;
-                                double runFontSize = fontSize;
-                                string runFontWeight = fontWeight;
-                                string runFontStyle = fontStyle;
-                                string runTextDecorations = textDecorations;
-                                string runTextColor = textColor;
-
-                                if (runProps != null)
-                                {
-                                    if (runProps.FontSize != null && double.TryParse(runProps.FontSize.Val?.Value, out double size))
-                                        runFontSize = size / 2;
-                                    if (runProps.RunFonts?.Ascii != null)
-                                        runFontFamily = runProps.RunFonts.Ascii;
-                                    if (runProps.Bold != null)
-                                        runFontWeight = "bold";
-                                    if (runProps.Italic != null)
-                                        runFontStyle = "italic";
-                                    if (runProps.Underline != null)
-                                        runTextDecorations = "underline";
-                                    if (runProps.Color != null && !string.IsNullOrEmpty(runProps.Color.Val?.Value))
-                                        runTextColor = "#" + runProps.Color.Val;
+                                    string colorStr = run.RunProperties.Color.Val.Value;
+                                    if (colorStr.Length == 6)
+                                    {
+                                        var color = System.Windows.Media.Color.FromRgb(
+                                            Convert.ToByte(colorStr.Substring(0, 2), 16),
+                                            Convert.ToByte(colorStr.Substring(2, 2), 16),
+                                            Convert.ToByte(colorStr.Substring(4, 2), 16));
+                                        wpfRun.Foreground = new SolidColorBrush(color);
+                                    }
                                 }
 
-                                string escapedText = System.Security.SecurityElement.Escape(runText);
-                                string style = $"font-family:'{runFontFamily}';font-size:{runFontSize}pt;" +
-                                               $"font-weight:{runFontWeight};font-style:{runFontStyle};" +
-                                               $"color:{runTextColor};";
-                                if (runTextDecorations == "underline")
-                                    style += "text-decoration:underline;";
-                                string runHtml = $"<span style=\"{style}\">{escapedText}</span>";
-                                paraText.Append(runHtml);
                             }
 
-                            if (paraText.Length == 0)
-                                continue;
-
-                            // Формируем HTML
-                            string paraStyle = $"text-align:{textAlignment};font-family:'{fontFamily}';font-size:{fontSize}pt;color:{textColor};";
-                            if (isListItem)
-                            {
-                                if (!isListOpen || currentListStyle != listStyle)
-                                {
-                                    if (isListOpen)
-                                        htmlContent.Append($"</{currentListTag}>");
-                                    currentListTag = listStyle.ToLower() == "decimal" ? "ol" : "ul";
-                                    currentListStyle = listStyle;
-                                    htmlContent.Append($"<{currentListTag} style=\"list-style-type:{listStyle};\">");
-                                    isListOpen = true;
-                                }
-                                htmlContent.Append($"<li style=\"{paraStyle}\">{paraText}</li>");
-                            }
-                            else
-                            {
-                                htmlContent.Append($"<p style=\"{paraStyle}\">{paraText}</p>");
-                            }
+                            wpfParagraph.Inlines.Add(wpfRun);
                         }
+
+                        flowDoc.Blocks.Add(wpfParagraph);
                     }
-
-                    // Закрываем открытый список, если он есть
-                    if (isListOpen)
-                        htmlContent.Append($"</{currentListTag}>");
-
-                    htmlContent.Append("</body>");
-                    if (htmlContent.Length <= "<body></body>".Length)
-                        throw new InvalidOperationException("В документе Word нет содержимого.");
-
-                    string htmlString = htmlContent.ToString();
-                    System.Diagnostics.Debug.WriteLine($"HTML content: {htmlString}");
-
-                    // Конвертируем HTML в XAML
-                    string xamlText = HtmlToXamlConverter.ConvertHtmlToXaml(htmlString, false);
-                    System.Diagnostics.Debug.WriteLine($"XAML content: {xamlText}");
-                    if (string.IsNullOrWhiteSpace(xamlText))
-                        throw new InvalidOperationException("Конвертация в XAML не удалась.");
-
-                    // Десериализуем XAML в FlowDocument
-                    var flowDoc = RichTextSerializationHelper.DeserializeFlowDocument(xamlText);
-                    var flowDocText = new TextRange(flowDoc.ContentStart, flowDoc.ContentEnd).Text;
-                    System.Diagnostics.Debug.WriteLine($"FlowDocument text: {flowDocText}");
-                    if (string.IsNullOrWhiteSpace(flowDocText))
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Failed XAML: {xamlText}");
-                        throw new InvalidOperationException("FlowDocument пуст после десериализации.");
-                    }
-
-                    // Сериализуем FlowDocument для сохранения
-                    string serialized = RichTextSerializationHelper.SerializeFlowDocument(flowDoc);
-                    System.Diagnostics.Debug.WriteLine($"Serialized XAML content: {serialized}");
-                    if (string.IsNullOrWhiteSpace(serialized))
-                        throw new InvalidOperationException("Сериализованный XAML пуст.");
-
-                    // Создаём новый шаблон
-                    var newTemplate = new Template
-                    {
-                        Name = Path.GetFileNameWithoutExtension(filePath),
-                        Content = serialized
-                    };
-
-                    // Добавляем шаблон в категорию
-                    category.Templates.Add(newTemplate);
-                    TemplatesListBox.ItemsSource = null;
-                    TemplatesListBox.ItemsSource = category.Templates;
-                    saveChanges?.Invoke();
-                    System.Diagnostics.Debug.WriteLine($"Шаблон добавлен: {newTemplate.Name}, длина содержимого: {newTemplate.Content.Length}");
-                    MessageBox.Show("Шаблон успешно импортирован из Word!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
+
+                string serialized = RichTextSerializationHelper.SerializeFlowDocument(flowDoc);
+
+                var newTemplate = new Template
+                {
+                    Name = System.IO.Path.GetFileNameWithoutExtension(openFileDialog.FileName),
+                    Content = serialized
+                };
+
+                category.Templates.Add(newTemplate);
+                TemplatesListBox.ItemsSource = null;
+                TemplatesListBox.ItemsSource = category.Templates;
+                saveChanges?.Invoke();
+
+                MessageBox.Show("Шаблон успешно импортирован!", "Успех",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка в AddTemplateFromWord: {ex}");
-                MessageBox.Show($"Ошибка при загрузке документа Word: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Ошибка при импорте: {ex.Message}", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
-        }        
+        }
+
+
 
         private void SelectTemplate_Click(object sender, RoutedEventArgs e)
         {
