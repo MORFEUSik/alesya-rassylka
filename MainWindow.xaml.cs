@@ -159,6 +159,8 @@ namespace alesya_rassylka
         private List<string> attachedFiles = new List<string>();
         private const string DefaultSubject = "Тема:"; // Значение темы по умолчанию
         private const string SubjectPrefix = "Тема: "; // Префикс, который нельзя удалить
+        private const string TemplateNamePrefix = "Название: ";
+
 
         private FontFamily currentFontFamily = new FontFamily("Times New Roman");
         private double currentFontSize = 12;
@@ -1717,6 +1719,35 @@ namespace alesya_rassylka
             }
         }
 
+
+        private void TemplateNameTextBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (TemplateNameTextBox.Text == TemplateNamePrefix)
+            {
+                TemplateNameTextBox.Foreground = Brushes.Black;
+                TemplateNameTextBox.CaretIndex = TemplateNameTextBox.Text.Length;
+            }
+        }
+
+        private void TemplateNameTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!TemplateNameTextBox.Text.StartsWith(TemplateNamePrefix))
+            {
+                string userText = TemplateNameTextBox.Text.Length >= TemplateNamePrefix.Length
+                    ? TemplateNameTextBox.Text.Substring(TemplateNamePrefix.Length)
+                    : "";
+                TemplateNameTextBox.Text = TemplateNamePrefix + userText;
+                TemplateNameTextBox.CaretIndex = TemplateNameTextBox.Text.Length;
+            }
+
+            if (TemplateNameTextBox.Text.Length < TemplateNamePrefix.Length)
+            {
+                TemplateNameTextBox.Text = TemplateNamePrefix;
+                TemplateNameTextBox.CaretIndex = TemplateNameTextBox.Text.Length;
+            }
+        }
+
+
         private void CreateBulletList_Click(object sender, RoutedEventArgs e)
         {
             var richTextBox = MessageRichTextBox;
@@ -2128,9 +2159,8 @@ namespace alesya_rassylka
             var colorPickerWindow = new MetroWindow
             {
                 Title = "Выбрать цвет текста",
-                TitleCharacterCasing = CharacterCasing.Normal,
-                Width = 650,
-                Height = 660,
+                Width = 460,
+                Height = 560,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this,
                 ResizeMode = ResizeMode.NoResize,
@@ -2163,83 +2193,142 @@ namespace alesya_rassylka
             scrollViewer.Content = mainStackPanel;
             Grid.SetRow(scrollViewer, 0);
 
-            var titleTextBlock = new TextBlock
-            {
-                Text = "Выберите цвет текста",
-                FontSize = 16,
-                FontWeight = FontWeights.Bold,
-                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
-                Margin = new Thickness(0, 0, 0, 10)
-            };
-            mainStackPanel.Children.Add(titleTextBlock);
-
             var tabControl = new TabControl { Margin = new Thickness(0, 0, 0, 10) };
 
-            // Вкладка "Стандартные цвета"
+            // --- Стандартные цвета ---
             var standardTab = new TabItem { Header = "Стандартные цвета" };
-            var standardWrap = new WrapPanel { Margin = new Thickness(5) };
-            var standardColors = new List<Color>
-    {
-        Colors.White, Colors.Silver, Colors.Gray, Colors.Black,
-        Colors.LightCoral, Colors.IndianRed, Colors.Red, Colors.Firebrick, Colors.DarkRed,
-        Colors.OrangeRed, Colors.Tomato, Colors.Orange, Colors.DarkOrange, Colors.Gold,
-        Colors.LightYellow, Colors.Yellow, Colors.Khaki, Colors.Goldenrod,
-        Colors.LawnGreen, Colors.GreenYellow, Colors.YellowGreen, Colors.Green, Colors.ForestGreen,
-        Colors.Teal, Colors.CadetBlue, Colors.Cyan, Colors.Aqua, Colors.LightBlue,
-        Colors.SkyBlue, Colors.DeepSkyBlue, Colors.DodgerBlue, Colors.Blue, Colors.Navy,
-        Colors.MediumPurple, Colors.Indigo, Colors.Violet, Colors.MediumVioletRed,
-        Colors.Magenta, Colors.Pink, Colors.HotPink, Colors.DeepPink,
-        Colors.Brown, Colors.Sienna, Colors.Chocolate
-    };
-            foreach (var col in standardColors)
+
+            var standardWrap = new UniformGrid
             {
-                var rect = new Rectangle
+                Columns = 12,
+                Rows = 8, // можно увеличить при добавлении новых цветов
+                Margin = new Thickness(5)
+            };
+
+            var columnSortedColors = new List<List<Color>>
+    {
+        // 1: Черно-белая шкала
+        new List<Color> { Colors.Black, Colors.DimGray, Colors.Gray, Colors.LightGray, Colors.White, Colors.Transparent },
+
+        // 2: Красные
+        new List<Color> { Colors.DarkRed, Colors.Red, Colors.IndianRed, Colors.Salmon, Colors.LightCoral, Colors.MistyRose },
+
+        // 3: Оранжевые
+        new List<Color> { Colors.OrangeRed, Colors.Orange, Colors.DarkOrange, Colors.Coral, Colors.Tomato, Colors.PeachPuff },
+
+        // 4: Желтые
+        new List<Color> { Colors.Goldenrod, Colors.Gold, Colors.Khaki, Colors.Yellow, Colors.LightYellow, Colors.LemonChiffon },
+
+        // 5: Зеленые
+        new List<Color> { Colors.DarkGreen, Colors.Green, Colors.ForestGreen, Colors.LimeGreen, Colors.LawnGreen, Colors.PaleGreen },
+
+        // 6: Бирюзовые / мятные
+        new List<Color> { Colors.Teal, Colors.MediumTurquoise, Colors.Turquoise, Colors.Aquamarine, Colors.MintCream, Colors.LightCyan },
+
+        // 7: Голубые
+        new List<Color> { Colors.DeepSkyBlue, Colors.SkyBlue, Colors.LightSkyBlue, Colors.PowderBlue, Colors.LightBlue, Colors.AliceBlue },
+
+        // 8: Синие
+        new List<Color> { Colors.Navy, Colors.MidnightBlue, Colors.Blue, Colors.RoyalBlue, Colors.SteelBlue, Colors.CornflowerBlue },
+
+        // 9: Фиолетовые
+        new List<Color> { Colors.Indigo, Colors.MediumPurple, Colors.SlateBlue, Colors.BlueViolet, Colors.MediumOrchid, Colors.Thistle },
+
+        // 10: Розовые
+        new List<Color> { Colors.HotPink, Colors.DeepPink, Colors.Pink, Colors.LightPink, Colors.LavenderBlush, Colors.Fuchsia },
+
+        // 11: Коричневые
+        new List<Color> { Colors.SaddleBrown, Colors.Sienna, Colors.Chocolate, Colors.Peru, Colors.Tan, Colors.BurlyWood },
+
+        // 12: Особые
+        new List<Color> { Colors.Olive, Colors.DarkOliveGreen, Colors.Maroon, Colors.Silver, Colors.Gainsboro, Colors.Beige }
+    };
+
+            Border selectedBorder = null;
+
+            for (int i = 0; i < 6; i++) // по строкам
+            {
+                for (int j = 0; j < 12; j++) // по колонкам
                 {
-                    Width = 30,
-                    Height = 30,
-                    Fill = new SolidColorBrush(col),
-                    Stroke = Brushes.DarkSlateBlue,
-                    StrokeThickness = 1,
-                    Margin = new Thickness(4),
-                    Cursor = Cursors.Hand
-                };
-                rect.MouseDown += (s, args) => selectedColor = (SolidColorBrush)rect.Fill;
-                standardWrap.Children.Add(rect);
+                    if (j >= columnSortedColors.Count || i >= columnSortedColors[j].Count)
+                        continue;
+
+                    var color = columnSortedColors[j][i];
+
+                    var rect = new Rectangle
+                    {
+                        Width = 25,
+                        Height = 25,
+                        Fill = new SolidColorBrush(color),
+                        Stroke = Brushes.DarkSlateBlue,
+                        StrokeThickness = 1,
+                        Margin = new Thickness(4),
+                        Cursor = Cursors.Hand
+                    };
+
+                    var border = new Border
+                    {
+                        BorderThickness = new Thickness(2),
+                        BorderBrush = Brushes.Transparent,
+                        Child = rect
+                    };
+
+                    rect.MouseDown += (s, args) =>
+                    {
+                        selectedColor = (SolidColorBrush)rect.Fill;
+
+                        if (selectedBorder != null)
+                            selectedBorder.BorderBrush = Brushes.Transparent;
+
+                        selectedBorder = border;
+                        selectedBorder.BorderBrush = Brushes.DarkOrange;
+                    };
+
+                    standardWrap.Children.Add(border);
+                }
             }
+
             standardTab.Content = new ScrollViewer { Content = standardWrap, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
             tabControl.Items.Add(standardTab);
 
-            // Вкладка "Пользовательские цвета"
+            // --- Пользовательские цвета ---
             var customTab = new TabItem { Header = "Пользовательские цвета" };
             var customStack = new StackPanel { Margin = new Thickness(5) };
 
             var canvas = new Xceed.Wpf.Toolkit.ColorCanvas
             {
-                Width = 550,
-                Height = 280,
+                Width = 230,
+                Height = 270,
                 Margin = new Thickness(0, 0, 0, 10),
                 SelectedColor = Colors.Black
             };
             customStack.Children.Add(canvas);
 
-            var btnWrap = new WrapPanel { HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 0, 0, 10) };
+            var btnWrap = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(0, 0, 0, 10)
+            };
 
             var addBtn = new Button
             {
-                Content = "Добавить выбранный цвет",
-                Width = 200,
-                Height = 35,
+                Content = "Добавить",
+                Width = 130,
+                Height = 30,
+                FontSize = 14,
                 Style = CreateActionButtonStyle(),
-                Margin = new Thickness(10, 0, 10, 0)
+                Margin = new Thickness(5)
             };
 
             var removeBtn = new Button
             {
-                Content = "Удалить выбранный цвет",
-                Width = 200,
-                Height = 35,
+                Content = "Удалить",
+                Width = 130,
+                Height = 30,
+                FontSize = 14,
                 Style = CreateActionButtonStyle(),
-                Margin = new Thickness(10, 0, 10, 0)
+                Margin = new Thickness(5)
             };
 
             btnWrap.Children.Add(addBtn);
@@ -2247,6 +2336,8 @@ namespace alesya_rassylka
             customStack.Children.Add(btnWrap);
 
             var customColorPanel = new WrapPanel();
+            var customScroll = new ScrollViewer { Content = customColorPanel, Height = 100, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+            customStack.Children.Add(customScroll);
 
             void RefreshCustomColorPanel()
             {
@@ -2255,8 +2346,8 @@ namespace alesya_rassylka
                 {
                     var rect = new Rectangle
                     {
-                        Width = 30,
-                        Height = 30,
+                        Width = 15,
+                        Height = 15,
                         Fill = brush,
                         Stroke = Brushes.DarkSlateBlue,
                         StrokeThickness = 1,
@@ -2299,21 +2390,35 @@ namespace alesya_rassylka
                 }
             };
 
-            var customScroll = new ScrollViewer { Content = customColorPanel, Height = 120, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
-            customStack.Children.Add(customScroll);
             customTab.Content = customStack;
             tabControl.Items.Add(customTab);
             mainStackPanel.Children.Add(tabControl);
 
-            // Кнопки Применить и Отменить (всегда прижаты к низу)
+            // --- Кнопки Применить / Отмена ---
             var btnPanel = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 Margin = new Thickness(0, 10, 0, 10)
             };
-            var apply = new Button { Content = "Применить", Width = 160, Height = 40, Margin = new Thickness(10, 0, 10, 0), Style = CreateActionButtonStyle() };
-            var cancel = new Button { Content = "Отменить", Width = 160, Height = 40, Margin = new Thickness(10, 0, 10, 0), Style = CreateActionButtonStyle() };
+
+            var apply = new Button
+            {
+                Content = "Применить",
+                Width = 160,
+                Height = 40,
+                Margin = new Thickness(10, 0, 10, 0),
+                Style = CreateActionButtonStyle()
+            };
+            var cancel = new Button
+            {
+                Content = "Отменить",
+                Width = 160,
+                Height = 40,
+                Margin = new Thickness(10, 0, 10, 0),
+                Style = CreateActionButtonStyle()
+            };
+
             apply.Click += (s, args) =>
             {
                 if (selectedColor != null)
@@ -2327,17 +2432,21 @@ namespace alesya_rassylka
                     MessageBox.Show("Выберите цвет!", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             };
+
             cancel.Click += (s, args) => colorPickerWindow.Close();
 
             btnPanel.Children.Add(apply);
             btnPanel.Children.Add(cancel);
-            Grid.SetRow(btnPanel, 1);
 
+            Grid.SetRow(btnPanel, 1);
             rootGrid.Children.Add(scrollViewer);
             rootGrid.Children.Add(btnPanel);
             colorPickerWindow.Content = rootGrid;
             colorPickerWindow.ShowDialog();
         }
+
+
+
 
         private Style CreateActionButtonStyle()
         {
@@ -2462,7 +2571,7 @@ namespace alesya_rassylka
 
         #region редактирование
 
-        
+
 
         public void EnterTemplateEditMode(Template template, TemplateManagerWindow managerWindow)
         {
@@ -2483,8 +2592,9 @@ namespace alesya_rassylka
             SubjectTextBox.Visibility = Visibility.Collapsed;
             TemplateNameTextBox.Visibility = Visibility.Visible;
 
-            // Устанавливаем название шаблона
-            TemplateNameTextBox.Text = template.Name; // Устанавливаем имя шаблона
+            // Устанавливаем название шаблона с префиксом
+            const string TemplateNamePrefix = "Название: ";
+            TemplateNameTextBox.Text = TemplateNamePrefix + template.Name; // Добавляем префикс
             TemplateNameTextBox.Foreground = Brushes.Black; // Устанавливаем чёрный цвет текста
 
             // Показываем кнопки редактирования
@@ -2631,17 +2741,24 @@ namespace alesya_rassylka
 
             var content = RichTextSerializationHelper.SerializeFlowDocument(MessageRichTextBox.Document);
 
-            // 🔁 Если редактируем существующий шаблон
+            // Извлекаем имя шаблона без префикса
+            const string TemplateNamePrefix = "Название: ";
+            string templateNameRaw = TemplateNameTextBox.Text.Trim();
+            if (!templateNameRaw.StartsWith(TemplateNamePrefix))
+            {
+                MessageBox.Show("Название должно начинаться с \"Название: \".", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            string nameOnly = templateNameRaw.Substring(TemplateNamePrefix.Length).Trim();
+
+            if (string.IsNullOrWhiteSpace(nameOnly))
+            {
+                MessageBox.Show("Введите корректное название шаблона.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             if (isTemplateEditMode && editingTemplate != null)
             {
-                string newTemplateName = TemplateNameTextBox.Text.Trim();
-                if (string.IsNullOrWhiteSpace(newTemplateName) || newTemplateName == "Название шаблона")
-                {
-                    MessageBox.Show("Введите корректное название шаблона.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                // Находим категорию текущего шаблона
                 var selectedCategory = TemplateCategories.FirstOrDefault(c => c.Templates.Contains(editingTemplate));
                 if (selectedCategory == null)
                 {
@@ -2650,39 +2767,28 @@ namespace alesya_rassylka
                     return;
                 }
 
-                // Проверяем, изменилось ли название и уникально ли новое название
-                if (newTemplateName != editingTemplate.Name)
+                if (nameOnly != editingTemplate.Name)
                 {
-                    if (selectedCategory.Templates.Any(t => t.Name.Equals(newTemplateName, StringComparison.OrdinalIgnoreCase)))
+                    if (selectedCategory.Templates.Any(t => t.Name.Equals(nameOnly, StringComparison.OrdinalIgnoreCase)))
                     {
-                        LogToFile($"❗️ Шаблон с названием '{newTemplateName}' уже существует в категории '{selectedCategory.Name}'");
+                        LogToFile($"❗️ Шаблон с названием '{nameOnly}' уже существует в категории '{selectedCategory.Name}'");
                         MessageBox.Show("Шаблон с таким названием уже существует.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                         return;
                     }
-                    LogToFile($"🔄 Изменяем название шаблона с '{editingTemplate.Name}' на '{newTemplateName}'");
-                    editingTemplate.Name = newTemplateName; // Обновляем название шаблона
+
+                    LogToFile($"🔄 Изменяем название шаблона с '{editingTemplate.Name}' на '{nameOnly}'");
+                    editingTemplate.Name = nameOnly;
                 }
 
                 System.Diagnostics.Debug.WriteLine("Шаблон редактирован (Успех)");
-                Console.WriteLine("Шаблон редактирован");
                 editingTemplate.Content = content;
                 SaveTemplates();
                 MessageBox.Show("Шаблон успешно отредактирован!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                 ExitTemplateEditMode(saveChanges: true);
             }
-            else // ➕ Добавляем новый шаблон
+            else
             {
-                string templateName = TemplateNameTextBox.Text.Trim();
-                if (string.IsNullOrWhiteSpace(templateName) || templateName == "Название шаблона")
-                {
-                    MessageBox.Show("Введите корректное название шаблона.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                // ⛳️ Берём категорию из TemplateCategories по имени текущей
                 var selectedCategory = TemplateCategories.FirstOrDefault(c => c.Name == templateManagerWindow?.Category?.Name);
-                LogToFile($"🧪 Проверка: добавляем шаблон '{templateName}' в категорию '{selectedCategory?.Name}', всего шаблонов: {selectedCategory?.Templates.Count ?? 0}");
-
                 if (selectedCategory == null)
                 {
                     LogToFile("❌ selectedCategory оказался null");
@@ -2690,44 +2796,41 @@ namespace alesya_rassylka
                     return;
                 }
 
-                if (selectedCategory.Templates.Any(t => t.Name.Equals(templateName, StringComparison.OrdinalIgnoreCase)))
+                if (selectedCategory.Templates.Any(t => t.Name.Equals(nameOnly, StringComparison.OrdinalIgnoreCase)))
                 {
-                    LogToFile($"❗️ Шаблон с названием '{templateName}' уже существует в категории '{selectedCategory.Name}'");
+                    LogToFile($"❗️ Шаблон с названием '{nameOnly}' уже существует в категории '{selectedCategory.Name}'");
                     MessageBox.Show("Шаблон с таким названием уже существует.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
                 var newTemplate = new Template
                 {
-                    Name = templateName,
+                    Name = nameOnly,
                     Content = content
                 };
 
                 selectedCategory.Templates.Add(newTemplate);
 
-                LogToFile($"Добавляется шаблон '{templateName}' в категорию: {selectedCategory.Name}");
-                LogToFile("Проверка всех категорий:");
-                foreach (var cat in TemplateCategories)
-                {
-                    LogToFile($"- {cat.Name}: {cat.Templates.Count} шаблонов");
-                }
-
+                LogToFile($"Добавляется шаблон '{nameOnly}' в категорию: {selectedCategory.Name}");
                 SaveTemplates();
                 MessageBox.Show("Новый шаблон успешно добавлен!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+
                 if (templateManagerWindow != null && !templateManagerWindow.IsVisible)
                 {
                     templateManagerWindow.RefreshTemplateList();
                 }
+
                 ExitTemplateAddMode();
             }
 
-            // 🔄 Сброс полей
-            TemplateNameTextBox.Text = "Название шаблона";
-            TemplateNameTextBox.Foreground = Brushes.Gray; // Возвращаем серый цвет для placeholder'а
+            // Сброс полей
+            TemplateNameTextBox.Text = TemplateNamePrefix;
+            TemplateNameTextBox.Foreground = Brushes.Gray;
             TemplateNameTextBox.Visibility = Visibility.Collapsed;
             TemplateEditButtonsPanel.Visibility = Visibility.Collapsed;
             SubjectTextBox.Visibility = Visibility.Visible;
         }
+
 
 
 
@@ -2739,15 +2842,7 @@ namespace alesya_rassylka
             }
         }
 
-        private void TemplateNameTextBox_GotFocus(object sender, RoutedEventArgs e)
-        {
-            if (TemplateNameTextBox.Text == "Название шаблона")
-            {
-                TemplateNameTextBox.Text = "";
-                TemplateNameTextBox.Foreground = Brushes.Black;
-            }
-        }
-
+        
         private void TemplateNameTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(TemplateNameTextBox.Text))

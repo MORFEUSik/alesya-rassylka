@@ -271,11 +271,11 @@
             <Grid x:Name="RegularInterfacePanel" Grid.Row="0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
@@ -304,21 +304,22 @@
 
                         <TextBox x:Name="TemplateNameTextBox" Grid.Row="0" Margin="10,5,10,0"
          Visibility="Collapsed"
-         Text="Название шаблона"
+         Text="Название:"
          Foreground="Gray"
          GotFocus="TemplateNameTextBox_GotFocus"
-         LostFocus="TemplateNameTextBox_LostFocus"
+TextChanged="TemplateNameTextBox_TextChanged"
          BorderThickness="0,0,0,1" BorderBrush="#172A74"
          Background="Transparent" FontSize="14" Padding="0,5"/>
 
 
                         <!-- Основное текстовое поле -->
-                        <RichTextBox x:Name="MessageRichTextBox" Grid.Row="1" Height="250"
-                                     Background="White" BorderThickness="0" Margin="6,10,0,0"
-                                     FontFamily="Times New Roman" FontSize="12"
-                                     PreviewKeyDown="MessageRichTextBox_PreviewKeyDown"
-                                     PreviewMouseRightButtonDown="MessageRichTextBox_PreviewMouseRightButtonDown"
-                                     SelectionChanged="MessageRichTextBox_SelectionChanged">
+                        <RichTextBox x:Name="MessageRichTextBox" Grid.Row="1"
+             MinHeight="250" VerticalAlignment="Stretch"
+             Background="White" BorderThickness="0" Margin="6,10,0,0"
+             FontFamily="Times New Roman" FontSize="12"
+             PreviewKeyDown="MessageRichTextBox_PreviewKeyDown"
+             PreviewMouseRightButtonDown="MessageRichTextBox_PreviewMouseRightButtonDown"
+             SelectionChanged="MessageRichTextBox_SelectionChanged">
                             <RichTextBox.Resources>
                                 <Style TargetType="{x:Type Paragraph}">
                                     <Setter Property="Margin" Value="0"/>
@@ -329,7 +330,7 @@
                             <RichTextBox.Template>
                                 <ControlTemplate TargetType="RichTextBox">
                                     <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
+                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
                                         <ScrollViewer x:Name="PART_ContentHost"/>
                                     </Border>
                                 </ControlTemplate>
@@ -513,16 +514,21 @@
                 </Grid>
 
                 <!-- Кнопки "Отправить письмо" и "Отменить" -->
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,10,0,0" Grid.Row="6">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,30,0,0" Grid.Row="6">
                     <Button Content="Отправить письмо" Style="{StaticResource ActionButton}" Click="SendButton_Click"/>
                     <Button Content="Отменить" Style="{StaticResource ActionButton}" Margin="20,0,0,0" Click="CancelButton_Click"/>
                 </StackPanel>
             </Grid>
 
             <!-- Кнопки редактирования шаблона -->
-            <StackPanel x:Name="TemplateEditButtonsPanel" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,10,0,0" Grid.Row="1" Visibility="Collapsed">
-                <Button x:Name="SaveTemplateButton" Content="💾 Сохранить" Style="{StaticResource ActionButton}" Click="SaveTemplate_Click"/>
-                <Button x:Name="CancelTemplateButton" Content="❌ Отменить" Style="{StaticResource ActionButton}" Margin="20,0,0,0" Click="CancelTemplateButton_Click"/>
+            <StackPanel x:Name="TemplateEditButtonsPanel"
+            Orientation="Horizontal"
+            HorizontalAlignment="Center"
+            Margin="0,10,0,0"
+            Grid.Row="2"
+            Visibility="Collapsed">
+                <Button x:Name="SaveTemplateButton" Content="Сохранить" Style="{StaticResource ActionButton}" Click="SaveTemplate_Click"/>
+                <Button x:Name="CancelTemplateButton" Content="Отменить" Style="{StaticResource ActionButton}" Margin="20,0,0,0" Click="CancelTemplateButton_Click"/>
             </StackPanel>
         </Grid>
     </Grid>
