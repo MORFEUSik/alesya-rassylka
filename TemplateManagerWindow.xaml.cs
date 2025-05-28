@@ -13,8 +13,6 @@ using System.Text;
 using Xceed.Words.NET;
 using Paragraph = System.Windows.Documents.Paragraph; // Псевдоним для ясности
 using Run = System.Windows.Documents.Run; // Псевдоним для ясности
-
-// Псевдонимы для избежания конфликтов
 using WpfParagraph = System.Windows.Documents.Paragraph;
 using WpfRun = System.Windows.Documents.Run;
 using WordParagraph = DocumentFormat.OpenXml.Wordprocessing.Paragraph;
@@ -138,54 +136,103 @@ namespace alesya_rassylka
                     var body = doc.MainDocumentPart?.Document.Body;
                     if (body == null) return;
 
-                    // Используем WordParagraph для работы с OpenXML
-                    foreach (var paragraph in body.Descendants<DocumentFormat.OpenXml.Wordprocessing.Paragraph>())
+                    var numberingPart = doc.MainDocumentPart?.NumberingDefinitionsPart;
+                    var numbering = numberingPart?.Numbering;
+
+                    System.Windows.Documents.List currentList = null;
+                    int? lastNumberingId = null;
+                    int lastLevel = -1;
+
+                    foreach (var paragraph in body.Elements<DocumentFormat.OpenXml.Wordprocessing.Paragraph>())
                     {
-                        var wpfParagraph = new System.Windows.Documents.Paragraph();
+                        bool isListItem = paragraph.ParagraphProperties?.NumberingProperties != null;
+                        System.Windows.Documents.Block block;
 
-                        foreach (var run in paragraph.Descendants<DocumentFormat.OpenXml.Wordprocessing.Run>())
+                        if (isListItem)
                         {
-                            var wpfRun = new System.Windows.Documents.Run(run.InnerText);
+                            var numberingId = paragraph.ParagraphProperties?.NumberingProperties?.NumberingId?.Val?.Value;
+                            var level = paragraph.ParagraphProperties?.NumberingProperties?.NumberingLevelReference?.Val?.Value ?? 0;
 
-                            if (run.RunProperties != null)
+                            // Определяем стиль маркера
+                            TextMarkerStyle markerStyle = TextMarkerStyle.Disc;
+                            if (numberingId != null && numbering != null)
                             {
-                                // Жирный текст
-                                if (run.RunProperties.Bold != null)
-                                    wpfRun.FontWeight = FontWeights.Bold;
+                                var abstractNumId = numbering.Descendants<NumberingInstance>()
+                                    .FirstOrDefault(n => n.NumberID?.Value == numberingId)?.AbstractNumId?.Val?.Value;
 
-                                // Курсив
-                                if (run.RunProperties.Italic != null)
-                                    wpfRun.FontStyle = FontStyles.Italic;
+                                var abstractNum = numbering.Descendants<AbstractNum>()
+                                    .FirstOrDefault(an => an.AbstractNumberId?.Value == abstractNumId);
 
-                                // Размер шрифта
-                                if (run.RunProperties.FontSize != null && !string.IsNullOrEmpty(run.RunProperties.FontSize.Val))
-                                {
-                                    if (double.TryParse(run.RunProperties.FontSize.Val, out double fontSize))
-                                    {
-                                        wpfRun.FontSize = fontSize / 2; // OpenXML использует половинные единицы
-                                    }
-                                }
+                                var levelElement = abstractNum?.Descendants<Level>()
+                                    .FirstOrDefault(l => l.LevelIndex?.Value == level);
 
-                                // Цвет текста
-                                if (run.RunProperties.Color != null && run.RunProperties.Color.Val != null)
-                                {
-                                    string colorStr = run.RunProperties.Color.Val.Value;
-                                    if (colorStr.Length == 6)
-                                    {
-                                        var color = System.Windows.Media.Color.FromRgb(
-                                            Convert.ToByte(colorStr.Substring(0, 2), 16),
-                                            Convert.ToByte(colorStr.Substring(2, 2), 16),
-                                            Convert.ToByte(colorStr.Substring(4, 2), 16));
-                                        wpfRun.Foreground = new SolidColorBrush(color);
-                                    }
-                                }
+                                var format = levelElement?.NumberingFormat?.Val?.Value ?? NumberFormatValues.Bullet;
 
+                                if (format == NumberFormatValues.Decimal || format == NumberFormatValues.DecimalZero)
+                                    markerStyle = TextMarkerStyle.Decimal;
+                                else if (format == NumberFormatValues.Bullet)
+                                    markerStyle = TextMarkerStyle.Disc;
+                                else
+                                    markerStyle = TextMarkerStyle.Disc;
                             }
 
-                            wpfParagraph.Inlines.Add(wpfRun);
+                            // Проверяем, нужно ли начать новый список
+                            if (currentList == null || lastNumberingId != numberingId || lastLevel != level)
+                            {
+                                // Если текущий список существует, добавляем его в документ
+                                if (currentList != null)
+                                {
+                                    flowDoc.Blocks.Add(currentList);
+                                }
+
+                                // Создаём новый список
+                                currentList = new System.Windows.Documents.List
+                                {
+                                    MarkerStyle = markerStyle,
+                                    Margin = new Thickness(0)
+                                };
+                            }
+
+                            // Создаём элемент списка
+                            var listItem = new System.Windows.Documents.ListItem();
+                            var wpfParagraph = new System.Windows.Documents.Paragraph();
+                            FillWpfParagraph(wpfParagraph, paragraph);
+                            listItem.Blocks.Add(wpfParagraph);
+                            currentList.ListItems.Add(listItem);
+
+                            // Обновляем информацию о текущем списке
+                            lastNumberingId = numberingId;
+                            lastLevel = level;
+
+                            block = null; // Блок пока не добавляем, так как он будет добавлен позже
+                        }
+                        else
+                        {
+                            // Если это не элемент списка, закрываем текущий список, если он есть
+                            if (currentList != null)
+                            {
+                                flowDoc.Blocks.Add(currentList);
+                                currentList = null;
+                                lastNumberingId = null;
+                                lastLevel = -1;
+                            }
+
+                            // Создаём обычный параграф
+                            var wpfParagraph = new System.Windows.Documents.Paragraph();
+                            FillWpfParagraph(wpfParagraph, paragraph);
+                            block = wpfParagraph;
                         }
 
-                        flowDoc.Blocks.Add(wpfParagraph);
+                        if (block != null)
+                        {
+                            flowDoc.Blocks.Add(block);
+                        }
+                    }
+
+                    // Добавляем последний список, если он существует
+                    if (currentList != null)
+                    {
+                        flowDoc.Blocks.Add(currentList);
                     }
                 }
 
@@ -212,6 +259,52 @@ namespace alesya_rassylka
             }
         }
 
+        private void FillWpfParagraph(System.Windows.Documents.Paragraph wpfParagraph, DocumentFormat.OpenXml.Wordprocessing.Paragraph paragraph)
+        {
+            var justification = paragraph.ParagraphProperties?.Justification?.Val?.Value;
+
+            if (justification == JustificationValues.Left)
+                wpfParagraph.TextAlignment = System.Windows.TextAlignment.Left;
+            else if (justification == JustificationValues.Right)
+                wpfParagraph.TextAlignment = System.Windows.TextAlignment.Right;
+            else if (justification == JustificationValues.Center)
+                wpfParagraph.TextAlignment = System.Windows.TextAlignment.Center;
+            else if (justification == JustificationValues.Both)
+                wpfParagraph.TextAlignment = System.Windows.TextAlignment.Justify;
+            else
+                wpfParagraph.TextAlignment = System.Windows.TextAlignment.Left;
+
+            foreach (var run in paragraph.Elements<DocumentFormat.OpenXml.Wordprocessing.Run>())
+            {
+                var wpfRun = new System.Windows.Documents.Run(run.InnerText);
+
+                if (run.RunProperties != null)
+                {
+                    if (run.RunProperties.Bold != null)
+                        wpfRun.FontWeight = FontWeights.Bold;
+
+                    if (run.RunProperties.Italic != null)
+                        wpfRun.FontStyle = FontStyles.Italic;
+
+                    if (run.RunProperties.FontSize?.Val?.Value is string fontSizeStr &&
+                        double.TryParse(fontSizeStr, out double fontSize))
+                    {
+                        wpfRun.FontSize = fontSize / 2;
+                    }
+
+                    if (run.RunProperties.Color?.Val?.Value is string colorStr && colorStr.Length == 6)
+                    {
+                        var color = System.Windows.Media.Color.FromRgb(
+                            Convert.ToByte(colorStr.Substring(0, 2), 16),
+                            Convert.ToByte(colorStr.Substring(2, 2), 16),
+                            Convert.ToByte(colorStr.Substring(4, 2), 16));
+                        wpfRun.Foreground = new SolidColorBrush(color);
+                    }
+                }
+
+                wpfParagraph.Inlines.Add(wpfRun);
+            }
+        }
 
 
         private void SelectTemplate_Click(object sender, RoutedEventArgs e)

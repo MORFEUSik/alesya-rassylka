@@ -19,6 +19,7 @@ using System.Xml;
 using System.Windows.Controls.Primitives;
 using System.Collections.ObjectModel;
 using System.Windows.Shapes;
+using System.Net.Mime;
 
 
 namespace alesya_rassylka
@@ -160,7 +161,7 @@ namespace alesya_rassylka
         private const string DefaultSubject = "Тема:"; // Значение темы по умолчанию
         private const string SubjectPrefix = "Тема: "; // Префикс, который нельзя удалить
         private const string TemplateNamePrefix = "Название: ";
-
+        private string backgroundImagePath;
 
         private FontFamily currentFontFamily = new FontFamily("Times New Roman");
         private double currentFontSize = 12;
@@ -379,6 +380,7 @@ namespace alesya_rassylka
             return (htmlBody.ToString(), embeddedImages);
         }
 
+
         private void ListButton_Click(object sender, RoutedEventArgs e)
         {
             ListButton.ContextMenu.PlacementTarget = ListButton;
@@ -496,6 +498,21 @@ namespace alesya_rassylka
             }
         }
 
+        private void SetBackgroundImage_Click(object sender, RoutedEventArgs e)
+        {
+            var openFileDialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Image Files (*.png;*.jpg;*.jpeg;*.gif;*.bmp)|*.png;*.jpg;*.jpeg;*.gif;*.bmp",
+                Title = "Выберите фоновое изображение"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                backgroundImagePath = openFileDialog.FileName;
+                MessageBox.Show("Фоновое изображение успешно выбрано. Оно будет применено при отправке письма.",
+                                "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
         private void AddCategory_Click(object sender, RoutedEventArgs e)
         {
             var addCategoryWindow = new MetroWindow
@@ -862,6 +879,36 @@ namespace alesya_rassylka
                 LogError("Ошибка отправки письма", ex);
                 ShowDetailedError("Ошибка отправки письма", ex);
             }
+        }
+
+        private void ResetForm()
+        {
+            // Очистка RichTextBox
+            MessageRichTextBox.Document.Blocks.Clear();
+            var paragraph = new Paragraph(new Run(""))
+            {
+                FontFamily = currentFontFamily,
+                FontSize = currentFontSize,
+                Foreground = currentForeground
+            };
+            MessageRichTextBox.Document.Blocks.Add(paragraph);
+
+            // Сброс темы
+            SubjectTextBox.Text = DefaultSubject;
+            SubjectTextBox.Foreground = Brushes.Gray;
+
+            // Очистка списка получателей
+            RecipientList.ItemsSource = null;
+
+            // Очистка списка прикреплённых файлов
+            attachedFiles.Clear();
+            UpdateAttachedFilesList();
+
+            // Сброс фонового изображения
+            backgroundImagePath = null;
+
+            // Сброс фокуса
+            MessageRichTextBox.Focus();
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)

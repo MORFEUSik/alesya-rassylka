@@ -427,6 +427,15 @@ TextChanged="TemplateNameTextBox_TextChanged"
                                         </ContextMenu>
                                     </Button.ContextMenu>
                                 </Button>
+
+                                <Rectangle Width="1" Height="20" Fill="#172A74" Margin="10,0,10,0"/>
+
+                                <!-- Новая кнопка для фоновой картинки -->
+                                <Button Click="SetBackgroundImage_Click"
+            Style="{StaticResource FormatButton}" Width="32" Height="32"
+            ToolTip="Установить фон">
+                                    <TextBlock FontSize="14">🌄</TextBlock>
+                                </Button>
                             </StackPanel>
                         </Border>
                     </Grid>
@@ -514,7 +523,7 @@ TextChanged="TemplateNameTextBox_TextChanged"
                 </Grid>
 
                 <!-- Кнопки "Отправить письмо" и "Отменить" -->
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,30,0,0" Grid.Row="6">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,25,0,0" Grid.Row="6">
                     <Button Content="Отправить письмо" Style="{StaticResource ActionButton}" Click="SendButton_Click"/>
                     <Button Content="Отменить" Style="{StaticResource ActionButton}" Margin="20,0,0,0" Click="CancelButton_Click"/>
                 </StackPanel>
@@ -524,7 +533,7 @@ TextChanged="TemplateNameTextBox_TextChanged"
             <StackPanel x:Name="TemplateEditButtonsPanel"
             Orientation="Horizontal"
             HorizontalAlignment="Center"
-            Margin="0,10,0,0"
+            Margin="0,25,0,0"
             Grid.Row="2"
             Visibility="Collapsed">
                 <Button x:Name="SaveTemplateButton" Content="Сохранить" Style="{StaticResource ActionButton}" Click="SaveTemplate_Click"/>
