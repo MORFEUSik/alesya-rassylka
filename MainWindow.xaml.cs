@@ -1,5 +1,4 @@
 ﻿using MahApps.Metro.Controls;
-using Microsoft.VisualBasic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -9,17 +8,15 @@ using System.Text;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Markup;
-using System.Xml;
-using System.Windows.Controls.Primitives;
-using System.Collections.ObjectModel;
 using System.Windows.Shapes;
-using System.Net.Mime;
+using System.Xml;
 
 
 namespace alesya_rassylka
@@ -229,13 +226,32 @@ namespace alesya_rassylka
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private (string htmlBody, List<(string cid, string filePath)> embeddedImages) ConvertRichTextBoxToHtml(RichTextBox richTextBox)
+        private (string htmlBody, List<(string cid, string filePath)> embeddedImages) ConvertRichTextBoxToHtml(RichTextBox richTextBox, string backgroundImagePath)
         {
             var embeddedImages = new List<(string cid, string filePath)>();
             int imageCounter = 0;
+            string backgroundCid = null;
 
             var htmlBody = new System.Text.StringBuilder();
             htmlBody.Append("<html><body>");
+
+            if (!string.IsNullOrEmpty(backgroundImagePath))
+            {
+                backgroundCid = $"bg{imageCounter++}";
+                embeddedImages.Add((backgroundCid, backgroundImagePath));
+
+                htmlBody.Append($@"
+        <!--[if gte mso 9]>
+        <v:background xmlns:v=""urn:schemas-microsoft-com:vml"" fill=""true"" stroke=""false"">
+            <v:fill type=""frame"" src=""cid:{backgroundCid}"" color=""#ffffff"" />
+        </v:background>
+        <![endif]-->
+
+        <table width='100%' cellpadding='0' cellspacing='0' border='0' style='background-image: url(cid:{backgroundCid}); background-size: cover; background-position: center; background-repeat: no-repeat;'>
+          <tr>
+            <td style='padding: 40px; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #ffffff;'>
+        ");
+            }
 
             void ProcessBlocks(BlockCollection blocks)
             {
@@ -244,10 +260,10 @@ namespace alesya_rassylka
                     if (block is Paragraph paragraph)
                     {
                         string alignStyle = GetTextAlignmentStyle(paragraph.TextAlignment);
-                        string fontFamily = paragraph.FontFamily?.Source ?? "Times New Roman";
-                        double fontSize = paragraph.FontSize > 0 ? paragraph.FontSize : 12;
-                        string color = paragraph.Foreground is SolidColorBrush brush ? ColorToHex(brush.Color) : "#000000";
-                        htmlBody.Append($"<p style=\"font-family: {fontFamily}; font-size: {fontSize}pt; {alignStyle} color: {color};\">");
+                        string fontFamily = paragraph.FontFamily?.Source ?? "Arial";
+                        double fontSize = paragraph.FontSize > 0 ? paragraph.FontSize : 14;
+                        string color = paragraph.Foreground is SolidColorBrush brush ? ColorToHex(brush.Color) : "#ffffff";
+                        htmlBody.Append($"<p style=\"margin: 0 0 16px 0; font-family: {fontFamily}; font-size: {fontSize}pt; {alignStyle} color: {color};\">");
 
                         foreach (Inline inline in paragraph.Inlines)
                         {
@@ -273,9 +289,9 @@ namespace alesya_rassylka
                     bool isBold = run.FontWeight == FontWeights.Bold;
                     bool isItalic = run.FontStyle == FontStyles.Italic;
                     bool isUnderlined = run.TextDecorations != null && run.TextDecorations.Contains(TextDecorations.Underline[0]);
-                    string fontFamily = run.FontFamily?.Source ?? "Times New Roman";
-                    double fontSize = run.FontSize > 0 ? run.FontSize : 12;
-                    string color = run.Foreground is SolidColorBrush brush ? ColorToHex(brush.Color) : "#000000";
+                    string fontFamily = run.FontFamily?.Source ?? "Arial";
+                    double fontSize = run.FontSize > 0 ? run.FontSize : 14;
+                    string color = run.Foreground is SolidColorBrush brush ? ColorToHex(brush.Color) : "#ffffff";
 
                     htmlBody.Append($"<span style=\"font-family: {fontFamily}; font-size: {fontSize}pt; color: {color};");
                     if (isBold) htmlBody.Append(" font-weight: bold;");
@@ -303,25 +319,14 @@ namespace alesya_rassylka
 
             void ProcessList(List list)
             {
-                string tag;
-                switch (list.MarkerStyle)
+                string tag = list.MarkerStyle switch
                 {
-                    case TextMarkerStyle.Disc:
-                        tag = "ul style=\"list-style-type: disc;\"";
-                        break;
-                    case TextMarkerStyle.Circle:
-                        tag = "ul style=\"list-style-type: circle;\"";
-                        break;
-                    case TextMarkerStyle.Square:
-                        tag = "ul style=\"list-style-type: square;\"";
-                        break;
-                    case TextMarkerStyle.Decimal:
-                        tag = "ol";
-                        break;
-                    default:
-                        tag = "ul";
-                        break;
-                }
+                    TextMarkerStyle.Decimal => "ol",
+                    TextMarkerStyle.Disc => "ul style=\"list-style-type: disc;\"",
+                    TextMarkerStyle.Circle => "ul style=\"list-style-type: circle;\"",
+                    TextMarkerStyle.Square => "ul style=\"list-style-type: square;\"",
+                    _ => "ul"
+                };
 
                 string alignStyle = GetTextAlignmentStyle(list.ListItems.FirstOrDefault()?.Blocks.FirstOrDefault()?.TextAlignment ?? TextAlignment.Left);
                 htmlBody.Append($"<{tag} style=\"{alignStyle}\">");
@@ -329,14 +334,13 @@ namespace alesya_rassylka
                 foreach (ListItem listItem in list.ListItems)
                 {
                     htmlBody.Append("<li>");
-
                     foreach (Block itemBlock in listItem.Blocks)
                     {
                         if (itemBlock is Paragraph para)
                         {
-                            string fontFamily = para.FontFamily?.Source ?? "Times New Roman";
-                            double fontSize = para.FontSize > 0 ? para.FontSize : 12;
-                            string color = para.Foreground is SolidColorBrush brush ? ColorToHex(brush.Color) : "#000000";
+                            string fontFamily = para.FontFamily?.Source ?? "Arial";
+                            double fontSize = para.FontSize > 0 ? para.FontSize : 14;
+                            string color = para.Foreground is SolidColorBrush brush ? ColorToHex(brush.Color) : "#ffffff";
                             htmlBody.Append($"<span style=\"font-family: {fontFamily}; font-size: {fontSize}pt; color: {color};\">");
 
                             foreach (Inline inline in para.Inlines)
@@ -351,34 +355,35 @@ namespace alesya_rassylka
                             ProcessList(nestedList);
                         }
                     }
-
                     htmlBody.Append("</li>");
                 }
 
                 htmlBody.Append($"</{tag.Split(' ')[0]}>");
             }
 
-            string GetTextAlignmentStyle(TextAlignment alignment)
-            {
-                return alignment switch
+            string GetTextAlignmentStyle(TextAlignment alignment) =>
+                alignment switch
                 {
                     TextAlignment.Center => "text-align: center;",
                     TextAlignment.Right => "text-align: right;",
                     TextAlignment.Justify => "text-align: justify;",
                     _ => "text-align: left;"
                 };
-            }
 
-            string ColorToHex(Color color)
-            {
-                return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
-            }
+            string ColorToHex(Color color) => $"#{color.R:X2}{color.G:X2}{color.B:X2}";
 
             ProcessBlocks(richTextBox.Document.Blocks);
+
+            if (!string.IsNullOrEmpty(backgroundCid))
+            {
+                htmlBody.Append("</td></tr></table>");
+            }
 
             htmlBody.Append("</body></html>");
             return (htmlBody.ToString(), embeddedImages);
         }
+
+
 
 
         private void ListButton_Click(object sender, RoutedEventArgs e)
@@ -661,8 +666,6 @@ namespace alesya_rassylka
             buttonPanel.Children.Add(cancelButton);
             stackPanel.Children.Add(buttonPanel);
 
-            bool confirmed = false;
-
             saveButton.Click += (s, args) =>
             {
                 string categoryName = inputTextBox.Text.Trim();
@@ -687,8 +690,6 @@ namespace alesya_rassylka
 
                 SaveTemplates();
                 MessageBox.Show("Категория успешно добавлена!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                confirmed = true;
                 addCategoryWindow.Close();
             };
 
@@ -929,11 +930,11 @@ namespace alesya_rassylka
                 using (MailMessage mail = new MailMessage())
                 using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
                 {
-                    mail.From = new MailAddress(selectedSender.Email);
+                    mail.From = new MailAddress(selectedSender.Email, "Alesya");
                     mail.To.Add(recipientEmail);
                     mail.Subject = subject; // Используем переданную тему
 
-                    var (htmlBody, embeddedImages) = ConvertRichTextBoxToHtml(MessageRichTextBox);
+                    var (htmlBody, embeddedImages) = ConvertRichTextBoxToHtml(MessageRichTextBox, backgroundImagePath);
                     AlternateView htmlView = AlternateView.CreateAlternateViewFromString(htmlBody, null, "text/html");
 
                     foreach (var (cid, filePath) in embeddedImages)
@@ -983,7 +984,7 @@ namespace alesya_rassylka
             MessageBox.Show($"{ex.Message}\n{ex.StackTrace}", title, MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
-       
+
         private void Settings_Click(object sender, RoutedEventArgs e)
         {
             var settingsWindow = new SettingsWindow(dataStore, SaveCustomers, this)
@@ -998,8 +999,29 @@ namespace alesya_rassylka
 
         private void Help_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Открываем справку");
+            string pdfPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "help.pdf");
+
+            if (File.Exists(pdfPath))
+            {
+                try
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = pdfPath,
+                        UseShellExecute = true
+                    });
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Ошибка при открытии файла справки:\n{ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Файл справки не найден.", "Справка", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
+
 
         private void About_Click(object sender, RoutedEventArgs e)
         {
@@ -2054,7 +2076,7 @@ namespace alesya_rassylka
                 collection.Add(li);
         }
 
-     
+
 
 
         private void AlignLeft_Click(object sender, RoutedEventArgs e)
@@ -2197,7 +2219,7 @@ namespace alesya_rassylka
                 LogError("Ошибка при сохранении пользовательских цветов", ex);
             }
         }
-        
+
         // Полная переработанная версия ColorButton_Click с улучшениями: больше цветов, центрированные кнопки, автообновление, сортировка по оттенкам, удаление, скролл, прижатие кнопок
         private void ColorButton_Click(object sender, RoutedEventArgs e)
         {
@@ -2876,9 +2898,13 @@ namespace alesya_rassylka
             {
                 ExitTemplateEditMode(saveChanges: false);
             }
+            else
+            {
+                ExitTemplateAddMode();
+            }
         }
 
-        
+
         private void TemplateNameTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(TemplateNameTextBox.Text))
