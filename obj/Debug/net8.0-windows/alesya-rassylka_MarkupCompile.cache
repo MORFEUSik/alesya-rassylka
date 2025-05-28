@@ -4,16 +4,16 @@
 winexe
 C#
 .cs
-C:\Users\morfeus\alesya-rassylka\obj\Debug\net8.0-windows\
+D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\
 alesya_rassylka
 none
 false
 TRACE;DEBUG;NET;NET8_0;NETCOREAPP
-C:\Users\morfeus\alesya-rassylka\App.xaml
+D:\app\fork\alesya-rassylka\App.xaml
 41238080846
 
 10-311565894
-216-541418168
+216-1726324926
 MainWindow.xaml;SelectRecipientWindow.xaml;SettingsWindow.xaml;TemplateManagerWindow.xaml;
 
 False

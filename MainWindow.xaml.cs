@@ -2197,7 +2197,7 @@ namespace alesya_rassylka
                 LogError("Ошибка при сохранении пользовательских цветов", ex);
             }
         }
-
+        
         // Полная переработанная версия ColorButton_Click с улучшениями: больше цветов, центрированные кнопки, автообновление, сортировка по оттенкам, удаление, скролл, прижатие кнопок
         private void ColorButton_Click(object sender, RoutedEventArgs e)
         {
@@ -2206,8 +2206,8 @@ namespace alesya_rassylka
             var colorPickerWindow = new MetroWindow
             {
                 Title = "Выбрать цвет текста",
-                Width = 460,
-                Height = 560,
+                Width = 280,
+                Height = 353,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this,
                 ResizeMode = ResizeMode.NoResize,
@@ -2231,71 +2231,52 @@ namespace alesya_rassylka
                 });
             }
 
+            // --- Layout ---
             var rootGrid = new Grid();
-            rootGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-            rootGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            rootGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // основное содержимое
+            rootGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // кнопки
 
-            var scrollViewer = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
-            var mainStackPanel = new StackPanel { Margin = new Thickness(10) };
-            scrollViewer.Content = mainStackPanel;
-            Grid.SetRow(scrollViewer, 0);
+            var mainStackPanel = new StackPanel { Margin = new Thickness(5) };
+            Grid.SetRow(mainStackPanel, 0);
+            rootGrid.Children.Add(mainStackPanel);
 
-            var tabControl = new TabControl { Margin = new Thickness(0, 0, 0, 10) };
+            var tabControl = new TabControl
+            {
+                Margin = new Thickness(0, 0, 0, 5),
+                FontSize = 12
+            };
 
             // --- Стандартные цвета ---
-            var standardTab = new TabItem { Header = "Стандартные цвета" };
+            var standardTab = new TabItem { Header = "Стандартные" };
 
             var standardWrap = new UniformGrid
             {
                 Columns = 12,
-                Rows = 8, // можно увеличить при добавлении новых цветов
-                Margin = new Thickness(5)
+                Rows = 6,
+                Margin = new Thickness(0)
             };
 
             var columnSortedColors = new List<List<Color>>
     {
-        // 1: Черно-белая шкала
         new List<Color> { Colors.Black, Colors.DimGray, Colors.Gray, Colors.LightGray, Colors.White, Colors.Transparent },
-
-        // 2: Красные
         new List<Color> { Colors.DarkRed, Colors.Red, Colors.IndianRed, Colors.Salmon, Colors.LightCoral, Colors.MistyRose },
-
-        // 3: Оранжевые
         new List<Color> { Colors.OrangeRed, Colors.Orange, Colors.DarkOrange, Colors.Coral, Colors.Tomato, Colors.PeachPuff },
-
-        // 4: Желтые
         new List<Color> { Colors.Goldenrod, Colors.Gold, Colors.Khaki, Colors.Yellow, Colors.LightYellow, Colors.LemonChiffon },
-
-        // 5: Зеленые
         new List<Color> { Colors.DarkGreen, Colors.Green, Colors.ForestGreen, Colors.LimeGreen, Colors.LawnGreen, Colors.PaleGreen },
-
-        // 6: Бирюзовые / мятные
         new List<Color> { Colors.Teal, Colors.MediumTurquoise, Colors.Turquoise, Colors.Aquamarine, Colors.MintCream, Colors.LightCyan },
-
-        // 7: Голубые
         new List<Color> { Colors.DeepSkyBlue, Colors.SkyBlue, Colors.LightSkyBlue, Colors.PowderBlue, Colors.LightBlue, Colors.AliceBlue },
-
-        // 8: Синие
         new List<Color> { Colors.Navy, Colors.MidnightBlue, Colors.Blue, Colors.RoyalBlue, Colors.SteelBlue, Colors.CornflowerBlue },
-
-        // 9: Фиолетовые
         new List<Color> { Colors.Indigo, Colors.MediumPurple, Colors.SlateBlue, Colors.BlueViolet, Colors.MediumOrchid, Colors.Thistle },
-
-        // 10: Розовые
         new List<Color> { Colors.HotPink, Colors.DeepPink, Colors.Pink, Colors.LightPink, Colors.LavenderBlush, Colors.Fuchsia },
-
-        // 11: Коричневые
         new List<Color> { Colors.SaddleBrown, Colors.Sienna, Colors.Chocolate, Colors.Peru, Colors.Tan, Colors.BurlyWood },
-
-        // 12: Особые
         new List<Color> { Colors.Olive, Colors.DarkOliveGreen, Colors.Maroon, Colors.Silver, Colors.Gainsboro, Colors.Beige }
     };
 
             Border selectedBorder = null;
 
-            for (int i = 0; i < 6; i++) // по строкам
+            for (int i = 0; i < 6; i++)
             {
-                for (int j = 0; j < 12; j++) // по колонкам
+                for (int j = 0; j < 12; j++)
                 {
                     if (j >= columnSortedColors.Count || i >= columnSortedColors[j].Count)
                         continue;
@@ -2304,18 +2285,18 @@ namespace alesya_rassylka
 
                     var rect = new Rectangle
                     {
-                        Width = 25,
-                        Height = 25,
+                        Width = 16,
+                        Height = 16,
                         Fill = new SolidColorBrush(color),
                         Stroke = Brushes.DarkSlateBlue,
                         StrokeThickness = 1,
-                        Margin = new Thickness(4),
+                        Margin = new Thickness(0),
                         Cursor = Cursors.Hand
                     };
 
                     var border = new Border
                     {
-                        BorderThickness = new Thickness(2),
+                        BorderThickness = new Thickness(1),
                         BorderBrush = Brushes.Transparent,
                         Child = rect
                     };
@@ -2323,7 +2304,6 @@ namespace alesya_rassylka
                     rect.MouseDown += (s, args) =>
                     {
                         selectedColor = (SolidColorBrush)rect.Fill;
-
                         if (selectedBorder != null)
                             selectedBorder.BorderBrush = Brushes.Transparent;
 
@@ -2335,18 +2315,23 @@ namespace alesya_rassylka
                 }
             }
 
-            standardTab.Content = new ScrollViewer { Content = standardWrap, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+            standardTab.Content = new ScrollViewer
+            {
+                Content = standardWrap,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                MaxHeight = 170
+            };
             tabControl.Items.Add(standardTab);
 
             // --- Пользовательские цвета ---
-            var customTab = new TabItem { Header = "Пользовательские цвета" };
-            var customStack = new StackPanel { Margin = new Thickness(5) };
+            var customTab = new TabItem { Header = "Пользовательские" };
+            var customStack = new StackPanel { Margin = new Thickness(2) };
 
             var canvas = new Xceed.Wpf.Toolkit.ColorCanvas
             {
-                Width = 230,
-                Height = 270,
-                Margin = new Thickness(0, 0, 0, 10),
+                Width = 300,
+                Height = 150,
+                Margin = new Thickness(0, 0, 0, 5),
                 SelectedColor = Colors.Black
             };
             customStack.Children.Add(canvas);
@@ -2354,28 +2339,27 @@ namespace alesya_rassylka
             var btnWrap = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(0, 0, 0, 10)
+                HorizontalAlignment = HorizontalAlignment.Center
             };
 
             var addBtn = new Button
             {
-                Content = "Добавить",
-                Width = 130,
-                Height = 30,
-                FontSize = 14,
+                Content = "+",
+                Width = 60,
+                Height = 25,
+                FontSize = 12,
                 Style = CreateActionButtonStyle(),
-                Margin = new Thickness(5)
+                Margin = new Thickness(2)
             };
 
             var removeBtn = new Button
             {
-                Content = "Удалить",
-                Width = 130,
-                Height = 30,
-                FontSize = 14,
+                Content = "-",
+                Width = 60,
+                Height = 25,
+                FontSize = 12,
                 Style = CreateActionButtonStyle(),
-                Margin = new Thickness(5)
+                Margin = new Thickness(2)
             };
 
             btnWrap.Children.Add(addBtn);
@@ -2383,7 +2367,12 @@ namespace alesya_rassylka
             customStack.Children.Add(btnWrap);
 
             var customColorPanel = new WrapPanel();
-            var customScroll = new ScrollViewer { Content = customColorPanel, Height = 100, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+            var customScroll = new ScrollViewer
+            {
+                Content = customColorPanel,
+                Height = 60,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto
+            };
             customStack.Children.Add(customScroll);
 
             void RefreshCustomColorPanel()
@@ -2393,12 +2382,12 @@ namespace alesya_rassylka
                 {
                     var rect = new Rectangle
                     {
-                        Width = 15,
-                        Height = 15,
+                        Width = 12,
+                        Height = 12,
                         Fill = brush,
                         Stroke = Brushes.DarkSlateBlue,
                         StrokeThickness = 1,
-                        Margin = new Thickness(4),
+                        Margin = new Thickness(2),
                         Cursor = Cursors.Hand
                     };
                     rect.MouseDown += (s, args) =>
@@ -2441,29 +2430,33 @@ namespace alesya_rassylka
             tabControl.Items.Add(customTab);
             mainStackPanel.Children.Add(tabControl);
 
-            // --- Кнопки Применить / Отмена ---
+            // --- Кнопки ---
             var btnPanel = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
                 HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(0, 10, 0, 10)
+                Margin = new Thickness(0, 0, 0, 5),
+                VerticalAlignment = VerticalAlignment.Bottom
             };
 
             var apply = new Button
             {
-                Content = "Применить",
-                Width = 160,
-                Height = 40,
-                Margin = new Thickness(10, 0, 10, 0),
-                Style = CreateActionButtonStyle()
+                Content = "OK",
+                Width = 80,
+                Height = 30,
+                Margin = new Thickness(0, 0, 5, 0),
+                Style = CreateActionButtonStyle(),
+                FontSize = 12
             };
+
             var cancel = new Button
             {
-                Content = "Отменить",
-                Width = 160,
-                Height = 40,
-                Margin = new Thickness(10, 0, 10, 0),
-                Style = CreateActionButtonStyle()
+                Content = "Отмена",
+                Width = 80,
+                Height = 30,
+                Margin = new Thickness(5, 0, 5, 0),
+                Style = CreateActionButtonStyle(),
+                FontSize = 12
             };
 
             apply.Click += (s, args) =>
@@ -2484,15 +2477,12 @@ namespace alesya_rassylka
 
             btnPanel.Children.Add(apply);
             btnPanel.Children.Add(cancel);
-
             Grid.SetRow(btnPanel, 1);
-            rootGrid.Children.Add(scrollViewer);
             rootGrid.Children.Add(btnPanel);
+
             colorPickerWindow.Content = rootGrid;
             colorPickerWindow.ShowDialog();
         }
-
-
 
 
         private Style CreateActionButtonStyle()
@@ -2500,15 +2490,14 @@ namespace alesya_rassylka
             var style = new Style(typeof(Button));
             style.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.White));
             style.Setters.Add(new Setter(Control.ForegroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
-            style.Setters.Add(new Setter(Control.FontSizeProperty, 16.0));
-            style.Setters.Add(new Setter(Control.FontFamilyProperty, new FontFamily("Arial Black")));
-            style.Setters.Add(new Setter(Control.FontWeightProperty, FontWeights.Bold));
-            style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(10, 5, 10, 5)));
+            style.Setters.Add(new Setter(Control.FontSizeProperty, 12.0)); // Уменьшили шрифт
+            style.Setters.Add(new Setter(Control.FontFamilyProperty, new FontFamily("Arial"))); // Упростили шрифт
+            style.Setters.Add(new Setter(Control.FontWeightProperty, FontWeights.Normal)); // Убрали жирность
+            style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(5, 0, 5, 0))); // Уменьшили отступы
             style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
             style.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
             style.Setters.Add(new Setter(Control.CursorProperty, Cursors.Hand));
-            style.Setters.Add(new Setter(Control.MinHeightProperty, 30.0));
-            //style.Setters.Add(new Setter(Control.TemplateProperty, CreateButtonTemplate()));
+            style.Setters.Add(new Setter(Control.MinHeightProperty, 25.0)); // Уменьшили минимальную высоту
             return style;
         }
 

@@ -100,9 +100,7 @@ D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\DocumentFormat.OpenXml.dll
 D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\DocumentFormat.OpenXml.Framework.dll
 D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\Microsoft.Office.Interop.Word.dll
 D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\System.IO.Packaging.dll
-D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\TemplateEditWindow.baml
 D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\TemplateManagerWindow.baml
-D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\TemplateEditWindow.g.cs
 D:\app\fork\alesya-rassylka\obj\Debug\net8.0-windows\TemplateManagerWindow.g.cs
 D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\HtmlAgilityPack.dll
 D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\System.Windows.Forms.Ribbon35.dll
@@ -172,3 +170,12 @@ C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\runtimes\osx\native\li
 C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\runtimes\win-arm64\native\libSkiaSharp.dll
 C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\runtimes\win-x64\native\libSkiaSharp.dll
 C:\Users\morfeus\alesya-rassylka\bin\Debug\net8.0-windows\runtimes\win-x86\native\libSkiaSharp.dll
+D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\SkiaSharp.dll
+D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\Xceed.Document.NET.dll
+D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\Xceed.Drawing.NET.dll
+D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\Xceed.PDF.NET.dll
+D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\Xceed.Words.NET.dll
+D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\runtimes\osx\native\libSkiaSharp.dylib
+D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\runtimes\win-arm64\native\libSkiaSharp.dll
+D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\runtimes\win-x64\native\libSkiaSharp.dll
+D:\app\fork\alesya-rassylka\bin\Debug\net8.0-windows\runtimes\win-x86\native\libSkiaSharp.dll
