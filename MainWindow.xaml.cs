@@ -17,6 +17,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Xml;
+using System.Net.NetworkInformation;
+using System.Net.Http;
 
 
 namespace alesya_rassylka
@@ -818,17 +820,33 @@ namespace alesya_rassylka
                 e.Handled = true; // Предотвращаем дальнейшую маршрутизацию события
             }
         }
+        private bool IsInternetAvailable()
+        {
+            try
+            {
+                using (var ping = new System.Net.NetworkInformation.Ping())
+                {
+                    var reply = ping.Send("8.8.8.8", 1000); // Проверяем доступность Google DNS
+                    return reply.Status == System.Net.NetworkInformation.IPStatus.Success;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
-            var recipients = RecipientList.ItemsSource as IEnumerable<string>;
-
-            if (recipients == null || !recipients.Any())
+            // 1. Проверка подключения к интернету
+            if (!IsInternetAvailable())
             {
-                MessageBox.Show("Выберите хотя бы одного получателя!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Отсутствует подключение к интернету. Пожалуйста, проверьте соединение и попробуйте снова.",
+                                "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
+            // 2. Проверка ввода сообщения
             string message = new TextRange(MessageRichTextBox.Document.ContentStart, MessageRichTextBox.Document.ContentEnd).Text.Trim();
             if (string.IsNullOrWhiteSpace(message))
             {
@@ -836,19 +854,27 @@ namespace alesya_rassylka
                 return;
             }
 
+            // 3. Проверка выбранных получателей
+            var recipients = RecipientList.ItemsSource as IEnumerable<string>;
+            if (recipients == null || !recipients.Any())
+            {
+                MessageBox.Show("Выберите хотя бы одного получателя!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // 4. Проверка отправителя
             if (selectedSender == null)
             {
                 MessageBox.Show("Выберите отправителя!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            // Проверяем тему
+            // 5. Проверка темы
             string subject = SubjectTextBox.Text;
             bool isSubjectEmpty = subject == SubjectPrefix;
 
             if (isSubjectEmpty)
             {
-                // Показываем диалоговое окно подтверждения
                 var result = MessageBox.Show("В этом сообщении не указана тема. Хотите отправить его?",
                                              "Подтверждение отправки",
                                              MessageBoxButton.OKCancel,
@@ -856,14 +882,14 @@ namespace alesya_rassylka
 
                 if (result != MessageBoxResult.OK)
                 {
-                    return; // Прерываем отправку, если пользователь выбрал "Отменить"
+                    return;
                 }
 
-                subject = ""; // Устанавливаем пустую тему
+                subject = "";
             }
             else if (subject.StartsWith(SubjectPrefix))
             {
-                subject = subject.Substring(SubjectPrefix.Length).Trim(); // Убираем префикс "Тема: "
+                subject = subject.Substring(SubjectPrefix.Length).Trim();
             }
 
             try
@@ -874,6 +900,7 @@ namespace alesya_rassylka
                     SendEmail(recipientEmail, message, subject);
                 }
                 MessageBox.Show("Сообщения успешно отправлены!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                ResetForm(); // Сбрасываем форму после успешной отправки
             }
             catch (Exception ex)
             {
@@ -881,6 +908,8 @@ namespace alesya_rassylka
                 ShowDetailedError("Ошибка отправки письма", ex);
             }
         }
+
+
 
         private void ResetForm()
         {
@@ -932,7 +961,7 @@ namespace alesya_rassylka
                 {
                     mail.From = new MailAddress(selectedSender.Email, "Alesya");
                     mail.To.Add(recipientEmail);
-                    mail.Subject = subject; // Используем переданную тему
+                    mail.Subject = subject;
 
                     var (htmlBody, embeddedImages) = ConvertRichTextBoxToHtml(MessageRichTextBox, backgroundImagePath);
                     AlternateView htmlView = AlternateView.CreateAlternateViewFromString(htmlBody, null, "text/html");
@@ -965,6 +994,11 @@ namespace alesya_rassylka
                     smtp.EnableSsl = true;
                     smtp.Send(mail);
                 }
+            }
+            catch (SmtpException ex) when (ex.InnerException is System.Net.Sockets.SocketException)
+            {
+                LogError("Сетевая ошибка при отправке email", ex);
+                throw new Exception("Не удалось отправить письмо: проверьте подключение к интернету.", ex);
             }
             catch (Exception ex)
             {
@@ -2230,8 +2264,6 @@ namespace alesya_rassylka
                 Title = "Выбрать цвет текста",
                 Width = 280,
                 Height = 353,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                Owner = this,
                 ResizeMode = ResizeMode.NoResize,
                 Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor),
                 BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
@@ -2239,9 +2271,43 @@ namespace alesya_rassylka
                 Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png")),
                 TitleForeground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
                 GlowBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
-                ShowTitleBar = true
+                ShowTitleBar = true,
+                WindowStartupLocation = WindowStartupLocation.Manual
             };
 
+            // --- Позиционирование окна относительно MainWindow с учетом границ экрана ---
+            Window mainWindow = Application.Current.MainWindow;
+
+            double pickerWidth = colorPickerWindow.Width;
+            double pickerHeight = colorPickerWindow.Height;
+
+            double mainLeft = mainWindow.Left;
+            double mainTop = mainWindow.Top;
+            double mainWidth = mainWindow.ActualWidth;
+            double mainHeight = mainWindow.ActualHeight;
+
+            // Предварительное положение в правом нижнем углу MainWindow
+            double left = mainLeft + mainWidth - pickerWidth - 10;
+            double top = mainTop + mainHeight - pickerHeight - 10;
+
+            // Область рабочего стола
+            Rect workArea = SystemParameters.WorkArea;
+
+            // Коррекция, если окно выходит за экран
+            if (left + pickerWidth > workArea.Right)
+                left = workArea.Right - pickerWidth - 10;
+            if (top + pickerHeight > workArea.Bottom)
+                top = workArea.Bottom - pickerHeight - 10;
+            if (left < workArea.Left)
+                left = workArea.Left + 10;
+            if (top < workArea.Top)
+                top = workArea.Top + 10;
+
+            colorPickerWindow.Left = left;
+            colorPickerWindow.Top = top;
+
+
+            // --- Остальной код интерфейса ---
             SettingsWindow.ThemeChanged += UpdateWindowTheme;
             colorPickerWindow.Closed += (s, args) => SettingsWindow.ThemeChanged -= UpdateWindowTheme;
 
@@ -2255,8 +2321,8 @@ namespace alesya_rassylka
 
             // --- Layout ---
             var rootGrid = new Grid();
-            rootGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // основное содержимое
-            rootGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // кнопки
+            rootGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            rootGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
             var mainStackPanel = new StackPanel { Margin = new Thickness(5) };
             Grid.SetRow(mainStackPanel, 0);
@@ -2279,20 +2345,20 @@ namespace alesya_rassylka
             };
 
             var columnSortedColors = new List<List<Color>>
-    {
-        new List<Color> { Colors.Black, Colors.DimGray, Colors.Gray, Colors.LightGray, Colors.White, Colors.Transparent },
-        new List<Color> { Colors.DarkRed, Colors.Red, Colors.IndianRed, Colors.Salmon, Colors.LightCoral, Colors.MistyRose },
-        new List<Color> { Colors.OrangeRed, Colors.Orange, Colors.DarkOrange, Colors.Coral, Colors.Tomato, Colors.PeachPuff },
-        new List<Color> { Colors.Goldenrod, Colors.Gold, Colors.Khaki, Colors.Yellow, Colors.LightYellow, Colors.LemonChiffon },
-        new List<Color> { Colors.DarkGreen, Colors.Green, Colors.ForestGreen, Colors.LimeGreen, Colors.LawnGreen, Colors.PaleGreen },
-        new List<Color> { Colors.Teal, Colors.MediumTurquoise, Colors.Turquoise, Colors.Aquamarine, Colors.MintCream, Colors.LightCyan },
-        new List<Color> { Colors.DeepSkyBlue, Colors.SkyBlue, Colors.LightSkyBlue, Colors.PowderBlue, Colors.LightBlue, Colors.AliceBlue },
-        new List<Color> { Colors.Navy, Colors.MidnightBlue, Colors.Blue, Colors.RoyalBlue, Colors.SteelBlue, Colors.CornflowerBlue },
-        new List<Color> { Colors.Indigo, Colors.MediumPurple, Colors.SlateBlue, Colors.BlueViolet, Colors.MediumOrchid, Colors.Thistle },
-        new List<Color> { Colors.HotPink, Colors.DeepPink, Colors.Pink, Colors.LightPink, Colors.LavenderBlush, Colors.Fuchsia },
-        new List<Color> { Colors.SaddleBrown, Colors.Sienna, Colors.Chocolate, Colors.Peru, Colors.Tan, Colors.BurlyWood },
-        new List<Color> { Colors.Olive, Colors.DarkOliveGreen, Colors.Maroon, Colors.Silver, Colors.Gainsboro, Colors.Beige }
-    };
+{
+    new() { Colors.Black, Colors.DimGray, Colors.Gray, Colors.LightGray, Colors.White, Colors.Transparent },
+    new() { Colors.DarkRed, Colors.Red, Colors.IndianRed, Colors.Salmon, Colors.LightCoral, Colors.MistyRose },
+    new() { Colors.OrangeRed, Colors.Orange, Colors.DarkOrange, Colors.Coral, Colors.Tomato, Colors.PeachPuff },
+    new() { Colors.Goldenrod, Colors.Gold, Colors.Khaki, Colors.Yellow, Colors.LightYellow, Colors.LemonChiffon },
+    new() { Colors.DarkGreen, Colors.Green, Colors.ForestGreen, Colors.LimeGreen, Colors.LawnGreen, Colors.PaleGreen },
+    new() { Colors.Teal, Colors.MediumTurquoise, Colors.Turquoise, Colors.Aquamarine, Colors.MintCream, Colors.LightCyan },
+    new() { Colors.DeepSkyBlue, Colors.SkyBlue, Colors.LightSkyBlue, Colors.PowderBlue, Colors.LightBlue, Colors.AliceBlue },
+    new() { Colors.Navy, Colors.MidnightBlue, Colors.Blue, Colors.RoyalBlue, Colors.SteelBlue, Colors.CornflowerBlue },
+    new() { Colors.Indigo, Colors.MediumPurple, Colors.SlateBlue, Colors.BlueViolet, Colors.MediumOrchid, Colors.Thistle },
+    new() { Colors.HotPink, Colors.DeepPink, Colors.Pink, Colors.LightPink, Colors.LavenderBlush, Colors.Fuchsia },
+    new() { Colors.SaddleBrown, Colors.Sienna, Colors.Chocolate, Colors.Peru, Colors.Tan, Colors.BurlyWood },
+    new() { Colors.Olive, Colors.DarkOliveGreen, Colors.Maroon, Colors.Silver, Colors.Gainsboro, Colors.Beige }
+};
 
             Border selectedBorder = null;
 
@@ -2452,7 +2518,7 @@ namespace alesya_rassylka
             tabControl.Items.Add(customTab);
             mainStackPanel.Children.Add(tabControl);
 
-            // --- Кнопки ---
+            // --- Кнопки OK / Отмена ---
             var btnPanel = new StackPanel
             {
                 Orientation = Orientation.Horizontal,

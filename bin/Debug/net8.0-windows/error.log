@@ -15,3 +15,7 @@ StackTrace:    at alesya_rassylka.MainWindow.SendEmail(String recipientEmail, St
 16.05.2025 16:51:35: [Ошибка отправки письма] Failure sending mail.
 25.05.2025 8:10:29: [Ошибка при отправке email] The client or server is only configured for E-mail addresses with ASCII local-parts: акепнерн@hgyhj.
 25.05.2025 8:10:29: [Ошибка отправки письма] The client or server is only configured for E-mail addresses with ASCII local-parts: акепнерн@hgyhj.
+30.05.2025 22:26:22: [Ошибка при отправке email] Failure sending mail.
+30.05.2025 22:26:22: [Ошибка отправки письма] Failure sending mail.
+30.05.2025 22:27:38: [Ошибка при отправке email] Failure sending mail.
+30.05.2025 22:27:38: [Ошибка отправки письма] Failure sending mail.
