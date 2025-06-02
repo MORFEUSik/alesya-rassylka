@@ -305,7 +305,7 @@
                         <TextBox x:Name="TemplateNameTextBox" Grid.Row="0" Margin="10,5,10,0"
          Visibility="Collapsed"
          Text="Название:"
-         Foreground="Gray"
+         Foreground="Black"
          GotFocus="TemplateNameTextBox_GotFocus"
 TextChanged="TemplateNameTextBox_TextChanged"
          BorderThickness="0,0,0,1" BorderBrush="#172A74"

@@ -2949,7 +2949,7 @@ namespace alesya_rassylka
 
             // Сброс полей
             TemplateNameTextBox.Text = TemplateNamePrefix;
-            TemplateNameTextBox.Foreground = Brushes.Gray;
+            TemplateNameTextBox.Foreground = Brushes.Black;
             TemplateNameTextBox.Visibility = Visibility.Collapsed;
             TemplateEditButtonsPanel.Visibility = Visibility.Collapsed;
             SubjectTextBox.Visibility = Visibility.Visible;
@@ -2976,7 +2976,7 @@ namespace alesya_rassylka
             if (string.IsNullOrWhiteSpace(TemplateNameTextBox.Text))
             {
                 TemplateNameTextBox.Text = "Название шаблона";
-                TemplateNameTextBox.Foreground = Brushes.Gray;
+                TemplateNameTextBox.Foreground = Brushes.Black;
             }
         }
 
@@ -3042,6 +3042,14 @@ namespace alesya_rassylka
                 Foreground = currentForeground
             };
             MessageRichTextBox.Document.Blocks.Add(paragraph);
+
+            // Очистка TemplateNameTextBox
+            if (TemplateNameTextBox != null)
+            {
+                TemplateNameTextBox.Text = "Название:"; // Сбрасываем текст на исходный
+                TemplateNameTextBox.Foreground = Brushes.Black; // Возвращаем цвет текста
+                TemplateNameTextBox.IsEnabled = true; // Убеждаемся, что поле активно
+            }
 
             // НЕ открываем TemplateManagerWindow автоматически
             templateManagerWindow = null; // Сбрасываем ссылку
