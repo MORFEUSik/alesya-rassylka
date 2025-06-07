@@ -28,6 +28,7 @@ namespace alesya_rassylka
     {
         private TemplateCategory category;
         private Action saveChanges;
+       
         public Template SelectedTemplate { get; set; }
 
         public TemplateCategory Category => category;

@@ -125,6 +125,7 @@ namespace alesya_rassylka
     {
         public string Name { get; set; }
         public string Content { get; set; }
+        public string BackgroundImagePath { get; set; }
     }
 
     public class TemplateCategory
@@ -505,21 +506,45 @@ namespace alesya_rassylka
             }
         }
 
-        private void SetBackgroundImage_Click(object sender, RoutedEventArgs e)
-        {
-            var openFileDialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "Image Files (*.png;*.jpg;*.jpeg;*.gif;*.bmp)|*.png;*.jpg;*.jpeg;*.gif;*.bmp",
-                Title = "Выберите фоновое изображение"
-            };
+        
+       private void SetBackgroundImage_Click(object sender, RoutedEventArgs e)
+ {
+     var openFileDialog = new Microsoft.Win32.OpenFileDialog
+     {
+         Filter = "Image Files (*.png;*.jpg;*.jpeg;*.gif;*.bmp)|*.png;*.jpg;*.jpeg;*.gif;*.bmp",
+         Title = "Выберите фоновое изображение"
+     };
 
-            if (openFileDialog.ShowDialog() == true)
-            {
-                backgroundImagePath = openFileDialog.FileName;
-                MessageBox.Show("Фоновое изображение успешно выбрано. Оно будет применено при отправке письма.",
-                                "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-        }
+     if (openFileDialog.ShowDialog() == true)
+     {
+         backgroundImagePath = openFileDialog.FileName;
+
+         try
+         {
+             var imageBrush = new ImageBrush
+             {
+                 ImageSource = new BitmapImage(new Uri(backgroundImagePath)),
+                 Stretch = Stretch.UniformToFill, // или Fill, если важнее полное покрытие
+                 Opacity = 1.0                    // Полная яркость
+             };
+
+             MessageRichTextBox.Background = imageBrush;
+
+             
+
+             MessageBox.Show("Фоновое изображение успешно выбрано и применено.",
+                             "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+         }
+         catch (Exception ex)
+         {
+             MessageBox.Show($"Ошибка при загрузке изображения: {ex.Message}",
+                             "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+         }
+     }
+ }
+
+        
+
         private void AddCategory_Click(object sender, RoutedEventArgs e)
         {
             var addCategoryWindow = new MetroWindow
@@ -750,28 +775,54 @@ namespace alesya_rassylka
                         var flowDoc = RichTextSerializationHelper.DeserializeFlowDocument(templateWindow.SelectedTemplate.Content);
                         MessageRichTextBox.Document = flowDoc;
 
+                        // Применение шрифта
                         if (flowDoc.FontFamily != null)
                         {
                             MessageRichTextBox.Document.FontFamily = flowDoc.FontFamily;
                             currentFontFamily = flowDoc.FontFamily;
                             System.Diagnostics.Debug.WriteLine($"Applied FontFamily: {flowDoc.FontFamily}");
                         }
+
+                        // Применение размера шрифта
                         if (flowDoc.FontSize > 0)
                         {
                             MessageRichTextBox.Document.FontSize = flowDoc.FontSize;
                             currentFontSize = flowDoc.FontSize;
                             System.Diagnostics.Debug.WriteLine($"Applied FontSize: {flowDoc.FontSize}");
                         }
+
+                        // Применение выравнивания
                         if (flowDoc.TextAlignment != TextAlignment.Left)
                         {
                             MessageRichTextBox.Document.TextAlignment = flowDoc.TextAlignment;
                             System.Diagnostics.Debug.WriteLine($"Applied TextAlignment: {flowDoc.TextAlignment}");
                         }
+
+                        // Применение цвета текста
                         if (flowDoc.Foreground is SolidColorBrush foreground)
                         {
                             MessageRichTextBox.Document.Foreground = foreground;
                             currentForeground = foreground;
                             System.Diagnostics.Debug.WriteLine($"Applied Foreground: {foreground.Color}");
+                        }
+
+                        // Применение фонового изображения
+                        if (!string.IsNullOrWhiteSpace(templateWindow.SelectedTemplate.BackgroundImagePath) &&
+                            File.Exists(templateWindow.SelectedTemplate.BackgroundImagePath))
+                        {
+                            var imageBrush = new ImageBrush
+                            {
+                                ImageSource = new BitmapImage(new Uri(templateWindow.SelectedTemplate.BackgroundImagePath)),
+                                Stretch = Stretch.UniformToFill,
+                                Opacity = 1.0
+                            };
+                            MessageRichTextBox.Background = imageBrush;
+                            System.Diagnostics.Debug.WriteLine($"Фоновое изображение применено: {templateWindow.SelectedTemplate.BackgroundImagePath}");
+                        }
+                        else
+                        {
+                            MessageRichTextBox.Background = Brushes.White;
+                            System.Diagnostics.Debug.WriteLine("Фон не найден или путь пустой. Применён белый фон.");
                         }
 
                         var flowDocText = new TextRange(flowDoc.ContentStart, flowDoc.ContentEnd).Text;
@@ -796,6 +847,7 @@ namespace alesya_rassylka
                         paragraph.FontSize = 12;
                         paragraph.Foreground = Brushes.Black;
                         MessageRichTextBox.Document.Blocks.Add(paragraph);
+                        MessageRichTextBox.Background = Brushes.White;
                     }
                 }
                 else
@@ -808,6 +860,7 @@ namespace alesya_rassylka
                 System.Diagnostics.Debug.WriteLine($"Unexpected sender in TemplateCategory_Click: {sender.GetType().Name}");
             }
         }
+
 
         private void CategoryButton_PreviewMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
@@ -913,8 +966,13 @@ namespace alesya_rassylka
 
         private void ResetForm()
         {
+            // Сбрасываем цвет перед очисткой
+            currentForeground = Brushes.Black;
+
             // Очистка RichTextBox
             MessageRichTextBox.Document.Blocks.Clear();
+
+            // Добавляем пустой параграф с новым цветом (чёрным)
             var paragraph = new Paragraph(new Run(""))
             {
                 FontFamily = currentFontFamily,
@@ -922,6 +980,10 @@ namespace alesya_rassylka
                 Foreground = currentForeground
             };
             MessageRichTextBox.Document.Blocks.Add(paragraph);
+
+            // Дополнительно можно явно применить цвет ко всему тексту (если нужно)
+            var textRange = new TextRange(MessageRichTextBox.Document.ContentStart, MessageRichTextBox.Document.ContentEnd);
+            textRange.ApplyPropertyValue(TextElement.ForegroundProperty, currentForeground);
 
             // Сброс темы
             SubjectTextBox.Text = DefaultSubject;
@@ -937,9 +999,9 @@ namespace alesya_rassylka
             // Сброс фонового изображения
             backgroundImagePath = null;
 
-            // Сброс фокуса
-            MessageRichTextBox.Focus();
+            MessageRichTextBox.Background = Brushes.Transparent;
         }
+
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
@@ -950,7 +1012,11 @@ namespace alesya_rassylka
             attachedFiles.Clear();
             AttachedFilesList.ItemsSource = null;
             SubjectTextBox.Text = DefaultSubject; // Сбрасываем тему на значение по умолчанию
+
+            // Очищаем фон
+            MessageRichTextBox.Background = Brushes.Transparent;
         }
+
 
         private void SendEmail(string recipientEmail, string message, string subject)
         {
@@ -2865,7 +2931,13 @@ namespace alesya_rassylka
 
             var content = RichTextSerializationHelper.SerializeFlowDocument(MessageRichTextBox.Document);
 
-            // Извлекаем имя шаблона без префикса
+            // Получение пути к изображению фона
+            string backgroundImagePath = null;
+            if (MessageRichTextBox.Background is ImageBrush imageBrush && imageBrush.ImageSource is BitmapImage bitmapImage)
+            {
+                backgroundImagePath = bitmapImage.UriSource?.LocalPath;
+            }
+
             const string TemplateNamePrefix = "Название: ";
             string templateNameRaw = TemplateNameTextBox.Text.Trim();
             if (!templateNameRaw.StartsWith(TemplateNamePrefix))
@@ -2873,8 +2945,8 @@ namespace alesya_rassylka
                 MessageBox.Show("Название должно начинаться с \"Название: \".", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
-            string nameOnly = templateNameRaw.Substring(TemplateNamePrefix.Length).Trim();
 
+            string nameOnly = templateNameRaw.Substring(TemplateNamePrefix.Length).Trim();
             if (string.IsNullOrWhiteSpace(nameOnly))
             {
                 MessageBox.Show("Введите корректное название шаблона.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -2886,7 +2958,7 @@ namespace alesya_rassylka
                 var selectedCategory = TemplateCategories.FirstOrDefault(c => c.Templates.Contains(editingTemplate));
                 if (selectedCategory == null)
                 {
-                    LogToFile("❌ Категория для редактируемого шаблона не найдена");
+                    LogToFile("Категория для редактируемого шаблона не найдена");
                     MessageBox.Show("Категория шаблона не найдена.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
@@ -2895,17 +2967,18 @@ namespace alesya_rassylka
                 {
                     if (selectedCategory.Templates.Any(t => t.Name.Equals(nameOnly, StringComparison.OrdinalIgnoreCase)))
                     {
-                        LogToFile($"❗️ Шаблон с названием '{nameOnly}' уже существует в категории '{selectedCategory.Name}'");
+                        LogToFile($"Шаблон с названием '{nameOnly}' уже существует в категории '{selectedCategory.Name}'");
                         MessageBox.Show("Шаблон с таким названием уже существует.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                         return;
                     }
 
-                    LogToFile($"🔄 Изменяем название шаблона с '{editingTemplate.Name}' на '{nameOnly}'");
+                    LogToFile($"Изменяем название шаблона с '{editingTemplate.Name}' на '{nameOnly}'");
                     editingTemplate.Name = nameOnly;
                 }
 
-                System.Diagnostics.Debug.WriteLine("Шаблон редактирован (Успех)");
                 editingTemplate.Content = content;
+                editingTemplate.BackgroundImagePath = backgroundImagePath;
+
                 SaveTemplates();
                 MessageBox.Show("Шаблон успешно отредактирован!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                 ExitTemplateEditMode(saveChanges: true);
@@ -2915,14 +2988,14 @@ namespace alesya_rassylka
                 var selectedCategory = TemplateCategories.FirstOrDefault(c => c.Name == templateManagerWindow?.Category?.Name);
                 if (selectedCategory == null)
                 {
-                    LogToFile("❌ selectedCategory оказался null");
+                    LogToFile("selectedCategory оказался null");
                     MessageBox.Show("Категория шаблона не найдена.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
                 if (selectedCategory.Templates.Any(t => t.Name.Equals(nameOnly, StringComparison.OrdinalIgnoreCase)))
                 {
-                    LogToFile($"❗️ Шаблон с названием '{nameOnly}' уже существует в категории '{selectedCategory.Name}'");
+                    LogToFile($"Шаблон с названием '{nameOnly}' уже существует в категории '{selectedCategory.Name}'");
                     MessageBox.Show("Шаблон с таким названием уже существует.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
@@ -2930,11 +3003,11 @@ namespace alesya_rassylka
                 var newTemplate = new Template
                 {
                     Name = nameOnly,
-                    Content = content
+                    Content = content,
+                    BackgroundImagePath = backgroundImagePath,
                 };
 
                 selectedCategory.Templates.Add(newTemplate);
-
                 LogToFile($"Добавляется шаблон '{nameOnly}' в категорию: {selectedCategory.Name}");
                 SaveTemplates();
                 MessageBox.Show("Новый шаблон успешно добавлен!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -2953,7 +3026,9 @@ namespace alesya_rassylka
             TemplateNameTextBox.Visibility = Visibility.Collapsed;
             TemplateEditButtonsPanel.Visibility = Visibility.Collapsed;
             SubjectTextBox.Visibility = Visibility.Visible;
+            MessageRichTextBox.Background = Brushes.Transparent;
         }
+
 
 
 
@@ -2968,7 +3043,11 @@ namespace alesya_rassylka
             {
                 ExitTemplateAddMode();
             }
+
+            // Сброс фонового изображения или цвета
+            MessageRichTextBox.Background = Brushes.White;
         }
+
 
 
         private void TemplateNameTextBox_LostFocus(object sender, RoutedEventArgs e)
