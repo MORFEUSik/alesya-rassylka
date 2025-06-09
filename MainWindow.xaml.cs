@@ -506,44 +506,62 @@ namespace alesya_rassylka
             }
         }
 
-        
-       private void SetBackgroundImage_Click(object sender, RoutedEventArgs e)
- {
-     var openFileDialog = new Microsoft.Win32.OpenFileDialog
-     {
-         Filter = "Image Files (*.png;*.jpg;*.jpeg;*.gif;*.bmp)|*.png;*.jpg;*.jpeg;*.gif;*.bmp",
-         Title = "Выберите фоновое изображение"
-     };
 
-     if (openFileDialog.ShowDialog() == true)
-     {
-         backgroundImagePath = openFileDialog.FileName;
+        private void SetBackgroundImage_Click(object sender, RoutedEventArgs e)
+        {
+            var contextMenu = new ContextMenu();
 
-         try
-         {
-             var imageBrush = new ImageBrush
-             {
-                 ImageSource = new BitmapImage(new Uri(backgroundImagePath)),
-                 Stretch = Stretch.UniformToFill, // или Fill, если важнее полное покрытие
-                 Opacity = 1.0                    // Полная яркость
-             };
+            if (!string.IsNullOrEmpty(backgroundImagePath))
+            {
+                var removeItem = new MenuItem { Header = "🗑 Удалить фон" };
+                removeItem.Click += (_, __) =>
+                {
+                    backgroundImagePath = null;
+                    MessageRichTextBox.Background = Brushes.White;
+                };
+                contextMenu.Items.Add(removeItem);
+                contextMenu.Items.Add(new Separator());
+            }
 
-             MessageRichTextBox.Background = imageBrush;
+            var replaceItem = new MenuItem { Header = "🌄 Выбрать новый фон" };
+            replaceItem.Click += (_, __) =>
+            {
+                var openFileDialog = new Microsoft.Win32.OpenFileDialog
+                {
+                    Filter = "Image Files (*.png;*.jpg;*.jpeg;*.gif;*.bmp)|*.png;*.jpg;*.jpeg;*.gif;*.bmp",
+                    Title = "Выберите фоновое изображение"
+                };
 
-             
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    backgroundImagePath = openFileDialog.FileName;
 
-             MessageBox.Show("Фоновое изображение успешно выбрано и применено.",
-                             "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
-         }
-         catch (Exception ex)
-         {
-             MessageBox.Show($"Ошибка при загрузке изображения: {ex.Message}",
-                             "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-         }
-     }
- }
+                    try
+                    {
+                        var imageBrush = new ImageBrush
+                        {
+                            ImageSource = new BitmapImage(new Uri(backgroundImagePath)),
+                            Stretch = Stretch.UniformToFill,
+                            Opacity = 1.0
+                        };
 
-        
+                        MessageRichTextBox.Background = imageBrush;
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Ошибка при загрузке изображения: {ex.Message}",
+                                        "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            };
+            contextMenu.Items.Add(replaceItem);
+
+            contextMenu.PlacementTarget = sender as Button;
+            contextMenu.IsOpen = true;
+        }
+
+
+
 
         private void AddCategory_Click(object sender, RoutedEventArgs e)
         {
@@ -987,7 +1005,7 @@ namespace alesya_rassylka
 
             // Сброс темы
             SubjectTextBox.Text = DefaultSubject;
-            SubjectTextBox.Foreground = Brushes.Gray;
+            SubjectTextBox.Foreground = Brushes.Black;
 
             // Очистка списка получателей
             RecipientList.ItemsSource = null;
@@ -1477,90 +1495,393 @@ namespace alesya_rassylka
         private void EditImageParameters(Image image)
         {
             var parameters = (ImageParameters)image.Tag;
-            var window = new Window
+            parameters.Width = Math.Round(parameters.Width);
+            parameters.Height = Math.Round(parameters.Height);
+
+            var window = new MetroWindow
             {
-                Title = "Параметры изображения",
+                Title = "Редактирование изображения",
                 Width = 350,
-                Height = 300, // Увеличиваем высоту для нового чекбокса
+                Height = 345,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this,
                 ResizeMode = ResizeMode.NoResize,
-                Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png"))
+                Icon = new BitmapImage(new Uri("pack://application:,,,/icons8-почта-100.png")),
+                Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor),
+                BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                BorderThickness = new Thickness(1),
+                TitleForeground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                TitleCharacterCasing = CharacterCasing.Normal
             };
+
+            SettingsWindow.ThemeChanged += UpdateTheme;
+            window.Closed += (_, _) => SettingsWindow.ThemeChanged -= UpdateTheme;
+
+            void UpdateTheme() => window.Dispatcher.Invoke(() =>
+                window.Background = new SolidColorBrush(SettingsWindow.CurrentThemeColor));
+
+            // Создаем стиль для кнопок
+            Style CreateActionButtonStyle()
+            {
+                var style = new Style(typeof(Button));
+                style.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.White));
+                style.Setters.Add(new Setter(Control.ForegroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+                style.Setters.Add(new Setter(Control.FontSizeProperty, 16.0));
+                style.Setters.Add(new Setter(Control.FontFamilyProperty, new FontFamily("Arial Black")));
+                style.Setters.Add(new Setter(Control.FontWeightProperty, FontWeights.Bold));
+                style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(10, 5, 10, 5)));
+                style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
+                style.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+                style.Setters.Add(new Setter(Control.CursorProperty, Cursors.Hand));
+                style.Setters.Add(new Setter(Control.MinHeightProperty, 30.0));
+                style.Setters.Add(new Setter(Control.TemplateProperty, CreateButtonTemplate()));
+                return style;
+            }
+
+            ControlTemplate CreateButtonTemplate()
+            {
+                var template = new ControlTemplate(typeof(Button));
+                var border = new FrameworkElementFactory(typeof(Border));
+                border.Name = "border";
+                border.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
+                border.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Control.BorderBrushProperty));
+                border.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Control.BorderThicknessProperty));
+                border.SetValue(Border.CornerRadiusProperty, new CornerRadius(5));
+                border.SetValue(Border.PaddingProperty, new TemplateBindingExtension(Control.PaddingProperty));
+
+                var contentPresenter = new FrameworkElementFactory(typeof(ContentPresenter));
+                contentPresenter.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Center);
+                contentPresenter.SetValue(VerticalAlignmentProperty, VerticalAlignment.Center);
+                border.AppendChild(contentPresenter);
+
+                template.VisualTree = border;
+
+                var mouseOverTrigger = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
+                mouseOverTrigger.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E0E6F8")), "border"));
+                template.Triggers.Add(mouseOverTrigger);
+
+                var pressedTrigger = new Trigger { Property = Button.IsPressedProperty, Value = true };
+                pressedTrigger.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C0D0F0")), "border"));
+                template.Triggers.Add(pressedTrigger);
+
+                return template;
+            }
+
+            ControlTemplate CreateRoundedTextBoxTemplate()
+            {
+                var template = new ControlTemplate(typeof(TextBox));
+                var border = new FrameworkElementFactory(typeof(Border));
+                border.Name = "Border";
+                border.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
+                border.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Control.BorderBrushProperty));
+                border.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Control.BorderThicknessProperty));
+                border.SetValue(Border.CornerRadiusProperty, new CornerRadius(5));
+
+                var scrollViewer = new FrameworkElementFactory(typeof(ScrollViewer));
+                scrollViewer.Name = "PART_ContentHost";
+                scrollViewer.SetValue(ScrollViewer.MarginProperty, new Thickness(0));
+                border.AppendChild(scrollViewer);
+
+                template.VisualTree = border;
+                return template;
+            }
+
+            // Создаем стиль для ComboBox
+            Style CreateComboBoxStyle()
+            {
+                var style = new Style(typeof(ComboBox));
+                style.Setters.Add(new Setter(Control.ForegroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+                style.Setters.Add(new Setter(Control.FontSizeProperty, 14.0));
+                style.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))));
+                style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
+                style.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.White));
+                style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(5)));
+                style.Setters.Add(new Setter(Control.TemplateProperty, CreateComboBoxTemplate()));
+
+                // Стиль для элементов ComboBox
+                var itemContainerStyle = new Style(typeof(ComboBoxItem));
+                itemContainerStyle.Setters.Add(new Setter(Control.TemplateProperty, CreateComboBoxItemTemplate()));
+                style.Setters.Add(new Setter(ComboBox.ItemContainerStyleProperty, itemContainerStyle));
+
+                return style;
+            }
+
+            ControlTemplate CreateComboBoxItemTemplate()
+            {
+                var template = new ControlTemplate(typeof(ComboBoxItem));
+                var border = new FrameworkElementFactory(typeof(Border));
+                border.Name = "Bd";
+                border.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
+                border.SetValue(Border.PaddingProperty, new Thickness(5));
+
+                var contentPresenter = new FrameworkElementFactory(typeof(ContentPresenter));
+                border.AppendChild(contentPresenter);
+
+                template.VisualTree = border;
+
+                var highlightTrigger = new Trigger { Property = ComboBoxItem.IsHighlightedProperty, Value = true };
+                highlightTrigger.Setters.Add(new Setter(Border.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C0D0F0")), "Bd"));
+                template.Triggers.Add(highlightTrigger);
+
+                var mouseOverTrigger = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
+                mouseOverTrigger.Setters.Add(new Setter(Border.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E0E6F8")), "Bd"));
+                template.Triggers.Add(mouseOverTrigger);
+
+                return template;
+            }
+
+            ControlTemplate CreateComboBoxTemplate()
+            {
+                var template = new ControlTemplate(typeof(ComboBox));
+                var grid = new FrameworkElementFactory(typeof(Grid));
+
+                // ToggleButton для открытия/закрытия выпадающего списка
+                var toggleButton = new FrameworkElementFactory(typeof(ToggleButton));
+                toggleButton.Name = "ToggleButton";
+                toggleButton.SetValue(ToggleButton.BorderBrushProperty, new TemplateBindingExtension(Control.BorderBrushProperty));
+                toggleButton.SetValue(ToggleButton.BorderThicknessProperty, new TemplateBindingExtension(Control.BorderThicknessProperty));
+                toggleButton.SetValue(ToggleButton.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
+                toggleButton.SetValue(ToggleButton.IsCheckedProperty, new Binding("IsDropDownOpen") { Mode = BindingMode.TwoWay, RelativeSource = new RelativeSource(RelativeSourceMode.TemplatedParent) });
+                toggleButton.SetValue(ToggleButton.ClickModeProperty, ClickMode.Press);
+                toggleButton.SetValue(ToggleButton.TemplateProperty, CreateToggleButtonTemplate());
+
+                // ContentPresenter для отображения выбранного элемента
+                var contentPresenter = new FrameworkElementFactory(typeof(ContentPresenter));
+                contentPresenter.Name = "ContentSite";
+                contentPresenter.SetValue(ContentPresenter.IsHitTestVisibleProperty, false);
+                contentPresenter.SetValue(ContentPresenter.ContentProperty, new TemplateBindingExtension(ComboBox.SelectionBoxItemProperty));
+                contentPresenter.SetValue(ContentPresenter.ContentTemplateProperty, new TemplateBindingExtension(ComboBox.SelectionBoxItemTemplateProperty));
+                contentPresenter.SetValue(ContentPresenter.ContentTemplateSelectorProperty, new TemplateBindingExtension(ComboBox.ItemTemplateSelectorProperty));
+                contentPresenter.SetValue(ContentPresenter.MarginProperty, new TemplateBindingExtension(Control.PaddingProperty));
+                contentPresenter.SetValue(ContentPresenter.VerticalAlignmentProperty, VerticalAlignment.Center);
+                contentPresenter.SetValue(ContentPresenter.HorizontalAlignmentProperty, HorizontalAlignment.Left);
+
+                // Popup для выпадающего списка
+                var popup = new FrameworkElementFactory(typeof(Popup));
+                popup.Name = "Popup";
+                popup.SetValue(Popup.PlacementProperty, PlacementMode.Bottom);
+                popup.SetValue(Popup.IsOpenProperty, new TemplateBindingExtension(ComboBox.IsDropDownOpenProperty));
+                popup.SetValue(Popup.AllowsTransparencyProperty, true);
+                popup.SetValue(Popup.PopupAnimationProperty, PopupAnimation.Slide);
+
+                var dropDownGrid = new FrameworkElementFactory(typeof(Grid));
+                dropDownGrid.Name = "DropDown";
+                dropDownGrid.SetValue(FrameworkElement.SnapsToDevicePixelsProperty, true);
+                dropDownGrid.SetValue(FrameworkElement.MinWidthProperty, new TemplateBindingExtension(FrameworkElement.ActualWidthProperty));
+                dropDownGrid.SetValue(FrameworkElement.MaxHeightProperty, 200.0);
+
+                var dropDownBorder = new FrameworkElementFactory(typeof(Border));
+                dropDownBorder.Name = "DropDownBorder";
+                dropDownBorder.SetValue(Border.BackgroundProperty, Brushes.White);
+                dropDownBorder.SetValue(Border.BorderThicknessProperty, new Thickness(1));
+                dropDownBorder.SetValue(Border.BorderBrushProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")));
+                dropDownBorder.SetValue(Border.CornerRadiusProperty, new CornerRadius(5));
+
+                var scrollViewer = new FrameworkElementFactory(typeof(ScrollViewer));
+                scrollViewer.SetValue(ScrollViewer.MarginProperty, new Thickness(4, 6, 4, 6));
+                scrollViewer.SetValue(ScrollViewer.VerticalScrollBarVisibilityProperty, ScrollBarVisibility.Auto);
+                scrollViewer.SetValue(ScrollViewer.HorizontalScrollBarVisibilityProperty, ScrollBarVisibility.Disabled);
+
+                var itemsHost = new FrameworkElementFactory(typeof(StackPanel));
+                itemsHost.SetValue(Panel.IsItemsHostProperty, true);
+                itemsHost.SetValue(KeyboardNavigation.DirectionalNavigationProperty, KeyboardNavigationMode.Contained);
+
+                scrollViewer.AppendChild(itemsHost);
+                dropDownBorder.AppendChild(scrollViewer);
+                dropDownGrid.AppendChild(dropDownBorder);
+                popup.AppendChild(dropDownGrid);
+
+                grid.AppendChild(toggleButton);
+                grid.AppendChild(contentPresenter);
+                grid.AppendChild(popup);
+
+                template.VisualTree = grid;
+
+                var disabledTrigger = new Trigger { Property = UIElement.IsEnabledProperty, Value = false };
+                disabledTrigger.Setters.Add(new Setter(Control.ForegroundProperty, Brushes.Gray));
+                template.Triggers.Add(disabledTrigger);
+
+                return template;
+            }
+
+            ControlTemplate CreateToggleButtonTemplate()
+            {
+                var template = new ControlTemplate(typeof(ToggleButton));
+                var border = new FrameworkElementFactory(typeof(Border));
+                border.Name = "Border";
+                border.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
+                border.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Control.BorderBrushProperty));
+                border.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Control.BorderThicknessProperty));
+                border.SetValue(Border.CornerRadiusProperty, new CornerRadius(5));
+
+                var grid = new FrameworkElementFactory(typeof(Grid));
+                var col1 = new FrameworkElementFactory(typeof(ColumnDefinition));
+                col1.SetValue(ColumnDefinition.WidthProperty, new GridLength(1, GridUnitType.Star));
+                col1.Name = "Col1";
+                var col2 = new FrameworkElementFactory(typeof(ColumnDefinition));
+                col2.SetValue(ColumnDefinition.WidthProperty, new GridLength(20, GridUnitType.Pixel));
+                col2.Name = "Col2";
+                grid.AppendChild(col1);
+                grid.AppendChild(col2);
+
+                var contentPresenter = new FrameworkElementFactory(typeof(ContentPresenter));
+                contentPresenter.SetValue(Grid.ColumnProperty, 0);
+                contentPresenter.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Left);
+                contentPresenter.SetValue(VerticalAlignmentProperty, VerticalAlignment.Center);
+                contentPresenter.SetValue(FrameworkElement.MarginProperty, new TemplateBindingExtension(Control.PaddingProperty));
+
+                var arrow = new FrameworkElementFactory(typeof(System.Windows.Shapes.Path));
+                arrow.Name = "Arrow";
+                arrow.SetValue(Grid.ColumnProperty, 1);
+                arrow.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Center);
+                arrow.SetValue(VerticalAlignmentProperty, VerticalAlignment.Center);
+                arrow.SetValue(System.Windows.Shapes.Path.DataProperty, Geometry.Parse("M 0 0 L 4 4 L 8 0 Z"));
+                arrow.SetValue(System.Windows.Shapes.Path.FillProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")));
+
+                grid.AppendChild(contentPresenter);
+                grid.AppendChild(arrow);
+                border.AppendChild(grid);
+
+                template.VisualTree = border;
+
+                var mouseOverTrigger = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
+                mouseOverTrigger.Setters.Add(new Setter(Border.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E0E6F8")), "Border"));
+                template.Triggers.Add(mouseOverTrigger);
+
+                var checkedTrigger = new Trigger { Property = ToggleButton.IsCheckedProperty, Value = true };
+                checkedTrigger.Setters.Add(new Setter(Border.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C0D0F0")), "Border"));
+                template.Triggers.Add(checkedTrigger);
+
+                return template;
+            }
 
             var stackPanel = new StackPanel { Margin = new Thickness(10) };
 
-            // Поле для ширины
-            stackPanel.Children.Add(new TextBlock { Text = "Ширина (px):" });
-            var widthBox = new TextBox { Text = parameters.Width.ToString(), Margin = new Thickness(0, 5, 0, 10), Width = 100 };
+            stackPanel.Children.Add(new TextBlock
+            {
+                Text = "Параметры изображения",
+                FontSize = 16,
+                FontWeight = FontWeights.Bold,
+                Margin = new Thickness(0, 0, 0, 10),
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))
+            });
+
+            stackPanel.Children.Add(new TextBlock
+            {
+                Text = "Ширина (px):",
+                FontSize = 14,
+                Margin = new Thickness(0, 0, 0, 5),
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))
+            });
+            var widthBox = new TextBox
+            {
+                Text = parameters.Width.ToString(),
+                FontSize = 14,
+                Margin = new Thickness(0, 0, 0, 10),
+                BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                BorderThickness = new Thickness(1),
+                Background = Brushes.White,
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                Padding = new Thickness(5),
+                Template = CreateRoundedTextBoxTemplate()
+            };
             stackPanel.Children.Add(widthBox);
 
-            // Поле для высоты
-            stackPanel.Children.Add(new TextBlock { Text = "Высота (px):" });
-            var heightBox = new TextBox { Text = parameters.Height.ToString(), Margin = new Thickness(0, 5, 0, 10), Width = 100 };
+            stackPanel.Children.Add(new TextBlock
+            {
+                Text = "Высота (px):",
+                FontSize = 14,
+                Margin = new Thickness(0, 0, 0, 5),
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))
+            });
+            var heightBox = new TextBox
+            {
+                Text = parameters.Height.ToString(),
+                FontSize = 14,
+                Margin = new Thickness(0, 0, 0, 10),
+                BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                BorderThickness = new Thickness(1),
+                Background = Brushes.White,
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74")),
+                Padding = new Thickness(5),
+                Template = CreateRoundedTextBoxTemplate()
+            };
             stackPanel.Children.Add(heightBox);
 
-            // Чекбокс для сохранения пропорций
-            var keepAspectRatioCheckBox = new CheckBox
+            var keepComboBox = new CheckBox
             {
                 Content = "Сохранять пропорции",
                 IsChecked = true,
-                Margin = new Thickness(0, 5, 0, 10)
+                Margin = new Thickness(0, 0, 0, 10),
+                FontSize = 14,
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))
             };
-            stackPanel.Children.Add(keepAspectRatioCheckBox);
+            stackPanel.Children.Add(keepComboBox);
 
-            // Вычисляем исходное соотношение сторон
-            double originalAspectRatio = parameters.Width / parameters.Height;
-
-            // Обработчики изменения текста для сохранения пропорций
-            widthBox.TextChanged += (s, e) =>
+            double aspectRatio = parameters.Width / parameters.Height;
+            widthBox.TextChanged += (_, _) =>
             {
-                if (keepAspectRatioCheckBox.IsChecked == true)
-                {
-                    if (double.TryParse(widthBox.Text, out double newWidth) && newWidth > 0)
-                    {
-                        heightBox.Text = Math.Round(newWidth / originalAspectRatio).ToString();
-                    }
-                }
+                if (keepComboBox.IsChecked == true && double.TryParse(widthBox.Text, out double w))
+                    heightBox.Text = Math.Round(w / aspectRatio).ToString();
             };
-
-            heightBox.TextChanged += (s, e) =>
+            heightBox.TextChanged += (_, _) =>
             {
-                if (keepAspectRatioCheckBox.IsChecked == true)
-                {
-                    if (double.TryParse(heightBox.Text, out double newHeight) && newHeight > 0)
-                    {
-                        widthBox.Text = Math.Round(newHeight * originalAspectRatio).ToString();
-                    }
-                }
+                if (keepComboBox.IsChecked == true && double.TryParse(heightBox.Text, out double h))
+                    widthBox.Text = Math.Round(h * aspectRatio).ToString();
             };
 
-            // Выбор режима растяжения
-            stackPanel.Children.Add(new TextBlock { Text = "Режим растяжения:" });
+            stackPanel.Children.Add(new TextBlock
+            {
+                Text = "Режим растяжения:",
+                FontSize = 14,
+                Margin = new Thickness(0, 0, 0, 5),
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#172A74"))
+            });
+
             var stretchCombo = new ComboBox
             {
-                ItemsSource = new[] { "Uniform (пропорционально)", "Fill (растянуть полностью)", "UniformToFill (пропорционально с обрезкой)" },
+                ItemsSource = new[]
+                {
+            "пропорционально",
+            "растянуть полностью",
+            "с обрезкой"
+        },
                 SelectedIndex = parameters.StretchMode switch
                 {
                     "Fill" => 1,
                     "UniformToFill" => 2,
-                    _ => 0 // Uniform по умолчанию
+                    _ => 0
                 },
-                Margin = new Thickness(0, 5, 0, 10)
+                FontSize = 14,
+                Margin = new Thickness(0, 0, 0, 15),
+                Style = CreateComboBoxStyle()
             };
             stackPanel.Children.Add(stretchCombo);
 
-            // Кнопка подтверждения
-            var confirmButton = new Button
+            var buttonPanel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+
+            var applyButton = new Button
             {
                 Content = "Применить",
-                Width = 100,
-                Height = 25,
-                Margin = new Thickness(0, 20, 0, 0),
-                FontSize = 12,
-                Style = (Style)FindResource("ActionButton")
+                Width = 125,
+                Height = 35,
+                Margin = new Thickness(0, 0, 10, 0),
+                Style = CreateActionButtonStyle()
             };
-            confirmButton.Click += (s, args) =>
+
+            var cancelButton = new Button
+            {
+                Content = "Отменить",
+                Width = 125,
+                Height = 35,
+                Style = CreateActionButtonStyle()
+            };
+
+            applyButton.Click += (_, _) =>
             {
                 try
                 {
@@ -1568,7 +1889,6 @@ namespace alesya_rassylka
                     parameters.Height = double.Parse(heightBox.Text);
                     parameters.StretchMode = stretchCombo.SelectedIndex switch
                     {
-                        0 => "Uniform",
                         1 => "Fill",
                         2 => "UniformToFill",
                         _ => "Uniform"
@@ -1576,21 +1896,26 @@ namespace alesya_rassylka
 
                     image.Width = parameters.Width;
                     image.Height = parameters.Height;
-                    if (parameters.StretchMode == "Uniform")
-                        image.Stretch = Stretch.Uniform;
-                    else if (parameters.StretchMode == "Fill")
-                        image.Stretch = Stretch.Fill;
-                    else if (parameters.StretchMode == "UniformToFill")
-                        image.Stretch = Stretch.UniformToFill;
+                    image.Stretch = parameters.StretchMode switch
+                    {
+                        "Fill" => Stretch.Fill,
+                        "UniformToFill" => Stretch.UniformToFill,
+                        _ => Stretch.Uniform
+                    };
 
                     window.Close();
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Ошибка при применении параметров: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             };
-            stackPanel.Children.Add(confirmButton);
+
+            cancelButton.Click += (_, _) => window.Close();
+
+            buttonPanel.Children.Add(applyButton);
+            buttonPanel.Children.Add(cancelButton);
+            stackPanel.Children.Add(buttonPanel);
 
             window.Content = stackPanel;
             window.ShowDialog();
